@@ -9,11 +9,18 @@ export default {
       fontFamily: {
         sans: ["Poppins", "sans-serif"],
       },
-      colors: {
-        purple: {
-          700: "#6B21A8",
-          800: "#581C87",
+      keyframes: {
+        fadeInUp: {
+          "0%": { opacity: 0, transform: "translateY(20px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
         },
+      },
+      animation: {
+        fadeInUp: "fadeInUp 1s ease-out",
+      },
+      backgroundImage: {
+        "soft-gradient":
+          "linear-gradient(to bottom right, #fce7f3, #e9d5ff, #cffafe)",
       },
     },
   },
