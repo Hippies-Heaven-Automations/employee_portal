@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional — global polish */
+body {
+  @apply bg-white text-gray-900 antialiased;
+}
+
+h1, h2, h3, h4 {
+  @apply font-semibold text-purple-800;
+}
