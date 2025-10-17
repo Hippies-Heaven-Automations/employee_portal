@@ -17,13 +17,14 @@ import Employees from "./pages/admin/Employees";
 import Schedule from "./pages/admin/Schedule";
 import Applications from "./pages/admin/Applications";
 import TimeOff from "./pages/admin/TimeOff";
-import ShiftLogs from "./pages/admin/Shiftlogs";
+import ShiftLogs from "./pages/admin/ShiftLogs";
 
 // employee pages
 import EmpHome from "./pages/employee/EmpHome";
 import EmpSchedule from "./pages/employee/EmpSchedule";
 import EmpTimeIn from "./pages/employee/EmpTimeIn";
 import EmpTimeOff from "./pages/employee/EmpTimeOff";
+import EmpAnnouncements from "./pages/employee/EmpAnnouncements";
 
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -82,6 +83,7 @@ export default function App() {
             }
           >
             <Route index element={<EmpHome />} />
+            <Route path="announcements" element={<EmpAnnouncements />} />
             <Route path="schedule" element={<EmpSchedule />} />
             <Route path="timein" element={<EmpTimeIn />} />
             <Route path="timeoff" element={<EmpTimeOff />} />
