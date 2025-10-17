@@ -6,22 +6,35 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Hiring from "./pages/Hiring";
 import Login from "./pages/Login";
-import AdminDashboard from "./pages/AdminDashboard";
-import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminLayout from "./components/AdminLayout";
+import EmployeeLayout from "./components/EmployeeLayout";
 
-// A wrapper to conditionally hide header/footer
+// admin pages
+import AdminHome from "./pages/admin/AdminHome";
+import Announcements from "./pages/admin/Announcements";
+import Employees from "./pages/admin/Employees";
+import Schedule from "./pages/admin/Schedule";
+import Applications from "./pages/admin/Applications";
+import TimeOff from "./pages/admin/TimeOff";
+import ShiftLogs from "./pages/admin/Shiftlogs";
+
+// employee pages
+import EmpHome from "./pages/employee/EmpHome";
+import EmpSchedule from "./pages/employee/EmpSchedule";
+import EmpTimeIn from "./pages/employee/EmpTimeIn";
+import EmpTimeOff from "./pages/employee/EmpTimeOff";
+
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const hideHeaderFooter =
     location.pathname.startsWith("/admin-dashboard") ||
     location.pathname.startsWith("/employee-dashboard");
-
   return (
     <div className="flex min-h-screen flex-col">
       {!hideHeaderFooter && <Header />}
       <main className="flex-1">{children}</main>
-      {!hideHeaderFooter && <Footer />}
+      <Footer />
     </div>
   );
 }
@@ -31,30 +44,48 @@ export default function App() {
     <Router>
       <LayoutWrapper>
         <Routes>
-          {/* Public Pages */}
+          {/* Public pages */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/hiring" element={<Hiring />} />
           <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes */}
+          {/* Guest dashboard (uses Header/Footer) */}
+          {/* <Route path="/guest-dashboard" element={<GuestDashboard />} /> */}
+
+          {/* Admin dashboard nested routes */}
           <Route
-            path="/admin-dashboard/*"
+            path="/admin-dashboard"
             element={
               <ProtectedRoute role="admin">
-                <AdminDashboard />
+                <AdminLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<AdminHome />} />
+            <Route path="announcements" element={<Announcements />} />
+            <Route path="employees" element={<Employees />} />
+            <Route path="schedule" element={<Schedule />} />
+            <Route path="applications" element={<Applications />} />
+            <Route path="timeoff" element={<TimeOff />} />
+            <Route path="shiftlogs" element={<ShiftLogs />} />
+          </Route>
+
+          {/* Employee dashboard nested routes */}
           <Route
-            path="/employee-dashboard/*"
+            path="/employee-dashboard"
             element={
               <ProtectedRoute role="employee">
-                <EmployeeDashboard />
+                <EmployeeLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<EmpHome />} />
+            <Route path="schedule" element={<EmpSchedule />} />
+            <Route path="timein" element={<EmpTimeIn />} />
+            <Route path="timeoff" element={<EmpTimeOff />} />
+          </Route>
         </Routes>
       </LayoutWrapper>
     </Router>
