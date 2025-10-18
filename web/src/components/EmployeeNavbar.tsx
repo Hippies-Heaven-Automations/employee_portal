@@ -16,6 +16,7 @@ export default function EmployeeNavbar() {
     { name: "Schedule", path: "/employee-dashboard/schedule" },
     { name: "Time In", path: "/employee-dashboard/timein" },
     { name: "Time Off", path: "/employee-dashboard/timeoff" },
+    { name: "Training", path: "/employee-dashboard/training" }, 
   ];
 
   return (

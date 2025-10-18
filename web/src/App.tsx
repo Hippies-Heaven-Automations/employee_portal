@@ -18,6 +18,8 @@ import Schedule from "./pages/admin/Schedule";
 import Applications from "./pages/admin/Applications";
 import TimeOff from "./pages/admin/TimeOff";
 import ShiftLogs from "./pages/admin/ShiftLogs";
+import QuizEditor from "./pages/admin/QuizEditor";
+import TrainingTracker from "./pages/admin/TrainingTracker";
 
 // employee pages
 import EmpHome from "./pages/employee/EmpHome";
@@ -25,6 +27,12 @@ import EmpSchedule from "./pages/employee/EmpSchedule";
 import EmpTimeIn from "./pages/employee/EmpTimeIn";
 import EmpTimeOff from "./pages/employee/EmpTimeOff";
 import EmpAnnouncements from "./pages/employee/EmpAnnouncements";
+
+//training pages
+import TrainingDetail from "./pages/training/TrainingDetail";
+import TrainingList from "./pages/training/TrainingList";
+import TrainingQuiz from "./pages/training/TrainingQuiz";
+
 
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -71,6 +79,8 @@ export default function App() {
             <Route path="applications" element={<Applications />} />
             <Route path="timeoff" element={<TimeOff />} />
             <Route path="shiftlogs" element={<ShiftLogs />} />
+            <Route path="quizeditor" element={<QuizEditor />} />
+            <Route path="trainingtracker" element={<TrainingTracker />} />
           </Route>
 
           {/* Employee dashboard nested routes */}
@@ -87,6 +97,10 @@ export default function App() {
             <Route path="schedule" element={<EmpSchedule />} />
             <Route path="timein" element={<EmpTimeIn />} />
             <Route path="timeoff" element={<EmpTimeOff />} />
+            <Route path="training" element={<TrainingList />} />
+            <Route path="training/:id" element={<TrainingDetail />} />
+            <Route path="training/:id/quiz" element={<TrainingQuiz />} />
+
           </Route>
         </Routes>
       </LayoutWrapper>

@@ -9,12 +9,17 @@ interface Announcement {
   content: string;
   created_at: string;
 }
+// const { data } = await supabase.from("profiles").select("id").limit(1);
+// console.log(data);
+
+const { data } = await supabase.auth.getUser();
+console.log(data.user?.id);
 
 export default function EmpHome() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
-
+  
   const fetchAnnouncements = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -32,6 +37,7 @@ export default function EmpHome() {
     fetchAnnouncements();
   }, []);
 
+  
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Welcome to Your Dashboard</h1>
