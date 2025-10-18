@@ -21,6 +21,7 @@ export default function AdminNavbar() {
     { name: "Shift Logs", path: "/admin-dashboard/shiftlogs" },
     { name: "QuizEditor", path: "/admin-dashboard/quizeditor" },
     { name: "Training Tracker", path: "/admin-dashboard/trainingtracker" },
+    { name: "Trainings", path: "/admin-dashboard/trainings" },
 
   ];
 

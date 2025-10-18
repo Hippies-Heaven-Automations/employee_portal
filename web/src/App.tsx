@@ -20,6 +20,10 @@ import TimeOff from "./pages/admin/TimeOff";
 import ShiftLogs from "./pages/admin/ShiftLogs";
 import QuizEditor from "./pages/admin/QuizEditor";
 import TrainingTracker from "./pages/admin/TrainingTracker";
+import TrainingManager from "./pages/admin/TrainingManager";
+import TrainingPreview from "./pages/admin/TrainingPreview";
+
+
 
 // employee pages
 import EmpHome from "./pages/employee/EmpHome";
@@ -81,7 +85,10 @@ export default function App() {
             <Route path="shiftlogs" element={<ShiftLogs />} />
             <Route path="quizeditor" element={<QuizEditor />} />
             <Route path="trainingtracker" element={<TrainingTracker />} />
+            <Route path="trainings" element={<TrainingManager />} />
+            <Route path="trainings/:id/preview" element={<TrainingPreview />} />
           </Route>
+
 
           {/* Employee dashboard nested routes */}
           <Route
