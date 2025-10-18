@@ -34,36 +34,55 @@ export default function Quiz({ trainingId }: QuizProps) {
 
   // Fetch quiz from Supabase
   useEffect(() => {
-    const fetchQuiz = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchQuiz = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const { data, error } = await supabase
-          .from("training_quizzes")
-          .select("content, version")
-          .eq("training_id", trainingId)
-          .eq("is_active", true)
-          .single();
+      const { data, error } = await supabase
+        .from("training_quizzes")
+        .select("*")
+        .eq("training_id", trainingId)
+        .eq("is_active", true)
+        .order("version", { ascending: false })
+        .limit(1)
+        .maybeSingle(); // ✅ prevents coercion error
 
-        if (error) throw error;
+      if (error) throw error;
 
-        const quizContent: QuizQuestion[] = data?.content || [];
-        const shuffled = [...quizContent].sort(() => Math.random() - 0.5);
-
-        setQuestions(shuffled);
-        setVersion(data.version);
-        setAnswers(new Array(shuffled.length).fill(""));
-      } catch (err: any) {
-        console.error("Error loading quiz:", err);
-        setError(err.message || "Failed to load quiz.");
-      } finally {
-        setLoading(false);
+      // ✅ handle missing data gracefully
+      if (!data) {
+        setError("No active quiz found for this training.");
+        setQuestions([]);
+        setVersion(null);
+        return;
       }
-    };
+const quizContent: QuizQuestion[] = data?.content || [];
 
-    if (trainingId) fetchQuiz();
-  }, [trainingId]);
+// ✅ Shuffle questions
+const shuffledQuestions = [...quizContent].sort(() => Math.random() - 0.5);
+
+// ✅ Shuffle choices for each question too
+const randomized = shuffledQuestions.map((q) => ({
+  ...q,
+  choices: [...q.choices].sort(() => Math.random() - 0.5),
+}));
+
+setQuestions(randomized);
+setVersion(data.version);
+setAnswers(new Array(randomized.length).fill(""));
+
+    } catch (err: any) {
+      console.error("Error loading quiz:", err);
+      setError(err.message || "Failed to load quiz.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (trainingId) fetchQuiz();
+}, [trainingId]);
+
 
   const handleChoice = (choice: string) => {
     if (finished) return; // disable after completion
@@ -99,12 +118,27 @@ export default function Quiz({ trainingId }: QuizProps) {
       setScore(finalScore);
 
       // Call Supabase RPC
-      const { error } = await supabase.rpc("record_quiz_result", {
-        _employee_id: userId,
-        _training_id: trainingId,
-        _score: finalScore,
-        _quiz_version: version,
-      });
+     const detailedAnswers = questions.map((q, i) => ({
+        question: q.question,
+        selected: answers[i],
+        correct: answers[i] === q.answer,
+      }));
+
+      const { error } = await supabase
+        .from("training_tracker")
+        .upsert(
+          {
+            employee_id: userId,
+            training_id: trainingId,
+            quiz_score: finalScore,
+            quiz_version: version,
+            completed_at: new Date().toISOString(),
+            quiz_answers: detailedAnswers,
+          },
+          { onConflict: "employee_id,training_id" }
+        );
+
+
 
       if (error) throw error;
 
@@ -137,6 +171,14 @@ export default function Quiz({ trainingId }: QuizProps) {
         No quiz found for this training.
       </div>
     );
+
+  if (!questions.length && !loading && !error)
+  return (
+    <div className="p-4 text-center text-gray-600">
+      No active quiz is available for this training yet.
+    </div>
+  );
+
 
   const currentQuestion = questions[currentIndex];
   const selected = answers[currentIndex];
