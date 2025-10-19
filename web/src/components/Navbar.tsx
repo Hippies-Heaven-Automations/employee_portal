@@ -3,6 +3,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { cn } from "../utils";
 import { LogOut, User, Menu, X } from "lucide-react";
+import hhLogo from "../assets/hh-logo.png";
+
 
 export interface NavItem {
   to: string;
@@ -53,8 +55,12 @@ export default function Navbar({
         <div className="mx-auto max-w-7xl flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           {/* Brand */}
           <div className="flex items-center gap-2 text-xl font-bold text-hemp-forest">
+            <img
+              src={hhLogo}
+              alt="Hippies Heaven Logo"
+              className="w-10 h-10 object-contain"
+            />
             <span>Hippies Heaven</span>
-            <span role="img" aria-label="leaf">🌿</span>
           </div>
 
           {/* Desktop Links */}
