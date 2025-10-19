@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import EmployeeForm from "./EmployeeForm";
+import { Pencil, Trash2, UserPlus } from "lucide-react";
 
 interface Employee {
   id: string;
@@ -53,51 +54,95 @@ export default function Employees() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">Employees</h1>
-        <Button onClick={handleAdd}>Add Employee</Button>
+    <section className="animate-fadeInUp text-gray-700">
+      {/* 🌿 Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-hemp-forest mb-2 sm:mb-0">
+          Employees
+        </h1>
+        <Button
+          onClick={handleAdd}
+          className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 transition-all duration-300 shadow-card inline-flex items-center gap-2"
+        >
+          <UserPlus size={18} />
+          Add Employee
+        </Button>
       </div>
 
-      {loading ? (
-        <p>Loading employees...</p>
-      ) : (
-        <div className="overflow-x-auto border rounded-lg">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 text-left">Name</th>
-                <th className="p-2 text-left">Email</th>
-                <th className="p-2 text-left">Type</th>
-                <th className="p-2 text-left">Contact</th>
-                <th className="p-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((emp) => (
-                <tr key={emp.id} className="border-t">
-                  <td className="p-2">{emp.full_name}</td>
-                  <td className="p-2">{emp.email}</td>
-                  <td className="p-2">{emp.employee_type}</td>
-                  <td className="p-2">{emp.contact_number}</td>
-                  <td className="p-2 space-x-2">
-                    <Button onClick={() => handleEdit(emp)} variant="outline">Edit</Button>
-                    <Button onClick={() => handleDelete(emp.id)} variant="ghost">Delete</Button>
-                  </td>
-                </tr>
-              ))}
-              {employees.length === 0 && (
+      {/* 🌿 Table */}
+      <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="p-6 text-center text-gray-500">
+            Loading employees...
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm text-gray-700">
+              <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase tracking-wide text-xs">
                 <tr>
-                  <td colSpan={6} className="p-4 text-center text-gray-500">
-                    No employees found
-                  </td>
+                  <th className="px-4 py-3 text-left">Name</th>
+                  <th className="px-4 py-3 text-left">Email</th>
+                  <th className="px-4 py-3 text-left">Type</th>
+                  <th className="px-4 py-3 text-left">Contact</th>
+                  <th className="px-4 py-3 text-left">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {employees.map((emp) => (
+                  <tr
+                    key={emp.id}
+                    className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition-all"
+                  >
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      {emp.full_name}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">{emp.email}</td>
+                    <td className="px-4 py-3 text-gray-700 capitalize">
+                      {emp.employee_type}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {emp.contact_number || "-"}
+                    </td>
+                    <td className="px-4 py-3 flex flex-wrap gap-2">
+                      {/* ✏️ Edit */}
+                      <Button
+                        onClick={() => handleEdit(emp)}
+                        variant="outline"
+                        className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white transition inline-flex items-center gap-1.5"
+                      >
+                        <Pencil size={15} />
+                        <span className="hidden sm:inline">Edit</span>
+                      </Button>
 
+                      {/* 🗑 Delete */}
+                      <Button
+                        onClick={() => handleDelete(emp.id)}
+                        variant="ghost"
+                        className="text-red-600 hover:bg-red-50 inline-flex items-center gap-1.5"
+                      >
+                        <Trash2 size={16} />
+                        <span className="hidden sm:inline">Delete</span>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {employees.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="p-6 text-center text-gray-500 italic"
+                    >
+                      No employees found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 🌿 Add/Edit Modal */}
       {isFormOpen && (
         <EmployeeForm
           employee={selectedEmployee}
@@ -105,6 +150,6 @@ export default function Employees() {
           onSave={fetchEmployees}
         />
       )}
-    </div>
+    </section>
   );
 }
