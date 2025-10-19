@@ -25,85 +25,111 @@ export default function EmpTimeOffForm({ onClose, onSave }: Props) {
     e.preventDefault();
     setSaving(true);
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    if (userError || !user) {
-      alert("Error: User not found.");
-      setSaving(false);
-      return;
-    }
+      if (userError || !user) {
+        throw new Error("Unable to find user session. Please log in again.");
+      }
 
-    const payload = {
-      employee_id: user.id,
-      start_date: formData.start_date,
-      end_date: formData.end_date,
-      reason: formData.reason,
-      status: "pending",
-      created_at: new Date().toISOString(),
-    };
+      const payload = {
+        employee_id: user.id,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        reason: formData.reason,
+        status: "Pending",
+        created_at: new Date().toISOString(),
+      };
 
-    const { error } = await supabase.from("time_off_requests").insert([payload]);
+      const { error } = await supabase
+        .from("time_off_requests")
+        .insert([payload]);
 
-    if (error) alert(error.message);
-    else {
+      if (error) throw error;
+
+      // Refresh table and close modal
       onSave();
       onClose();
-    }
 
-    setSaving(false);
+      // Reset form
+      setFormData({ start_date: "", end_date: "", reason: "" });
+    } catch (err: any) {
+      alert(err.message || "Error submitting time-off request.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-lg">
-        <h2 className="text-xl font-semibold mb-4">Request Time Off</h2>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 animate-fadeIn">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 animate-slideUp">
+        <h2 className="text-2xl font-bold text-hemp-forest mb-4">
+          🌿 Request Time Off
+        </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Start Date */}
           <label className="block">
-            <span className="text-sm font-medium">Start Date</span>
+            <span className="text-sm font-medium text-hemp-forest">
+              Start Date
+            </span>
             <input
               type="date"
               name="start_date"
               value={formData.start_date}
               onChange={handleChange}
-              className="w-full border rounded p-2"
               required
+              className="w-full border border-hemp-sage/60 rounded-lg p-2 mt-1 focus:ring-2 focus:ring-hemp-green outline-none"
             />
           </label>
 
+          {/* End Date */}
           <label className="block">
-            <span className="text-sm font-medium">End Date</span>
+            <span className="text-sm font-medium text-hemp-forest">
+              End Date
+            </span>
             <input
               type="date"
               name="end_date"
               value={formData.end_date}
               onChange={handleChange}
-              className="w-full border rounded p-2"
               required
+              className="w-full border border-hemp-sage/60 rounded-lg p-2 mt-1 focus:ring-2 focus:ring-hemp-green outline-none"
             />
           </label>
 
+          {/* Reason */}
           <label className="block">
-            <span className="text-sm font-medium">Reason</span>
+            <span className="text-sm font-medium text-hemp-forest">Reason</span>
             <textarea
               name="reason"
-              placeholder="Enter reason for time off"
+              placeholder="Enter reason for time off..."
               value={formData.reason}
               onChange={handleChange}
-              className="w-full border rounded p-2"
               required
+              className="w-full border border-hemp-sage/60 rounded-lg p-2 mt-1 h-24 resize-none focus:ring-2 focus:ring-hemp-green outline-none"
             />
           </label>
 
-          <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="primary" onClick={onClose}>
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 pt-3 border-t border-hemp-sage/30 mt-6">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              className="text-hemp-forest hover:bg-hemp-sage/30"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? "Submitting..." : "Submit"}
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-hemp-green hover:bg-hemp-forest text-white px-5"
+            >
+              {saving ? "Submitting..." : "Submit Request"}
             </Button>
           </div>
         </form>

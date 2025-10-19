@@ -6,24 +6,31 @@ export default function TrainingQuiz() {
 
   if (!id)
     return (
-      <div className="p-6 text-center text-red-600">
-        ⚠️ Training ID is missing.
+      <div className="flex h-64 items-center justify-center text-red-600 font-medium">
+        ⚠️ Training ID is missing or invalid.
       </div>
     );
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Training Quiz</h1>
+    <div className="mx-auto max-w-5xl p-6">
+      {/* 🌿 Header */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold text-hemp-forest flex items-center gap-2">
+          📘 Training Quiz
+        </h1>
+
         <Link
           to="/employee-dashboard/training"
-          className="rounded-md bg-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-300"
+          className="rounded-md bg-hemp-green px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-hemp-forest transition"
         >
           ← Back to Trainings
         </Link>
       </div>
 
-      <Quiz trainingId={id} />
+      {/* 🌿 Quiz Component */}
+      <div className="rounded-xl bg-white p-6 shadow-md border border-hemp-sage/40">
+        <Quiz trainingId={id} />
+      </div>
     </div>
   );
 }

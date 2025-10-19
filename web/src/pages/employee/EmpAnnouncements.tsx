@@ -12,18 +12,25 @@ interface Announcement {
 export default function EmpAnnouncements() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] =
+    useState<Announcement | null>(null);
 
+  // 🌿 Fetch all announcements
   const fetchAnnouncements = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("announcements")
-      .select("id, title, content, created_at")
-      .order("created_at", { ascending: false });
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("announcements")
+        .select("id, title, content, created_at")
+        .order("created_at", { ascending: false });
 
-    if (error) console.error(error);
-    else setAnnouncements(data || []);
-    setLoading(false);
+      if (error) throw error;
+      setAnnouncements(data || []);
+    } catch (err) {
+      console.error("Error loading announcements:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -31,40 +38,82 @@ export default function EmpAnnouncements() {
   }, []);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">All Announcements</h1>
+    <div className="p-6 max-w-5xl mx-auto">
+      {/* 🌿 Header */}
+      <h1 className="text-3xl font-bold text-hemp-forest mb-6 flex items-center gap-2">
+        📢 Announcements
+      </h1>
 
+      {/* 🌿 Loading State */}
       {loading ? (
-        <p>Loading announcements...</p>
+        <div className="space-y-3 animate-pulse">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-20 bg-hemp-sage/30 rounded-lg shadow-sm"
+            ></div>
+          ))}
+        </div>
       ) : announcements.length === 0 ? (
-        <p>No announcements available.</p>
+        <p className="text-gray-600 italic text-center">
+          No announcements available.
+        </p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {announcements.map((a) => (
-            <div key={a.id} className="border rounded-lg p-4 bg-white shadow-sm">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">{a.title}</h3>
-                <Button variant="ghost" onClick={() => setSelectedAnnouncement(a)}>
+            <div
+              key={a.id}
+              className="border border-hemp-sage/50 rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-semibold text-hemp-forest">
+                    {a.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {new Date(a.created_at).toLocaleString(undefined, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  className="text-hemp-green hover:bg-hemp-sage/40"
+                  onClick={() => setSelectedAnnouncement(a)}
+                >
                   View
                 </Button>
               </div>
-              <p className="text-gray-600 text-sm mt-1">
-                {new Date(a.created_at).toLocaleDateString()}
-              </p>
             </div>
           ))}
         </div>
       )}
 
+      {/* 🌿 Modal */}
       {selectedAnnouncement && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-2xl">
-            <h2 className="text-xl font-semibold mb-4">{selectedAnnouncement.title}</h2>
-            <div className="prose max-w-none mb-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 transition-all animate-fadeIn">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-hemp-forest mb-3">
+              {selectedAnnouncement.title}
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-4 whitespace-pre-line">
               {selectedAnnouncement.content}
-            </div>
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              Posted on{" "}
+              {new Date(selectedAnnouncement.created_at).toLocaleString(
+                undefined,
+                { dateStyle: "medium", timeStyle: "short" }
+              )}
+            </p>
             <div className="flex justify-end">
-              <Button onClick={() => setSelectedAnnouncement(null)}>Close</Button>
+              <Button
+                onClick={() => setSelectedAnnouncement(null)}
+                className="bg-hemp-green text-white hover:bg-hemp-forest"
+              >
+                Close
+              </Button>
             </div>
           </div>
         </div>
