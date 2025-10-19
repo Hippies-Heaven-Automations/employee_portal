@@ -16,10 +16,11 @@ import {
   X,
   Menu,
 } from "lucide-react";
+import { cn } from "../../utils";
 
 export default function AdminLayout() {
-  const [collapsed, setCollapsed] = useState(false);   // desktop shrink
-  const [mobileOpen, setMobileOpen] = useState(false); // mobile drawer
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const links = [
     { to: "/admin-dashboard", label: "Home", icon: Home },
@@ -35,7 +36,7 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen flex bg-[#F5FBF5] text-green-900 relative">
-      {/* ===== Mobile Top Bar (only on <lg) ===== */}
+      {/* ===== Mobile Top Bar ===== */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#F5FBF5]/95 backdrop-blur-md border-b border-green-100">
         <div className="flex items-center justify-between px-3 py-3">
           <div className="flex items-center gap-3">
@@ -58,9 +59,8 @@ export default function AdminLayout() {
       <aside
         className={[
           "fixed lg:static z-50 h-full border-r border-green-100 bg-[#F5FBF5] shadow-sm transition-all duration-300 ease-in-out",
-          collapsed ? "lg:w-16" : "lg:w-60",
+          collapsed ? "lg:w-16" : "lg:w-64", // unified width
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-          "w-64",
           "top-0",
         ].join(" ")}
       >
@@ -70,7 +70,6 @@ export default function AdminLayout() {
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-lg">🌿</span>
             </div>
-            {/* Hide title when collapsed (desktop only) */}
             <h1
               className={`font-bold text-green-700 text-base whitespace-nowrap hidden lg:block transition-all duration-300 ${
                 collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
@@ -80,7 +79,7 @@ export default function AdminLayout() {
             </h1>
           </div>
 
-          {/* Mobile close (X) */}
+          {/* Mobile Close */}
           <button
             onClick={() => setMobileOpen(false)}
             className="lg:hidden text-green-700 hover:text-green-600"
@@ -91,7 +90,7 @@ export default function AdminLayout() {
         </div>
 
         {/* Nav */}
-        <div className="p-2">
+        <div className="px-1">
           <Navbar
             mode="private"
             userType="admin"
@@ -101,7 +100,7 @@ export default function AdminLayout() {
           />
         </div>
 
-        {/* 🌿 Floating Chevron Toggle (Desktop Only) */}
+        {/* Toggle Button */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="hidden lg:flex items-center justify-center absolute top-1/2 -right-4 transform -translate-y-1/2
@@ -113,7 +112,7 @@ export default function AdminLayout() {
         </button>
       </aside>
 
-      {/* Mobile overlay */}
+      {/* Overlay */}
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden"
@@ -124,10 +123,10 @@ export default function AdminLayout() {
       {/* ===== Main Content ===== */}
       <main
         className={[
-          "flex-1 min-h-screen overflow-y-auto transition-all duration-300 bg-[#F5FBF5]",
-          collapsed ? "lg:ml-16" : "lg:ml-60",
-          "p-6 lg:p-8",
-          "pt-16 lg:pt-0",
+          "flex-1 min-h-screen overflow-y-auto bg-[#F5FBF5] transition-all duration-300",
+          collapsed ? "lg:ml-16" : "lg:ml-64", // aligns with sidebar width
+          "px-2 sm:px-4 lg:px-6",              // ⬅️ reduce horizontal padding
+          "pt-20 lg:pt-10 pb-8",               // smaller top padding
         ].join(" ")}
       >
         <Outlet />

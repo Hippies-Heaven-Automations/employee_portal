@@ -149,7 +149,7 @@ export default function Navbar({
 
   /* 🪴 PRIVATE SIDEBAR NAVBAR (Admin / Employee) */
   return (
-    <nav className="flex flex-col py-4">
+    <nav className="flex flex-col py-2 px-1">
       <div className="flex flex-col flex-grow">
         {links.map((l, idx) => {
           const Icon = l.icon;
