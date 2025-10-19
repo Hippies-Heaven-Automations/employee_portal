@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import ScheduleForm from "./ScheduleForm";
+import { CalendarPlus, Pencil, Trash2 } from "lucide-react";
 
 interface Schedule {
   id: string;
@@ -23,7 +24,7 @@ export default function Schedule() {
     setLoading(true);
     const { data, error } = await supabase
       .from("schedules")
-      .select(`*, profiles:employee_id(full_name)`) // join for employee name
+      .select(`*, profiles:employee_id(full_name)`)
       .order("date", { ascending: false });
 
     if (error) console.error(error);
@@ -53,51 +54,91 @@ export default function Schedule() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">Schedules</h1>
-        <Button onClick={handleAdd}>Add Schedule</Button>
+    <section className="animate-fadeInUp text-gray-700">
+      {/* 🌿 Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-hemp-forest mb-2 sm:mb-0">
+          Schedules
+        </h1>
+        <Button
+          onClick={handleAdd}
+          className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 transition-all duration-300 shadow-card inline-flex items-center gap-2"
+        >
+          <CalendarPlus size={18} />
+          Add Schedule
+        </Button>
       </div>
 
-      {loading ? (
-        <p>Loading schedules...</p>
-      ) : (
-        <div className="overflow-x-auto border rounded-lg">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 text-left">Employee</th>
-                <th className="p-2 text-left">Date</th>
-                <th className="p-2 text-left">Time In</th>
-                <th className="p-2 text-left">Time Out</th>
-                <th className="p-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {schedules.map((s) => (
-                <tr key={s.id} className="border-t">
-                  <td className="p-2">{s.profiles?.full_name || "Unknown"}</td>
-                  <td className="p-2">{s.date}</td>
-                  <td className="p-2">{s.time_in}</td>
-                  <td className="p-2">{s.time_out}</td>
-                  <td className="p-2 space-x-2">
-                    <Button onClick={() => handleEdit(s)} variant="outline">Edit</Button>
-                    <Button onClick={() => handleDelete(s.id)} variant="ghost">Delete</Button>
-                  </td>
-                </tr>
-              ))}
-              {schedules.length === 0 && (
+      {/* 🌿 Table */}
+      <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="p-6 text-center text-gray-500">
+            Loading schedules...
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm text-gray-700">
+              <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase tracking-wide text-xs">
                 <tr>
-                  <td colSpan={5} className="p-4 text-center text-gray-500">
-                    No schedules found
-                  </td>
+                  <th className="px-4 py-3 text-left">Employee</th>
+                  <th className="px-4 py-3 text-left">Date</th>
+                  <th className="px-4 py-3 text-left">Time In</th>
+                  <th className="px-4 py-3 text-left">Time Out</th>
+                  <th className="px-4 py-3 text-left">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {schedules.map((s) => (
+                  <tr
+                    key={s.id}
+                    className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition-all"
+                  >
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      {s.profiles?.full_name || "Unknown"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">{s.date}</td>
+                    <td className="px-4 py-3 text-gray-700">{s.time_in}</td>
+                    <td className="px-4 py-3 text-gray-700">{s.time_out}</td>
+                    <td className="px-4 py-3 flex flex-wrap gap-2">
+                      {/* ✏️ Edit */}
+                      <Button
+                        onClick={() => handleEdit(s)}
+                        variant="outline"
+                        className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white transition inline-flex items-center gap-1.5"
+                      >
+                        <Pencil size={15} />
+                        <span className="hidden sm:inline">Edit</span>
+                      </Button>
 
+                      {/* 🗑 Delete */}
+                      <Button
+                        onClick={() => handleDelete(s.id)}
+                        variant="ghost"
+                        className="text-red-600 hover:bg-red-50 inline-flex items-center gap-1.5"
+                      >
+                        <Trash2 size={16} />
+                        <span className="hidden sm:inline">Delete</span>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {schedules.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="p-6 text-center text-gray-500 italic"
+                    >
+                      No schedules found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 🌿 Add/Edit Modal */}
       {isFormOpen && (
         <ScheduleForm
           schedule={selectedSchedule}
@@ -105,6 +146,6 @@ export default function Schedule() {
           onSave={fetchSchedules}
         />
       )}
-    </div>
+    </section>
   );
 }

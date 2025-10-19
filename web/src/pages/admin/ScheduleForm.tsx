@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
+import { Loader2, X, CalendarPlus, CalendarCog, Clock } from "lucide-react";
 
 interface ScheduleFormProps {
   schedule: any | null;
@@ -21,7 +22,10 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
 
   useEffect(() => {
     const fetchEmployees = async () => {
-      const { data, error } = await supabase.from("profiles").select("id, full_name").order("full_name");
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .order("full_name");
       if (error) console.error(error);
       else setEmployees(data || []);
     };
@@ -74,68 +78,126 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-lg">
-        <h2 className="text-xl font-semibold mb-4">
-          {schedule ? "Edit Schedule" : "Add Schedule"}
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <select
-            name="employee_id"
-            value={formData.employee_id}
-            onChange={handleChange}
-            className="w-full border rounded p-2"
-            required
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+      <div className="bg-white border border-hemp-sage rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-fadeInUp">
+        {/* 🌿 Header */}
+        <div className="flex items-center justify-between px-6 py-4 bg-hemp-sage/30 border-b border-hemp-sage/50">
+          <div className="flex items-center gap-2">
+            {schedule ? (
+              <CalendarCog className="text-hemp-green" size={22} />
+            ) : (
+              <CalendarPlus className="text-hemp-green" size={22} />
+            )}
+            <h2 className="text-xl font-semibold text-hemp-forest">
+              {schedule ? "Edit Schedule" : "Add Schedule"}
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-600 hover:text-hemp-green transition"
+            aria-label="Close modal"
           >
-            <option value="">Select Employee</option>
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.full_name}
-              </option>
-            ))}
-          </select>
+            <X size={22} />
+          </button>
+        </div>
 
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            className="w-full border rounded p-2"
-            required
-          />
-
-          <div className="flex gap-2">
-            <input
-              type="time"
-              name="time_in"
-              value={formData.time_in}
+        {/* 🌿 Form Body */}
+        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5 text-gray-700">
+          {/* Employee */}
+          <div>
+            <label htmlFor="employee_id" className="block text-sm font-semibold mb-2">
+              Employee
+            </label>
+            <select
+              id="employee_id"
+              name="employee_id"
+              value={formData.employee_id}
               onChange={handleChange}
-              className="w-1/2 border rounded p-2"
+              className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-hemp-green"
               required
-            />
+            >
+              <option value="">Select Employee</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.full_name}
+                </option>
+              ))}
+            </select>
+          </div>
 
+          {/* Date */}
+          <div>
+            <label htmlFor="date" className="block text-sm font-semibold mb-2">
+              Date
+            </label>
             <input
-              type="time"
-              name="time_out"
-              value={formData.time_out}
+              type="date"
+              id="date"
+              name="date"
+              value={formData.date}
               onChange={handleChange}
-              className="w-1/2 border rounded p-2"
+              className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-hemp-green"
               required
             />
           </div>
 
+          {/* Time In / Time Out */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="time_in" className="block text-sm font-semibold mb-2">
+                Time In
+              </label>
+              <input
+                type="time"
+                id="time_in"
+                name="time_in"
+                value={formData.time_in}
+                onChange={handleChange}
+                className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-hemp-green"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="time_out" className="block text-sm font-semibold mb-2">
+                Time Out
+              </label>
+              <input
+                type="time"
+                id="time_out"
+                name="time_out"
+                value={formData.time_out}
+                onChange={handleChange}
+                className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-hemp-green"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Duration */}
           {duration && (
-            <p className="text-sm text-gray-600">
-              ⏱ Duration: <span className="font-semibold">{duration}</span>
-            </p>
+            <div className="flex items-center gap-2 text-sm text-gray-700 mt-2">
+              <Clock className="text-hemp-green" size={16} />
+              <span>
+                Duration: <span className="font-semibold">{duration}</span>
+              </span>
+            </div>
           )}
 
-          <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="primary" onClick={onClose}>
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-hemp-sage/40">
+            <Button
+              type="button"
+              onClick={onClose}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg px-5 py-2 transition"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 transition flex items-center gap-2"
+            >
+              {saving && <Loader2 size={18} className="animate-spin" />}
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
