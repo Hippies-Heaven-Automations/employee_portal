@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // or next/router if using Next
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useSessionRedirect } from "../hooks/useSessionRedirect";
 
@@ -36,44 +36,71 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-100">
+    <section className="min-h-screen flex items-center justify-center bg-hemp-mist relative overflow-hidden">
+      {/* 🌿 Background gradient / tie-dye swirl */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,#C8EBC8_0%,transparent_60%),radial-gradient(circle_at_80%_70%,#A7E3A7_0%,transparent_60%)] opacity-60"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-hemp-cream/80 via-hemp-mist to-hemp-green/10"></div>
+
+      {/* 🌈 Login Card */}
       <form
         onSubmit={handleLogin}
-        className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md"
+        className="relative z-10 w-full max-w-md bg-hemp-cream/70 backdrop-blur-md border border-hemp-sage rounded-2xl shadow-card p-8 animate-fadeInUp"
       >
-        <h1 className="text-2xl font-semibold text-purple-800 mb-6 text-center">
-          Employee Portal Login
-        </h1>
+        <div className="flex flex-col items-center mb-6">
+          <div className="w-14 h-14 rounded-full bg-hemp-green flex items-center justify-center shadow-md mb-3">
+            <span className="text-white text-2xl font-bold">🌿</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-hemp-forest">
+            Employee Portal Login
+          </h1>
+          <p className="text-hemp-ink/70 text-sm mt-1">
+            Welcome back to Hippies Heaven
+          </p>
+        </div>
 
         {error && (
-          <p className="text-red-500 bg-red-50 p-2 rounded-md mb-4">{error}</p>
+          <p className="text-red-600 bg-red-50 border border-red-200 p-2 rounded-md mb-4 text-center text-sm">
+            {error}
+          </p>
         )}
 
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          className="w-full border border-gray-300 rounded-md p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          required
-        />
+        <div className="space-y-4">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email address"
+            className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:outline-none focus:ring-2 focus:ring-hemp-green bg-white/70 text-hemp-ink placeholder-hemp-ink/50"
+            required
+          />
 
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          className="w-full border border-gray-300 rounded-md p-3 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          required
-        />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:outline-none focus:ring-2 focus:ring-hemp-green bg-white/70 text-hemp-ink placeholder-hemp-ink/50"
+            required
+          />
+        </div>
 
         <button
           type="submit"
-          className="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700 transition"
+          className="mt-6 w-full bg-hemp-green hover:bg-hemp-forest text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-card"
         >
           Sign In
         </button>
+
+        <p className="mt-6 text-center text-hemp-ink/70 text-sm">
+          Trouble signing in?{" "}
+          <a
+            href="mailto:hippiesheaven@gmail.com"
+            className="text-hemp-green font-medium hover:underline"
+          >
+            Contact support
+          </a>
+        </p>
       </form>
-    </div>
+    </section>
   );
 }
