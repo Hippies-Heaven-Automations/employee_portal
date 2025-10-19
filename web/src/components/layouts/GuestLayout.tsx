@@ -4,9 +4,9 @@ import Footer from "../Footer";
 
 export default function GuestLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-hemp-mist">
+    <div className="min-h-screen flex flex-col bg-hemp-mist text-hemp-ink">
       {/* 🌿 Navbar */}
-      <header className="sticky top-0 z-50 bg-hemp-cream shadow-sm">
+      <header className="sticky top-0 z-50 bg-hemp-cream/95 backdrop-blur-sm shadow-sm">
         <Navbar
           mode="public"
           links={[
@@ -19,9 +19,15 @@ export default function GuestLayout() {
         />
       </header>
 
-      {/* 🌿 Main content */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-10 py-8 animate-fadeInUp">
-        <Outlet /> {/* ✅ This renders the active child page (Home, About, etc.) */}
+      {/* 🌿 Main content area */}
+      <main className="flex-1 w-full">
+        {/* 
+          We make sure the Hero (and any full-width sections) can stretch edge-to-edge,
+          while standard pages still stay centered.
+        */}
+        <div className="w-full">
+          <Outlet />
+        </div>
       </main>
 
       {/* 🌿 Footer */}
