@@ -13,7 +13,7 @@ import {
   Menu,
 } from "lucide-react";
 
-export default function AdminLayout() {
+export default function EmployeeLayout() {
   const [collapsed, setCollapsed] = useState(false);   // desktop shrink
   const [mobileOpen, setMobileOpen] = useState(false); // mobile drawer
 
@@ -86,7 +86,7 @@ export default function AdminLayout() {
         <div className="p-2">
           <Navbar
             mode="private"
-            userType="admin"
+            userType="employee"
             links={links}
             collapsed={collapsed}
             onLinkClick={() => setMobileOpen(false)}
