@@ -180,8 +180,19 @@ export default function TrainingManager() {
         </h1>
         <button
           onClick={() => {
-            setShowForm(!showForm);
-            if (editing && showForm) setEditing(null);
+            if (editing) setEditing(null);
+            // Always reset the form when toggling to "Add Training"
+            if (!showForm || editing) {
+              setForm({
+                title: "",
+                description: "",
+                media: [],
+                allowed_types: ["VA", "Store"],
+                requires_signature: false,
+              });
+            }
+
+            setShowForm((prev) => !prev);
           }}
           className="flex items-center gap-2 rounded-md bg-hemp-green text-white px-4 py-2 text-sm font-medium hover:bg-hemp-forest transition"
         >
