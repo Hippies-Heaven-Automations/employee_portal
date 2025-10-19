@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
+import { Loader2, X, PlaneTakeoff, Calendar } from "lucide-react";
 
 interface TimeOffFormProps {
   request: any | null;
@@ -29,7 +30,10 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
   }, []);
 
   const fetchEmployees = async () => {
-    const { data, error } = await supabase.from("profiles").select("id, full_name").order("full_name");
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .order("full_name");
     if (!error) setEmployees(data || []);
   };
 
@@ -60,9 +64,14 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
 
     let res;
     if (request) {
-      res = await supabase.from("time_off_requests").update(payload).eq("id", request.id);
+      res = await supabase
+        .from("time_off_requests")
+        .update(payload)
+        .eq("id", request.id);
     } else {
-      res = await supabase.from("time_off_requests").insert([{ ...payload, created_at: new Date().toISOString() }]);
+      res = await supabase
+        .from("time_off_requests")
+        .insert([{ ...payload, created_at: new Date().toISOString() }]);
     }
 
     if (res.error) alert(res.error.message);
@@ -74,21 +83,52 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
     setSaving(false);
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-lg">
-        <h2 className="text-xl font-semibold mb-4">
-          {request ? "Edit Time-Off Request" : "Add Time-Off Request"}
-        </h2>
+  const statusColorMap = {
+    approved: "bg-green-100 text-green-700 border-green-200",
+    denied: "bg-red-100 text-red-700 border-red-200",
+    pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  } as const;
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <label className="block">
-            <span className="text-sm font-medium">Employee</span>
+  const statusKey = formData.status as keyof typeof statusColorMap;
+  const statusColor = statusColorMap[statusKey];  
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 px-4">
+      <div className="bg-white border border-hemp-sage rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-fadeInUp">
+        {/* 🌿 Header */}
+        <div className="flex items-center justify-between px-6 py-4 bg-hemp-sage/30 border-b border-hemp-sage/50">
+          <div className="flex items-center gap-2">
+            {request ? (
+              <Calendar className="text-hemp-green" size={22} />
+            ) : (
+              <PlaneTakeoff className="text-hemp-green" size={22} />
+            )}
+            <h2 className="text-xl font-semibold text-hemp-forest">
+              {request ? "Edit Time-Off Request" : "Add Time-Off Request"}
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-600 hover:text-hemp-green transition"
+            aria-label="Close modal"
+          >
+            <X size={22} />
+          </button>
+        </div>
+
+        {/* 🌿 Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="px-6 py-6 space-y-5 text-gray-700"
+        >
+          {/* Employee */}
+          <div>
+            <label className="block text-sm font-semibold mb-2">Employee</label>
             <select
               name="employee_id"
               value={formData.employee_id}
               onChange={handleChange}
-              className="w-full border rounded p-2"
+              className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-hemp-green"
               required
             >
               <option value="">Select Employee</option>
@@ -98,69 +138,81 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
                 </option>
               ))}
             </select>
-          </label>
+          </div>
 
-          <label className="block">
-            <span className="text-sm font-medium">Start Date</span>
-            <input
-              type="date"
-              name="start_date"
-              value={formData.start_date}
-              onChange={handleChange}
-              className="w-full border rounded p-2"
-              required
-            />
-          </label>
+          {/* Dates */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2">
+                Start Date
+              </label>
+              <input
+                type="date"
+                name="start_date"
+                value={formData.start_date}
+                onChange={handleChange}
+                className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-hemp-green"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2">
+                End Date
+              </label>
+              <input
+                type="date"
+                name="end_date"
+                value={formData.end_date}
+                onChange={handleChange}
+                className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-hemp-green"
+                required
+              />
+            </div>
+          </div>
 
-          <label className="block">
-            <span className="text-sm font-medium">End Date</span>
-            <input
-              type="date"
-              name="end_date"
-              value={formData.end_date}
-              onChange={handleChange}
-              className="w-full border rounded p-2"
-              required
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-medium">Reason</span>
+          {/* Reason */}
+          <div>
+            <label className="block text-sm font-semibold mb-2">Reason</label>
             <textarea
               name="reason"
               placeholder="Enter reason for time off"
               value={formData.reason}
               onChange={handleChange}
-              className="w-full border rounded p-2"
+              className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-hemp-green h-28 resize-none"
               required
             />
-          </label>
+          </div>
 
-          <label className="block">
-            <span className="text-sm font-medium">Status</span>
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-semibold mb-2">Status</label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className={`w-full border rounded p-2 capitalize ${
-                formData.status === "approved"
-                  ? "bg-green-100 text-green-700"
-                  : formData.status === "denied"
-                  ? "bg-red-100 text-red-700"
-                  : "bg-yellow-100 text-yellow-700"
-              }`}
+              className={`w-full border rounded-lg px-4 py-2 capitalize font-medium focus:outline-none focus:ring-2 focus:ring-hemp-green ${statusColor}`}
             >
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
               <option value="denied">Denied</option>
             </select>
-          </label>
+          </div>
 
-          <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="primary" onClick={onClose}>
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-hemp-sage/40">
+            <Button
+              type="button"
+              onClick={onClose}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg px-5 py-2 transition"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 transition flex items-center gap-2"
+            >
+              {saving && <Loader2 size={18} className="animate-spin" />}
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>

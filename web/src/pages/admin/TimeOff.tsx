@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import TimeOffForm from "./TimeOffForm";
+import { Edit3, Trash2, PlaneTakeoff } from "lucide-react";
 
 interface TimeOff {
   id: string;
@@ -14,7 +15,6 @@ interface TimeOff {
   full_name: string | null;
 }
 
-
 export default function TimeOff() {
   const [timeOffs, setTimeOffs] = useState<TimeOff[]>([]);
   const [loading, setLoading] = useState(false);
@@ -22,16 +22,12 @@ export default function TimeOff() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const fetchRequests = async () => {
-  setLoading(true);
-
-  const { data, error } = await supabase
-    .rpc("get_time_off_with_profiles"); // call a SQL function instead
-
-  if (error) console.error(error);
-  else setTimeOffs(data || []);
-  setLoading(false);
-};
-
+    setLoading(true);
+    const { data, error } = await supabase.rpc("get_time_off_with_profiles");
+    if (error) console.error(error);
+    else setTimeOffs(data || []);
+    setLoading(false);
+  };
 
   useEffect(() => {
     fetchRequests();
@@ -54,61 +50,104 @@ export default function TimeOff() {
     setIsFormOpen(true);
   };
 
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case "approved":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "denied":
+        return "bg-red-100 text-red-700 border-red-200";
+      default:
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+    }
+  };
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Time-Off Requests</h1>
-        <Button onClick={handleAdd}>Add Request</Button>
+    <section className="animate-fadeInUp text-gray-700">
+      {/* 🌿 Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-hemp-forest mb-2 sm:mb-0">
+          Leave Request
+        </h1>
+        <Button
+          onClick={handleAdd}
+          className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 transition-all duration-300 shadow-card inline-flex items-center gap-2"
+        >
+          <PlaneTakeoff size={18} />
+          Add Request
+        </Button>
       </div>
 
-      {loading ? (
-        <p>Loading requests...</p>
-      ) : timeOffs.length === 0 ? (
-        <p>No time-off requests found.</p>
-      ) : (
-        <div className="overflow-x-auto border rounded-lg">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 text-left">Employee</th>
-                <th className="p-2 text-left">Start Date</th>
-                <th className="p-2 text-left">End Date</th>
-                <th className="p-2 text-left">Reason</th>
-                <th className="p-2 text-left">Status</th>
-                <th className="p-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {timeOffs.map((t) => (
-                <tr key={t.id} className="border-t">
-                  <td className="p-2">{t.full_name || "Unknown"}</td>
-                  <td className="p-2">{new Date(t.start_date).toLocaleDateString()}</td>
-                  <td className="p-2">{new Date(t.end_date).toLocaleDateString()}</td>
-                  <td className="p-2">{t.reason}</td>
-                  <td className="p-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-semibold capitalize ${
-                        t.status === "approved"
-                          ? "bg-green-100 text-green-700"
-                          : t.status === "denied"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {t.status}
-                    </span>
-                  </td>
-                  <td className="p-2 space-x-2">
-                    <Button onClick={() => handleEdit(t)} variant="outline">Edit</Button>
-                    <Button onClick={() => handleDelete(t.id)} variant="ghost">Delete</Button>
-                  </td>
+      {/* 🌿 Table */}
+      <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="p-6 text-center text-gray-500">Loading requests...</div>
+        ) : timeOffs.length === 0 ? (
+          <div className="p-6 text-center text-gray-500 italic">No requests found.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm text-gray-700">
+              <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase tracking-wide text-xs">
+                <tr>
+                  <th className="px-4 py-3 text-left">Employee</th>
+                  <th className="px-4 py-3 text-left">Start Date</th>
+                  <th className="px-4 py-3 text-left">End Date</th>
+                  <th className="px-4 py-3 text-left">Reason</th>
+                  <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {timeOffs.map((t) => (
+                  <tr
+                    key={t.id}
+                    className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition-all"
+                  >
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      {t.full_name || "Unknown"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {new Date(t.start_date).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      {new Date(t.end_date).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">{t.reason}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-1 rounded border text-xs font-semibold capitalize ${getStatusStyle(
+                          t.status
+                        )}`}
+                      >
+                        {t.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => handleEdit(t)}
+                        variant="outline"
+                        className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white transition inline-flex items-center gap-1.5"
+                      >
+                        <Edit3 size={15} />
+                        <span className="hidden sm:inline">Edit</span>
+                      </Button>
+                      <Button
+                        onClick={() => handleDelete(t.id)}
+                        variant="ghost"
+                        className="text-red-600 hover:bg-red-50 inline-flex items-center gap-1.5"
+                      >
+                        <Trash2 size={16} />
+                        <span className="hidden sm:inline">Delete</span>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
+      {/* 🌿 Add/Edit Modal */}
       {isFormOpen && (
         <TimeOffForm
           request={selectedRequest}
@@ -116,6 +155,6 @@ export default function TimeOff() {
           onSave={fetchRequests}
         />
       )}
-    </div>
+    </section>
   );
 }

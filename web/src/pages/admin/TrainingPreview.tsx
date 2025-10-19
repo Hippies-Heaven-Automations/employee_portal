@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { Loader2, FileText, PlayCircle } from "lucide-react";
 
 interface MediaItem {
   type: "video" | "doc";
@@ -24,7 +25,7 @@ export default function TrainingPreview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Moved here so it’s always in scope
+  // 🌿 Helper to handle YouTube embeds
   const getEmbedUrl = (url: string) => {
     try {
       if (url.includes("watch?v=")) {
@@ -41,6 +42,7 @@ export default function TrainingPreview() {
     }
   };
 
+  // 🌿 Fetch training details
   useEffect(() => {
     const fetchTraining = async () => {
       try {
@@ -60,41 +62,63 @@ export default function TrainingPreview() {
     fetchTraining();
   }, [id]);
 
+  // 🌿 Loading / Error States
   if (loading)
     return (
-      <div className="flex h-64 items-center justify-center text-gray-600">
-        Loading training preview...
+      <div className="flex h-64 items-center justify-center text-hemp-forest">
+        <Loader2 className="mr-2 animate-spin" /> Loading training preview...
       </div>
     );
 
   if (error)
-    return <div className="p-4 text-center text-red-600">⚠️ {error}</div>;
+    return (
+      <div className="p-4 text-center text-red-600 font-medium">
+        ⚠️ {error}
+      </div>
+    );
 
-  if (!training) {
+  if (!training)
     return <p className="text-center text-gray-600">Training not found.</p>;
-  }
 
-  // ✅ Properly scoped return begins here
+  // 🌿 Render
   return (
-    <div className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-2 text-2xl font-bold text-gray-800">
-        {training.title}
-      </h1>
-      <p className="mb-4 text-gray-700">{training.description}</p>
+    <section className="animate-fadeInUp mx-auto max-w-5xl p-6 text-gray-700">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-hemp-forest mb-2">
+          {training.title}
+        </h1>
+        {training.description && (
+          <p className="text-hemp-ink/80 leading-relaxed">
+            {training.description}
+          </p>
+        )}
+      </div>
 
+      {/* Media Section */}
       <div className="space-y-6">
         {training.media?.length > 0 ? (
           training.media.map((item, i) => (
             <div
               key={i}
-              className="rounded-md border border-gray-200 bg-white p-4 shadow-sm"
+              className="bg-white border border-hemp-sage rounded-lg shadow-sm p-5"
             >
-              <h2 className="mb-2 text-lg font-semibold text-gray-800">
-                {item.title || (item.type === "video" ? "Video" : "Document")}
-              </h2>
+              <div className="flex items-center gap-2 mb-3">
+                {item.type === "video" ? (
+                  <PlayCircle
+                    size={22}
+                    className="text-hemp-green"
+                  />
+                ) : (
+                  <FileText size={20} className="text-hemp-green" />
+                )}
+                <h2 className="text-lg font-semibold text-hemp-forest">
+                  {item.title || (item.type === "video" ? "Video" : "Document")}
+                </h2>
+              </div>
 
               {item.type === "video" ? (
-                <div className="aspect-video w-full overflow-hidden rounded-md">
+                <div className="aspect-video w-full overflow-hidden rounded-lg border border-hemp-sage/40">
                   <iframe
                     src={getEmbedUrl(item.url)}
                     className="h-full w-full border-0"
@@ -107,7 +131,7 @@ export default function TrainingPreview() {
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="inline-flex items-center text-hemp-green hover:text-hemp-forest font-medium mt-2"
                 >
                   📄 Open Document
                 </a>
@@ -115,19 +139,24 @@ export default function TrainingPreview() {
             </div>
           ))
         ) : (
-          <p className="text-gray-500">No media available for this training.</p>
+          <p className="text-gray-500 italic">
+            No media available for this training.
+          </p>
         )}
       </div>
 
-      <div className="mt-8 border-t border-gray-200 pt-4">
-        <p className="text-sm text-gray-600">
-          Allowed Employee Types:{" "}
-          <span className="font-medium">
-            {training.allowed_types?.join(", ") || "—"}
-          </span>
+      {/* Training Info Footer */}
+      <div className="mt-10 border-t border-hemp-sage/50 pt-5 text-sm text-gray-700 space-y-1">
+        <p>
+          <span className="font-semibold text-hemp-forest">
+            Allowed Employee Types:
+          </span>{" "}
+          {training.allowed_types?.join(", ") || "—"}
         </p>
-        <p className="text-sm text-gray-600">
-          Requires Signature:{" "}
+        <p>
+          <span className="font-semibold text-hemp-forest">
+            Requires Signature:
+          </span>{" "}
           {training.requires_signature ? (
             <span className="text-green-600 font-medium">Yes</span>
           ) : (
@@ -135,6 +164,6 @@ export default function TrainingPreview() {
           )}
         </p>
       </div>
-    </div>
+    </section>
   );
 }

@@ -1,5 +1,16 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import {
+  FilePlus,
+  Edit3,
+  Trash2,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Video,
+  FileText,
+} from "lucide-react";
 
 interface MediaItem {
   type: "video" | "doc";
@@ -23,6 +34,8 @@ export default function TrainingManager() {
   const [error, setError] = useState<string | null>(null);
 
   const [editing, setEditing] = useState<Training | null>(null);
+  const [showForm, setShowForm] = useState(false);
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -31,7 +44,7 @@ export default function TrainingManager() {
     requires_signature: false,
   });
 
-  // ✅ Load trainings
+  // 🌿 Fetch trainings
   const fetchTrainings = async () => {
     try {
       setLoading(true);
@@ -39,7 +52,6 @@ export default function TrainingManager() {
         .from("trainings")
         .select("*")
         .order("created_at", { ascending: false });
-
       if (error) throw error;
       setTrainings((data as Training[]) || []);
     } catch (err: any) {
@@ -53,7 +65,7 @@ export default function TrainingManager() {
     fetchTrainings();
   }, []);
 
-  // ✅ Handle save/update
+  // 🌿 Handle save/update
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -86,13 +98,14 @@ export default function TrainingManager() {
         requires_signature: false,
       });
       setEditing(null);
+      setShowForm(false);
       fetchTrainings();
     } catch (err: any) {
       alert(err.message);
     }
   };
 
-  // ✅ Handle delete
+  // 🌿 Handle delete
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this training?")) return;
     const { error } = await supabase.from("trainings").delete().eq("id", id);
@@ -100,9 +113,10 @@ export default function TrainingManager() {
     else fetchTrainings();
   };
 
-  // ✅ Handle edit
+  // 🌿 Handle edit
   const handleEdit = (t: Training) => {
     setEditing(t);
+    setShowForm(true);
     setForm({
       title: t.title,
       description: t.description || "",
@@ -112,7 +126,7 @@ export default function TrainingManager() {
     });
   };
 
-  // ✅ Add or remove media items
+  // 🌿 Manage media
   const addMedia = (type: "video" | "doc") => {
     setForm({
       ...form,
@@ -120,24 +134,21 @@ export default function TrainingManager() {
     });
   };
 
-  // ✅ Type-safe updater for any MediaItem field
-    const updateMedia = <K extends keyof MediaItem>(
-        index: number,
-        field: K,
-        value: MediaItem[K]
-    ) => {
-        const newMedia = [...form.media];
-        newMedia[index] = { ...newMedia[index], [field]: value };
-        setForm({ ...form, media: newMedia });
-    };
-
-
-  const removeMedia = (index: number) => {
-    const newMedia = form.media.filter((_, i) => i !== index);
+  const updateMedia = <K extends keyof MediaItem>(
+    index: number,
+    field: K,
+    value: MediaItem[K]
+  ) => {
+    const newMedia = [...form.media];
+    newMedia[index] = { ...newMedia[index], [field]: value };
     setForm({ ...form, media: newMedia });
   };
 
-  // ✅ Toggle employee types
+  const removeMedia = (index: number) => {
+    setForm({ ...form, media: form.media.filter((_, i) => i !== index) });
+  };
+
+  // 🌿 Allowed types toggle
   const toggleType = (type: string) => {
     setForm((prev) => {
       const exists = prev.allowed_types.includes(type);
@@ -152,230 +163,100 @@ export default function TrainingManager() {
 
   if (loading)
     return (
-      <div className="flex h-64 items-center justify-center text-gray-600">
-        Loading trainings...
+      <div className="flex h-64 items-center justify-center text-hemp-forest">
+        <Loader2 className="animate-spin mr-2" /> Loading trainings...
       </div>
     );
 
   if (error)
-    return (
-      <div className="p-4 text-center text-red-600">
-        ⚠️ {error}
-      </div>
-    );
+    return <div className="p-4 text-center text-red-600">⚠️ {error}</div>;
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-4 text-2xl font-bold text-gray-800">
-        Manage Trainings
-      </h1>
-
-      {/* Form */}
-      <form
-        onSubmit={handleSubmit}
-        className="mb-6 space-y-4 rounded-md border border-gray-200 bg-white p-4 shadow-sm"
-      >
-        {/* Title */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Title</label>
-          <input
-            type="text"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="mt-1 w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-400"
-            placeholder="Training title"
-          />
-        </div>
-
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Description
-          </label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="mt-1 w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-400"
-            rows={3}
-            placeholder="Short description..."
-          />
-        </div>
-
-        {/* Media Section */}
-        <div>
-          <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-gray-700">
-              Media (Videos / Documents)
-            </label>
-            <div className="space-x-2">
-              <button
-                type="button"
-                onClick={() => addMedia("video")}
-                className="rounded-md bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
-              >
-                + Video
-              </button>
-              <button
-                type="button"
-                onClick={() => addMedia("doc")}
-                className="rounded-md bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
-              >
-                + Document
-              </button>
-            </div>
-          </div>
-
-          {form.media.length > 0 && (
-            <div className="mt-2 space-y-3">
-              {form.media.map((m, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col rounded-md border border-gray-200 p-3 sm:flex-row sm:items-center sm:space-x-2"
-                >
-                    <select
-                        value={m.type}
-                        onChange={(e) => updateMedia(i, "type", e.target.value as MediaItem["type"])}
-                        className="rounded-md border border-gray-300 p-1 text-sm"
-                    >
-                        <option value="video">Video</option>
-                        <option value="doc">Document</option>
-                    </select>
-                    <input
-                        type="text"
-                        placeholder="Title"
-                        value={m.title}
-                        onChange={(e) => updateMedia(i, "title", e.target.value)}
-                        className="mt-2 w-full rounded-md border border-gray-300 p-1 text-sm sm:mt-0"
-                    />
-                    <input
-                        type="text"
-                        placeholder="URL"
-                        value={m.url}
-                        onChange={(e) => updateMedia(i, "url", e.target.value)}
-                        className="mt-2 w-full rounded-md border border-gray-300 p-1 text-sm sm:mt-0"
-                    />
-                  <button
-                    type="button"
-                    onClick={() => removeMedia(i)}
-                    className="mt-2 rounded-md bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600 sm:mt-0"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
+    <section className="animate-fadeInUp mx-auto max-w-5xl p-6 text-gray-700">
+      {/* 🌿 Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <h1 className="text-3xl font-bold text-hemp-forest flex items-center gap-2">
+          Manage Trainings
+        </h1>
+        <button
+          onClick={() => {
+            setShowForm(!showForm);
+            if (editing && showForm) setEditing(null);
+          }}
+          className="flex items-center gap-2 rounded-md bg-hemp-green text-white px-4 py-2 text-sm font-medium hover:bg-hemp-forest transition"
+        >
+          {showForm ? (
+            <>
+              <ChevronUp size={18} /> Hide Form
+            </>
+          ) : (
+            <>
+              <ChevronDown size={18} /> Add Training
+            </>
           )}
-        </div>
+        </button>
+      </div>
 
-        {/* Allowed Types */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Allowed Employee Types
-          </label>
-          <div className="mt-1 flex space-x-4">
-            {["VA", "Store"].map((type) => (
-              <label key={type} className="flex items-center space-x-1">
-                <input
-                  type="checkbox"
-                  checked={form.allowed_types.includes(type)}
-                  onChange={() => toggleType(type)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">{type}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Requires Signature */}
-        <div className="flex items-center space-x-2">
-          <input
-            id="requiresSignature"
-            type="checkbox"
-            checked={form.requires_signature}
-            onChange={(e) =>
-              setForm({ ...form, requires_signature: e.target.checked })
-            }
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <label htmlFor="requiresSignature" className="text-sm text-gray-700">
-            Requires employee signature before quiz
-          </label>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end space-x-2">
-          {editing && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditing(null);
-                setForm({
-                  title: "",
-                  description: "",
-                  media: [],
-                  allowed_types: ["VA", "Store"],
-                  requires_signature: false,
-                });
-              }}
-              className="rounded-md bg-gray-200 px-4 py-2 text-sm hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-          )}
-          <button
-            type="submit"
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
-          >
-            {editing ? "Update Training" : "Add Training"}
-          </button>
-        </div>
-      </form>
-
-      {/* Table */}
+      {/* 🌿 Trainings Table */}
       {trainings.length === 0 ? (
-        <p className="text-gray-600">No trainings found.</p>
+        <p className="text-gray-500 italic text-center">No trainings found.</p>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-gray-200 bg-white shadow-sm">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-100 text-gray-700">
+        <div className="bg-white border border-hemp-sage rounded-xl shadow-sm overflow-hidden mb-6">
+          <table className="w-full text-sm text-gray-700">
+            <thead className="bg-hemp-sage/40 text-gray-800 font-semibold text-xs uppercase tracking-wide">
               <tr>
-                <th className="p-3">Title</th>
-                <th className="p-3">Allowed</th>
-                <th className="p-3">Signature</th>
+                <th className="p-3 text-left">Title</th>
+                <th className="p-3 text-left">Allowed</th>
+                <th className="p-3 text-center">Signature</th>
                 <th className="p-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {trainings.map((t) => (
-                <tr key={t.id} className="border-t hover:bg-gray-50">
-                  <td className="p-3 font-medium text-gray-900">{t.title}</td>
+                <tr
+                  key={t.id}
+                  className="border-t border-hemp-sage/30 hover:bg-hemp-mist/40 transition"
+                >
+                  <td className="p-3 font-medium text-hemp-forest">{t.title}</td>
                   <td className="p-3">{t.allowed_types?.join(", ")}</td>
                   <td className="p-3 text-center">
                     {t.requires_signature ? "✅" : "—"}
                   </td>
-                  <td className="p-3 text-center space-x-2">
-  <button
-    onClick={() => handleEdit(t)}
-    className="rounded-md bg-yellow-400 px-3 py-1 text-xs font-medium text-white hover:bg-yellow-500"
-  >
-    Edit
-  </button>
-  <button
-    onClick={() => handleDelete(t.id)}
-    className="rounded-md bg-red-500 px-3 py-1 text-xs font-medium text-white hover:bg-red-600"
-  >
-    Delete
-  </button>
-  <button
-    onClick={() =>
-      window.open(`/admin-dashboard/trainings/${t.id}/preview`, "_blank")
-    }
-    className="rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
-  >
-    Preview
-  </button>
-</td>
+                  <td className="p-3 text-center">
+                    <div className="flex justify-center gap-2">
+                      {/* Edit */}
+                      <button
+                        onClick={() => handleEdit(t)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-hemp-green px-3 py-1 text-xs font-medium text-hemp-forest hover:bg-hemp-green hover:text-white transition"
+                        aria-label="Edit training"
+                      >
+                        <Edit3 size={14} />
+                        <span className="hidden sm:inline">Edit</span>
+                      </button>
+
+                      {/* Delete */}
+                      <button
+                        onClick={() => handleDelete(t.id)}
+                        className="inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50 border border-red-200 transition"
+                        aria-label="Delete training"
+                      >
+                        <Trash2 size={14} />
+                        <span className="hidden sm:inline">Delete</span>
+                      </button>
+
+                      {/* Preview */}
+                      <button
+                        onClick={() =>
+                          window.open(`/admin-dashboard/trainings/${t.id}/preview`, "_blank")
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-md bg-hemp-green px-3 py-1 text-xs font-semibold text-white hover:bg-hemp-forest transition"
+                        aria-label="Preview training"
+                      >
+                        <Eye size={14} />
+                        <span className="hidden sm:inline">Preview</span>
+                      </button>
+                    </div>
+                  </td>
 
                 </tr>
               ))}
@@ -383,6 +264,181 @@ export default function TrainingManager() {
           </table>
         </div>
       )}
-    </div>
+
+      {/* 🌿 Collapsible Add/Edit Form */}
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          showForm ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        {showForm && (
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white border border-hemp-sage rounded-xl shadow-sm p-6 space-y-5"
+          >
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-semibold text-hemp-forest mb-1">
+                Title
+              </label>
+              <input
+                type="text"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                className="w-full rounded-lg border border-hemp-sage/60 px-3 py-2 focus:ring-2 focus:ring-hemp-green"
+                placeholder="Training title"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-semibold text-hemp-forest mb-1">
+                Description
+              </label>
+              <textarea
+                value={form.description}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
+                className="w-full rounded-lg border border-hemp-sage/60 px-3 py-2 h-24 resize-none focus:ring-2 focus:ring-hemp-green"
+                placeholder="Short description..."
+              />
+            </div>
+
+            {/* Media */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-hemp-forest">
+                  Media Files
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => addMedia("video")}
+                    className="bg-hemp-green/10 text-hemp-green hover:bg-hemp-green/20 px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1"
+                  >
+                    <Video size={14} /> Add Video
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => addMedia("doc")}
+                    className="bg-hemp-sage/40 hover:bg-hemp-sage/60 px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1"
+                  >
+                    <FileText size={14} /> Add Document
+                  </button>
+                </div>
+              </div>
+
+              {form.media.length > 0 && (
+                <div className="space-y-3">
+                  {form.media.map((m, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col sm:flex-row sm:items-center gap-2 border border-hemp-sage/40 rounded-lg p-3 bg-hemp-mist/20"
+                    >
+                      <select
+                        value={m.type}
+                        onChange={(e) =>
+                          updateMedia(i, "type", e.target.value as MediaItem["type"])
+                        }
+                        className="border border-hemp-sage/60 rounded-md px-2 py-1 text-sm"
+                      >
+                        <option value="video">Video</option>
+                        <option value="doc">Document</option>
+                      </select>
+                      <input
+                        type="text"
+                        placeholder="Title"
+                        value={m.title}
+                        onChange={(e) => updateMedia(i, "title", e.target.value)}
+                        className="flex-1 border border-hemp-sage/60 rounded-md px-2 py-1 text-sm"
+                      />
+                      <input
+                        type="text"
+                        placeholder="URL"
+                        value={m.url}
+                        onChange={(e) => updateMedia(i, "url", e.target.value)}
+                        className="flex-1 border border-hemp-sage/60 rounded-md px-2 py-1 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeMedia(i)}
+                        className="bg-red-500 hover:bg-red-600 text-white rounded-md px-2 py-1 text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Allowed types */}
+            <div>
+              <label className="block text-sm font-semibold text-hemp-forest mb-1">
+                Allowed Employee Types
+              </label>
+              <div className="flex gap-4">
+                {["VA", "Store"].map((type) => (
+                  <label key={type} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={form.allowed_types.includes(type)}
+                      onChange={() => toggleType(type)}
+                      className="text-hemp-green focus:ring-hemp-green"
+                    />
+                    <span className="text-sm text-gray-700">{type}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Signature */}
+            <div className="flex items-center gap-2">
+              <input
+                id="requiresSignature"
+                type="checkbox"
+                checked={form.requires_signature}
+                onChange={(e) =>
+                  setForm({ ...form, requires_signature: e.target.checked })
+                }
+                className="text-hemp-green focus:ring-hemp-green"
+              />
+              <label htmlFor="requiresSignature" className="text-sm text-gray-700">
+                Requires employee signature before quiz
+              </label>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-3 pt-3 border-t border-hemp-sage/40">
+              {editing && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditing(null);
+                    setForm({
+                      title: "",
+                      description: "",
+                      media: [],
+                      allowed_types: ["VA", "Store"],
+                      requires_signature: false,
+                    });
+                  }}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md px-4 py-2 text-sm font-medium"
+                >
+                  Cancel
+                </button>
+              )}
+              <button
+                type="submit"
+                className="bg-hemp-green hover:bg-hemp-forest text-white rounded-md px-5 py-2 text-sm font-semibold"
+              >
+                {editing ? "Update Training" : "Add Training"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </section>
   );
 }

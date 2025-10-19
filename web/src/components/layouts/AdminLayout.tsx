@@ -28,8 +28,8 @@ export default function AdminLayout() {
     { to: "/admin-dashboard/employees", label: "Employees", icon: Users },
     { to: "/admin-dashboard/schedule", label: "Schedule", icon: Calendar },
     { to: "/admin-dashboard/applications", label: "Applications", icon: FileText },
-    { to: "/admin-dashboard/timeoff", label: "Time Off", icon: Plane },
-    { to: "/admin-dashboard/shiftlogs", label: "Shift Logs", icon: Clock },
+    { to: "/admin-dashboard/timeoff", label: "Leaves", icon: Plane },
+    { to: "/admin-dashboard/shiftlogs", label: "Time In Logs", icon: Clock },
     { to: "/admin-dashboard/trainingtracker", label: "Training Tracker", icon: GraduationCap },
     { to: "/admin-dashboard/trainings", label: "Trainings", icon: BookOpen },
   ];
