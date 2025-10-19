@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import AnnouncementForm from "./AnnouncementForm";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 
 interface Announcement {
   id: string;
@@ -15,6 +16,7 @@ export default function Announcements() {
   const [loading, setLoading] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [viewContent, setViewContent] = useState<string | null>(null);
 
   const fetchAnnouncements = async () => {
     setLoading(true);
@@ -49,51 +51,99 @@ export default function Announcements() {
     setIsFormOpen(true);
   };
 
-  const [viewContent, setViewContent] = useState<string | null>(null);
-
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">Announcements</h1>
-        <Button onClick={handleAdd}>Add Announcement</Button>
+    <section className="animate-fadeInUp text-gray-700">
+      {/* 🌿 Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-hemp-forest mb-2 sm:mb-0">
+          Announcements
+        </h1>
+        <Button
+          onClick={handleAdd}
+          className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 transition-all duration-300 shadow-card"
+        >
+          + Add Announcement
+        </Button>
       </div>
 
-      {loading ? (
-        <p>Loading announcements...</p>
-      ) : (
-        <div className="overflow-x-auto border rounded-lg">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 text-left">Title</th>
-                <th className="p-2 text-left">Date</th>
-                <th className="p-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {announcements.map((a) => (
-                <tr key={a.id} className="border-t">
-                  <td className="p-2">{a.title}</td>
-                  <td className="p-2">{new Date(a.created_at).toLocaleDateString()}</td>
-                  <td className="p-2 space-x-2">
-                    <Button onClick={() => setViewContent(a.content)} variant="ghost">View</Button>
-                    <Button onClick={() => handleEdit(a)} variant="outline">Edit</Button>
-                    <Button onClick={() => handleDelete(a.id)} variant="ghost">Delete</Button>
-                  </td>
-                </tr>
-              ))}
-              {announcements.length === 0 && (
+      {/* 🌿 Table */}
+      <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="p-6 text-center text-gray-500">
+            Loading announcements...
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm text-gray-700">
+              <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase tracking-wide text-xs">
                 <tr>
-                  <td colSpan={3} className="p-4 text-center text-gray-500">
-                    No announcements found
-                  </td>
+                  <th className="px-4 py-3 text-left">Title</th>
+                  <th className="px-4 py-3 text-left">Date</th>
+                  <th className="px-4 py-3 text-left">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {announcements.map((a) => (
+                  <tr
+                    key={a.id}
+                    className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition-all"
+                  >
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      {a.title}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {new Date(a.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 flex flex-wrap gap-2">
+                      {/* 👁 View */}
+                      <Button
+                        onClick={() => setViewContent(a.content)}
+                        variant="ghost"
+                        className="text-hemp-green hover:bg-hemp-sage/30 inline-flex items-center gap-1.5"
+                      >
+                        <Eye size={16} />
+                        <span className="hidden sm:inline">View</span>
+                      </Button>
 
+                      {/* ✏️ Edit */}
+                      <Button
+                        onClick={() => handleEdit(a)}
+                        variant="outline"
+                        className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white transition inline-flex items-center gap-1.5"
+                      >
+                        <Pencil size={15} />
+                        <span className="hidden sm:inline">Edit</span>
+                      </Button>
+
+                      {/* 🗑 Delete */}
+                      <Button
+                        onClick={() => handleDelete(a.id)}
+                        variant="ghost"
+                        className="text-red-600 hover:bg-red-50 inline-flex items-center gap-1.5"
+                      >
+                        <Trash2 size={16} />
+                        <span className="hidden sm:inline">Delete</span>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {announcements.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="p-6 text-center text-gray-500 italic"
+                    >
+                      No announcements found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 🌿 Add/Edit Modal */}
       {isFormOpen && (
         <AnnouncementForm
           announcement={selectedAnnouncement}
@@ -102,17 +152,28 @@ export default function Announcements() {
         />
       )}
 
+      {/* 🌿 View Modal */}
       {viewContent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-2xl">
-            <h2 className="text-xl font-semibold mb-4">Announcement</h2>
-            <div className="prose max-w-none mb-4" dangerouslySetInnerHTML={{ __html: viewContent }} />
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 px-4">
+          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl p-6 border border-hemp-sage animate-fadeInUp">
+            <h2 className="text-xl font-bold text-hemp-forest mb-4">
+              Announcement Details
+            </h2>
+            <div
+              className="prose max-w-none text-gray-700 mb-6"
+              dangerouslySetInnerHTML={{ __html: viewContent }}
+            />
             <div className="flex justify-end">
-              <Button onClick={() => setViewContent(null)}>Close</Button>
+              <Button
+                onClick={() => setViewContent(null)}
+                className="bg-hemp-green hover:bg-hemp-forest text-white rounded-lg px-6 py-2"
+              >
+                Close
+              </Button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
