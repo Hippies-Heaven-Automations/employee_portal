@@ -2,11 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Optional — global polish */
+html, body, #root { height: 100%; }
+
 body {
-  @apply bg-white text-gray-900 antialiased;
+  @apply bg-hemp-mist text-hemp-ink antialiased font-sans;
 }
 
 h1, h2, h3, h4 {
-  @apply font-semibold text-purple-800;
+  @apply font-semibold text-hemp-forest;
 }
