@@ -11,6 +11,12 @@ interface QuizQuestion {
   answer?: string;
 }
 
+interface DetailedAnswer {
+  question: string;
+  selected: string;
+  correct: boolean;
+}
+
 export default function Quiz({ trainingId }: QuizProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [version, setVersion] = useState<number | null>(null);
@@ -22,8 +28,12 @@ export default function Quiz({ trainingId }: QuizProps) {
   const [error, setError] = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [previousCompletion, setPreviousCompletion] = useState<{
+    score: number;
+    version: number;
+  } | null>(null);
 
-  // Fetch current user
+  // 🌿 Fetch current user
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -32,58 +42,78 @@ export default function Quiz({ trainingId }: QuizProps) {
     getUser();
   }, []);
 
-  // Fetch quiz from Supabase
+  // 🌿 Fetch quiz + check previous attempt
   useEffect(() => {
-  const fetchQuiz = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    const fetchQuiz = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const { data, error } = await supabase
-        .from("training_quizzes")
-        .select("*")
-        .eq("training_id", trainingId)
-        .eq("is_active", true)
-        .order("version", { ascending: false })
-        .limit(1)
-        .maybeSingle(); // ✅ prevents coercion error
+        // Check if user already completed
+        const { data: prev, error: prevErr } = await supabase
+          .from("training_tracker")
+          .select("quiz_score, quiz_version")
+          .eq("employee_id", userId)
+          .eq("training_id", trainingId)
+          .maybeSingle();
 
-      if (error) throw error;
+        if (prevErr) throw prevErr;
 
-      // ✅ handle missing data gracefully
-      if (!data) {
-        setError("No active quiz found for this training.");
-        setQuestions([]);
-        setVersion(null);
-        return;
+        if (prev && prev.quiz_score !== null) {
+          // ✅ User already finished this quiz
+          setPreviousCompletion({
+            score: prev.quiz_score,
+            version: prev.quiz_version,
+          });
+          setFinished(true);
+          setLoading(false);
+          return;
+        }
+
+        // Otherwise, fetch the quiz
+        const { data, error } = await supabase
+          .from("training_quizzes")
+          .select("*")
+          .eq("training_id", trainingId)
+          .eq("is_active", true)
+          .order("version", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (!data) {
+          setError("No active quiz found for this training.");
+          setQuestions([]);
+          setVersion(null);
+          return;
+        }
+
+        const quizContent: QuizQuestion[] = data.content || [];
+
+        // Shuffle both questions and choices
+        const randomized = quizContent
+          .sort(() => Math.random() - 0.5)
+          .map((q) => ({
+            ...q,
+            choices: [...q.choices].sort(() => Math.random() - 0.5),
+          }));
+
+        setQuestions(randomized);
+        setVersion(data.version);
+        setAnswers(new Array(randomized.length).fill(""));
+      } catch (err: any) {
+        console.error("Error loading quiz:", err);
+        setError(err.message || "Failed to load quiz.");
+      } finally {
+        setLoading(false);
       }
-const quizContent: QuizQuestion[] = data?.content || [];
+    };
 
-// ✅ Shuffle questions
-const shuffledQuestions = [...quizContent].sort(() => Math.random() - 0.5);
+    if (trainingId && userId) fetchQuiz();
+  }, [trainingId, userId]);
 
-// ✅ Shuffle choices for each question too
-const randomized = shuffledQuestions.map((q) => ({
-  ...q,
-  choices: [...q.choices].sort(() => Math.random() - 0.5),
-}));
-
-setQuestions(randomized);
-setVersion(data.version);
-setAnswers(new Array(randomized.length).fill(""));
-
-    } catch (err: any) {
-      console.error("Error loading quiz:", err);
-      setError(err.message || "Failed to load quiz.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (trainingId) fetchQuiz();
-}, [trainingId]);
-
-
+  // 🌿 Handle choice
   const handleChoice = (choice: string) => {
     if (finished) return; // disable after completion
     const updated = [...answers];
@@ -91,14 +121,22 @@ setAnswers(new Array(randomized.length).fill(""));
     setAnswers(updated);
   };
 
+  // 🌿 Navigation
   const handleNext = () => {
-    if (currentIndex < questions.length - 1) setCurrentIndex((i) => i + 1);
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex((i) => i + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handlePrevious = () => {
-    if (currentIndex > 0) setCurrentIndex((i) => i - 1);
+    if (currentIndex > 0) {
+      setCurrentIndex((i) => i - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
+  // 🌿 Submit quiz
   const handleSubmit = async () => {
     if (!userId || !version) {
       setError("Missing user session or quiz version.");
@@ -109,16 +147,15 @@ setAnswers(new Array(randomized.length).fill(""));
       setSubmitting(true);
       setError(null);
 
-      // Compute score
       let correctCount = 0;
       questions.forEach((q, i) => {
         if (answers[i] && answers[i] === q.answer) correctCount++;
       });
+
       const finalScore = Math.round((correctCount / questions.length) * 100);
       setScore(finalScore);
 
-      // Call Supabase RPC
-     const detailedAnswers = questions.map((q, i) => ({
+      const detailedAnswers: DetailedAnswer[] = questions.map((q, i) => ({
         question: q.question,
         selected: answers[i],
         correct: answers[i] === q.answer,
@@ -138,8 +175,6 @@ setAnswers(new Array(randomized.length).fill(""));
           { onConflict: "employee_id,training_id" }
         );
 
-
-
       if (error) throw error;
 
       setFinished(true);
@@ -151,6 +186,7 @@ setAnswers(new Array(randomized.length).fill(""));
     }
   };
 
+  // 🌿 Render states
   if (loading)
     return (
       <div className="flex h-64 items-center justify-center text-gray-600">
@@ -160,25 +196,42 @@ setAnswers(new Array(randomized.length).fill(""));
 
   if (error)
     return (
-      <div className="p-4 text-center text-red-600">
+      <div className="p-4 text-center text-red-600 space-y-3">
         ⚠️ {error}
-      </div>
-    );
-
-  if (!questions.length)
-    return (
-      <div className="p-4 text-center text-gray-600">
-        No quiz found for this training.
+        <button
+          onClick={() => window.location.reload()}
+          className="rounded-md bg-hemp-green text-white px-4 py-2 text-sm font-medium hover:bg-hemp-forest"
+        >
+          Retry
+        </button>
       </div>
     );
 
   if (!questions.length && !loading && !error)
-  return (
-    <div className="p-4 text-center text-gray-600">
-      No active quiz is available for this training yet.
-    </div>
-  );
+    return (
+      <div className="p-4 text-center text-gray-600">
+        No active quiz is available for this training yet.
+      </div>
+    );
 
+  // 🌿 Already completed (prevent retake)
+  if (previousCompletion)
+    return (
+      <div className="mx-auto max-w-md rounded-lg bg-white p-6 shadow-md text-center">
+        <h2 className="text-xl font-semibold text-hemp-green mb-2">
+          ✅ Quiz already completed
+        </h2>
+        <p className="text-gray-700">
+          Your previous score:{" "}
+          <span className="font-bold text-hemp-forest">
+            {previousCompletion.score}%
+          </span>
+        </p>
+        <p className="text-sm text-gray-500 mt-1">
+          Version: {previousCompletion.version}
+        </p>
+      </div>
+    );
 
   const currentQuestion = questions[currentIndex];
   const selected = answers[currentIndex];
@@ -200,10 +253,10 @@ setAnswers(new Array(randomized.length).fill(""));
               <li
                 key={i}
                 onClick={() => handleChoice(choice)}
-                className={`cursor-pointer rounded-md border p-3 text-sm ${
+                className={`cursor-pointer rounded-md border p-3 text-sm transition ${
                   selected === choice
-                    ? "border-blue-500 bg-blue-100"
-                    : "border-gray-200 hover:bg-blue-50"
+                    ? "border-hemp-green bg-hemp-green/10"
+                    : "border-gray-200 hover:bg-hemp-sage/40"
                 }`}
               >
                 {choice}
@@ -218,7 +271,7 @@ setAnswers(new Array(randomized.length).fill(""));
               className={`rounded-md px-4 py-2 text-sm font-medium ${
                 currentIndex === 0 || submitting
                   ? "cursor-not-allowed bg-gray-200 text-gray-500"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-hemp-sage text-hemp-forest hover:bg-hemp-sage/80"
               }`}
             >
               Previous
@@ -231,7 +284,7 @@ setAnswers(new Array(randomized.length).fill(""));
                 className={`rounded-md px-4 py-2 text-sm font-medium ${
                   submitting
                     ? "cursor-not-allowed bg-gray-200 text-gray-500"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-hemp-green text-white hover:bg-hemp-forest"
                 }`}
               >
                 Next
@@ -243,7 +296,7 @@ setAnswers(new Array(randomized.length).fill(""));
                 className={`rounded-md px-4 py-2 text-sm font-medium ${
                   submitting
                     ? "cursor-not-allowed bg-gray-200 text-gray-500"
-                    : "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-hemp-green text-white hover:bg-hemp-forest"
                 }`}
               >
                 {submitting ? "Submitting..." : "Submit Quiz"}
@@ -255,12 +308,12 @@ setAnswers(new Array(randomized.length).fill(""));
 
       {finished && (
         <div className="text-center">
-          <h2 className="mb-4 text-xl font-semibold text-green-700">
+          <h2 className="mb-4 text-xl font-semibold text-hemp-green">
             🎉 Training Completed!
           </h2>
           <p className="text-gray-700">
             Your score:{" "}
-            <span className="font-bold text-blue-600">{score}%</span>
+            <span className="font-bold text-hemp-forest">{score}%</span>
           </p>
         </div>
       )}
