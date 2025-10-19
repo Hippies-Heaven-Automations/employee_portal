@@ -163,39 +163,49 @@ export default function Navbar({
             "text-purple-500",
             "text-lime-600",
           ];
+
           return (
             <NavLink
               key={l.to}
               to={l.to}
+              end
               onClick={() => onLinkClick?.()}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center px-3 py-2 rounded-md font-medium transition-all duration-200",
+                  "group flex items-center px-3 py-2 rounded-md font-medium transition-all duration-200",
                   isActive
                     ? "bg-green-600 text-white shadow-sm"
                     : "text-green-800/80 hover:text-green-900 hover:bg-green-100"
                 )
               }
-              end
             >
-              {Icon && (
-                <Icon
-                  size={18}
-                  className={cn("flex-shrink-0", colors[idx % colors.length])}
-                />
+              {({ isActive }) => (
+                <>
+                  {Icon && (
+                    <Icon
+                      size={18}
+                      className={cn(
+                        "flex-shrink-0 transition-colors duration-200",
+                        isActive ? "text-white" : colors[idx % colors.length],
+                        !isActive && "group-hover:text-green-800"
+                      )}
+                    />
+                  )}
+                  <span
+                    className={cn(
+                      "ml-3 truncate transition-all duration-300",
+                      collapsed && "opacity-0 w-0 overflow-hidden"
+                    )}
+                  >
+                    {l.label}
+                  </span>
+                </>
               )}
-              <span
-                className={cn(
-                  "ml-3 truncate transition-all duration-300",
-                  collapsed && "opacity-0 w-0 overflow-hidden"
-                )}
-              >
-                {l.label}
-              </span>
             </NavLink>
           );
         })}
       </div>
+
 
       <div className="mt-auto border-t border-green-200 pt-3">
         <button
