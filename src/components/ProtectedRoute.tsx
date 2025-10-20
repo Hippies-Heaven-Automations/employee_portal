@@ -12,13 +12,32 @@ export default function ProtectedRoute({ role, children }: ProtectedRouteProps) 
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      const session = data.session;
-      const userRole = session?.user?.user_metadata?.role;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session) {
         setAllowed(false);
         return;
+      }
+
+      const userId = session.user.id;
+
+      // 🧠 Get role either from metadata or from profiles table
+      let userRole = session.user.user_metadata?.role;
+
+      if (!userRole) {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", userId)
+          .single();
+
+        if (error) {
+          console.warn("Failed to fetch profile role:", error.message);
+        }
+
+        userRole = profile?.role;
       }
 
       if (role && userRole !== role) {
