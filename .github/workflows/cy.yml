@@ -26,8 +26,11 @@ jobs:
           node-version: 18
           cache: 'pnpm'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      # ✅ Proper way to install pnpm on GitHub Actions
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9 # or your local pnpm version (check via `pnpm -v`)
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
