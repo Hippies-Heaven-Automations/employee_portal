@@ -221,6 +221,7 @@ export default function TrainingDetail() {
           </p>
 
           <div className="rounded-xl border border-hemp-sage/40 bg-hemp-mist/20 p-4">
+            // @ts-expect-error Incorrect upstream types
             <SignatureCanvas
               ref={sigCanvas}
               penColor="black"
