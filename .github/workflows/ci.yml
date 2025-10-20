@@ -21,32 +21,40 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Set up Node.js (this just provides Node, not pnpm)
+      # 2️⃣ Install pnpm BEFORE Node cache setup
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9 # or your local pnpm version (run `pnpm -v`)
+          run_install: false
+
+      # 3️⃣ Set up Node.js (no cache line here!)
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'pnpm' # optional, works only after pnpm setup
 
-      # 3️⃣ Install pnpm properly (this is what fixes your error)
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v3
+      # 4️⃣ (Optional but recommended) enable pnpm store caching
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
         with:
-          version: 9.12.2 # match your local version (run pnpm -v locally)
-          run_install: false
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
-      # 4️⃣ Verify pnpm is available
-      - name: Check pnpm version
+      # 5️⃣ Verify pnpm
+      - name: Verify pnpm installation
         run: pnpm -v
 
-      # 5️⃣ Install dependencies using pnpm
+      # 6️⃣ Install deps
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 6️⃣ Run linter
+      # 7️⃣ Lint
       - name: Run ESLint
         run: pnpm run lint
 
-      # 7️⃣ Run tests
+      # 8️⃣ Tests
       - name: Run Tests
         run: pnpm run test
