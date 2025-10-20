@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Loader2, X, UserPlus, UserCog } from "lucide-react";
+import { supabaseAdmin } from "../../lib/supabaseAdminClient";
+import toast from "react-hot-toast";
 
 interface Employee {
   id: string;
@@ -45,18 +47,75 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
       updated_at: new Date().toISOString(),
     };
 
-    let res;
     if (employee) {
-      res = await supabase.from("profiles").update(payload).eq("id", employee.id);
-    } else {
-      res = await supabase.from("profiles").insert([payload]);
-    }
+      // ✏️ Update existing employee
+      const { error } = await supabase
+        .from("profiles")
+        .update(payload)
+        .eq("id", employee.id);
 
-    if (res.error) alert(res.error.message);
-    else {
+      if (error) toast.error(`Error updating profile: ${error.message}`);
+      else {
+        toast.success("✅ Employee updated successfully!");
+        onSave();
+        onClose();
+      }
+    } else {
+      // 🆕 Create new employee
+      const password = Math.random().toString(36).slice(-10);
+
+      // 1️⃣ Create auth user (triggers handle_new_user)
+      const { data: newUser, error: userError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email: formData.email,
+          password,
+          email_confirm: true,
+          user_metadata: {
+            full_name: formData.full_name,
+            employee_type: formData.employee_type,
+          },
+        });
+
+      if (userError) {
+        toast.error(`Error creating auth user: ${userError.message}`);
+        setSaving(false);
+        return;
+      }
+
+      // 2️⃣ Update optional profile fields
+      const updatePayload: Record<string, string> = {};
+      if (formData.contact_number?.trim())
+        updatePayload.contact_number = formData.contact_number.trim();
+      if (formData.address?.trim())
+        updatePayload.address = formData.address.trim();
+      if (formData.emergency_contact?.trim())
+        updatePayload.emergency_contact = formData.emergency_contact.trim();
+      if (formData.employee_type?.trim())
+        updatePayload.employee_type = formData.employee_type.trim();
+
+      if (Object.keys(updatePayload).length > 0) {
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update(updatePayload)
+          .eq("id", newUser.user.id);
+
+        if (updateError) {
+          toast.error(`Error updating profile: ${updateError.message}`);
+          setSaving(false);
+          return;
+        }
+      }
+
+      // 3️⃣ Success notification (with password)
+      toast.success(
+        `Employee created successfully! Temporary password: ${password}`,
+        { duration: 8000 }
+      );
+
       onSave();
       onClose();
     }
+
     setSaving(false);
   };
 
@@ -85,10 +144,16 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
         </div>
 
         {/* 🌿 Form Body */}
-        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5 text-gray-700">
+        <form
+          onSubmit={handleSubmit}
+          className="px-6 py-6 space-y-5 text-gray-700"
+        >
           {/* Full Name */}
           <div>
-            <label htmlFor="full_name" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label
+              htmlFor="full_name"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               Full Name
             </label>
             <input
@@ -104,7 +169,10 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               Email
             </label>
             <input
@@ -122,7 +190,10 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
           {/* Contact */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="contact_number" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="contact_number"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 Contact Number
               </label>
               <input
@@ -136,7 +207,10 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
             </div>
 
             <div>
-              <label htmlFor="emergency_contact" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="emergency_contact"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 Emergency Contact
               </label>
               <input
@@ -152,7 +226,10 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
 
           {/* Address */}
           <div>
-            <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label
+              htmlFor="address"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               Address
             </label>
             <input
@@ -167,7 +244,10 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
 
           {/* Employee Type */}
           <div>
-            <label htmlFor="employee_type" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label
+              htmlFor="employee_type"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               Employee Type
             </label>
             <select
