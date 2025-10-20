@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
-import { Loader2, X, CalendarPlus, CalendarCog, Clock, Globe } from "lucide-react";
+import { Loader2, X, CalendarPlus, CalendarCog, Clock } from "lucide-react";
 
 interface ScheduleFormProps {
   schedule: any | null;

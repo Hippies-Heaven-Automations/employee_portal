@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import {
-  FilePlus,
   Edit3,
   Trash2,
   Eye,
