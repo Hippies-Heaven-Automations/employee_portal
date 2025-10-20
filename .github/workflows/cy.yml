@@ -17,26 +17,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Set up Node.js with built-in caching for pnpm
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'pnpm'
 
-      # ✅ Proper way to install pnpm on GitHub Actions
+      # 3️⃣ Properly install pnpm (fixes the "Unable to locate executable" error)
       - name: Set up pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 9 # or your local pnpm version (check via `pnpm -v`)
+          version: 9 # match your local pnpm version
 
+      # 4️⃣ Verify pnpm is working (optional, good for debugging)
+      - name: Verify pnpm installation
+        run: pnpm -v
+
+      # 5️⃣ Install dependencies
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # 6️⃣ Lint
       - name: Run ESLint
         run: pnpm run lint
 
+      # 7️⃣ Tests
       - name: Run Tests
         run: pnpm run test
