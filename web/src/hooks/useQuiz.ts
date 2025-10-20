@@ -49,9 +49,14 @@ export function useQuiz(trainingId: string): UseQuizReturn {
         setQuestions(shuffled);
         setVersion(data.version);
         setSelectedAnswers(new Array(shuffled.length).fill(""));
-      } catch (err: any) {
-        console.error("Error fetching quiz:", err);
-        setError(err.message || "Failed to load quiz.");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error("Error loading quiz:", err.message);
+          setError(err.message);
+        } else {
+          console.error("Unknown error:", err);
+          setError("An unexpected error occurred.");
+        }
       } finally {
         setLoading(false);
       }

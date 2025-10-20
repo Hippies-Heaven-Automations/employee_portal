@@ -102,11 +102,14 @@ export default function Quiz({ trainingId }: QuizProps) {
         setQuestions(randomized);
         setVersion(data.version);
         setAnswers(new Array(randomized.length).fill(""));
-      } catch (err: any) {
-        console.error("Error loading quiz:", err);
-        setError(err.message || "Failed to load quiz.");
-      } finally {
-        setLoading(false);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error("Error loading quiz:", err.message);
+          setError(err.message);
+        } else {
+          console.error("Unknown error:", err);
+          setError("An unexpected error occurred.");
+        }
       }
     };
 
@@ -178,9 +181,14 @@ export default function Quiz({ trainingId }: QuizProps) {
       if (error) throw error;
 
       setFinished(true);
-    } catch (err: any) {
-      console.error("Error submitting quiz:", err);
-      setError(err.message || "Failed to submit quiz result.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Error loading quiz:", err.message);
+        setError(err.message);
+      } else {
+        console.error("Unknown error:", err);
+        setError("An unexpected error occurred.");
+      }
     } finally {
       setSubmitting(false);
     }

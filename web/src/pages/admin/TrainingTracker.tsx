@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Loader2, GraduationCap, X } from "lucide-react";
 
+interface QuizAnswer {
+  question: string;
+  selected: string;
+  correct: boolean;
+}
+
 interface TrackerRow {
   employee_id: string;
   training_id: string;
@@ -14,6 +20,19 @@ interface TrackerRow {
   signature_data: string | null;
 }
 
+interface TrainingTrackerRowRaw {
+  employee_id: string;
+  training_id: string;
+  quiz_score: number | null;
+  quiz_version: number | null;
+  completed_at: string | null;
+  docu_signed_at: string | null;
+  signature_data: string | null;
+  profiles?: { full_name?: string }[];   // 👈 now an array
+  trainings?: { title?: string }[];      // 👈 now an array
+}
+
+
 export default function TrainingTracker() {
   const [records, setRecords] = useState<TrackerRow[]>([]);
   const [filtered, setFiltered] = useState<TrackerRow[]>([]);
@@ -25,7 +44,7 @@ export default function TrainingTracker() {
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
   const [selectedTraining, setSelectedTraining] = useState<string>("");
 
-  const [selectedQuizAnswers, setSelectedQuizAnswers] = useState<any[] | null>(null);
+  const [selectedQuizAnswers, setSelectedQuizAnswers] = useState<QuizAnswer[] | null>(null);
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<TrackerRow | null>(null);
 
@@ -51,24 +70,26 @@ export default function TrainingTracker() {
         if (error) throw error;
 
         const formatted =
-          data?.map((row: any) => ({
-            employee_id: row.employee_id,
-            training_id: row.training_id,
-            employee_name: row.profiles?.full_name || "Unknown",
-            training_title: row.trainings?.title || "Untitled Training",
-            quiz_score: row.quiz_score,
-            quiz_version: row.quiz_version,
-            completed_at: row.completed_at,
-            docu_signed_at: row.docu_signed_at,
-            signature_data: row.signature_data,
-          })) || [];
+        data?.map((row: TrainingTrackerRowRaw) => ({
+          employee_id: row.employee_id,
+          training_id: row.training_id,
+          employee_name: row.profiles?.[0]?.full_name || "Unknown",
+          training_title: row.trainings?.[0]?.title || "Untitled Training",
+          quiz_score: row.quiz_score,
+          quiz_version: row.quiz_version,
+          completed_at: row.completed_at,
+          docu_signed_at: row.docu_signed_at,
+          signature_data: row.signature_data,
+        })) || [];
 
         setRecords(formatted);
         setFiltered(formatted);
         setEmployees(Array.from(new Set(formatted.map((r) => r.employee_name))));
         setTrainings(Array.from(new Set(formatted.map((r) => r.training_title))));
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch tracker records.");
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Failed to fetch tracker records.";
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -97,7 +118,6 @@ export default function TrainingTracker() {
   // ⚠️ Error
   if (error)
     return <div className="p-4 text-center text-red-600 font-medium">⚠️ {error}</div>;
-
   return (
     <section className="animate-fadeInUp text-gray-700">
       {/* 🌿 Header */}

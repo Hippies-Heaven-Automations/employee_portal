@@ -6,12 +6,17 @@ interface Training {
   title: string;
 }
 
+interface QuizQuestion {
+  question: string;
+  choices: string[];
+  answer: string;
+}
 interface Quiz {
   id: string;
   training_id: string;
   version: number;
   is_active: boolean;
-  content: any;
+  content: QuizQuestion[];
   created_at: string;
   trainings?: { title: string };
 }
@@ -73,8 +78,10 @@ export default function QuizEditor() {
       alert("Quiz updated!");
       setSelectedQuiz(null);
       window.location.reload();
-    } catch (err: any) {
-      alert("❌ Invalid JSON or failed update: " + err.message);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Unknown error occurred.";
+      alert("❌ Invalid JSON or failed update: " + message);
     }
   };
 
@@ -91,8 +98,10 @@ export default function QuizEditor() {
       setNewQuizJSON("[]");
       setNewTrainingId("");
       window.location.reload();
-    } catch (err: any) {
-      alert("❌ Failed to add quiz: " + err.message);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Unknown error occurred.";
+      alert("❌ Failed to add quiz: " + message);
     }
   };
 

@@ -3,8 +3,16 @@ import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Loader2, X, Megaphone } from "lucide-react";
 
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string | null;
+}
 interface AnnouncementFormProps {
-  announcement: any | null;
+  announcement: Announcement | null;
   onClose: () => void;
   onSave: () => void;
 }

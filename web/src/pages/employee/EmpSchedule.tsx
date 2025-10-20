@@ -37,8 +37,10 @@ export default function EmpSched() {
 
       if (error) throw error;
       setSchedules(data || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to fetch tracker records.";
+      setError(message);
     } finally {
       setLoading(false);
     }

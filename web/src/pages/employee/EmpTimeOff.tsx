@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import EmpTimeOffForm from "./EmpTimeOffForm";
+import type { PostgrestError } from "@supabase/supabase-js";
+
 
 interface TimeOff {
   id: string;
@@ -18,37 +20,48 @@ export default function EmpTimeOff() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   // 🌿 Fetch employee’s time-off requests
-  const fetchTimeOffs = async () => {
-    setLoading(true);
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+ const fetchTimeOffs = async (): Promise<void> => {
+  setLoading(true);
+  try {
+    const {
+      data: { user },
+      error: userError,
+    }: {
+      data: { user: { id: string } | null };
+      error: Error | null;
+    } = await supabase.auth.getUser();
 
-      if (userError || !user) {
-        console.error(userError);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("time_off_requests")
-        .select("id, start_date, end_date, reason, status, created_at")
-        .eq("employee_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setTimeOffs(data || []);
-    } catch (err) {
-      console.error("Error loading time-offs:", err);
-    } finally {
-      setLoading(false);
+    if (userError || !user) {
+      console.error(userError);
+      return;
     }
-  };
 
-  useEffect(() => {
-    fetchTimeOffs();
-  }, []);
+    // ✅ Limit TypeScript inference by typing the response explicitly
+    const response = await supabase
+      .from("time_off_requests")
+      .select("id, start_date, end_date, reason, status, created_at")
+      .eq("employee_id", user.id)
+      .order("created_at", { ascending: false });
+
+    // ✅ Explicitly declare what we expect from Supabase
+    const data = response.data as TimeOff[] | null;
+    const error = response.error as PostgrestError | null;
+
+    if (error) throw new Error(error.message);
+    setTimeOffs(data ?? []);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("Error loading time-offs:", err.message);
+    } else {
+      console.error("Error loading time-offs:", err);
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -68,7 +81,7 @@ export default function EmpTimeOff() {
       {/* 🌿 Loading shimmer */}
       {loading && (
         <div className="space-y-3 animate-pulse">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {[...Array(3)].map((_, i) => (
             <div key={i} className="h-12 bg-hemp-sage/30 rounded-lg" />
           ))}
         </div>

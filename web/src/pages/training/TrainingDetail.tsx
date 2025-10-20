@@ -9,18 +9,38 @@ interface MediaItem {
   url: string;
 }
 
+interface Training {
+  id: string;
+  title: string;
+  description: string;
+  media?: MediaItem[];
+  requires_signature?: boolean;
+}
+
+interface TrainingTracker {
+  employee_id: string;
+  training_id: string;
+  docu_signed_at?: string | null;
+  signature_data?: string | null;
+}
+
+interface SupabaseUser {
+  id: string;
+  email?: string;
+}
+
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
-  const [training, setTraining] = useState<any>(null);
-  const [tracker, setTracker] = useState<any>(null);
+  const [training, setTraining] = useState<Training | null>(null);
+  const [tracker, setTracker] = useState<TrainingTracker | null>(null);
   const [loading, setLoading] = useState(true);
   const [ackLoading, setAckLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const sigCanvas = useRef<SignatureCanvas>(null);
 
   // 🌿 Fix YouTube embedding
-  const getEmbedUrl = (url: string) => {
+  const getEmbedUrl = (url: string): string => {
     try {
       if (url.includes("watch?v=")) {
         const videoId = new URL(url).searchParams.get("v");
@@ -38,9 +58,11 @@ export default function TrainingDetail() {
 
   // 🌿 Load user
   useEffect(() => {
-    const loadUser = async () => {
+    const loadUser = async (): Promise<void> => {
       const { data } = await supabase.auth.getUser();
-      if (data?.user) setCurrentUser(data.user);
+      if (data?.user) {
+        setCurrentUser({ id: data.user.id, email: data.user.email ?? undefined });
+      }
     };
     loadUser();
   }, []);
@@ -48,37 +70,46 @@ export default function TrainingDetail() {
   // 🌿 Fetch training + tracker
   useEffect(() => {
     if (!id || !currentUser) return;
-    const fetchData = async () => {
+
+    const fetchData = async (): Promise<void> => {
       try {
         setLoading(true);
-        const { data: t, error: tErr } = await supabase
+
+        const { data: trainingData, error: trainingError } = await supabase
           .from("trainings")
           .select("*")
           .eq("id", id)
-          .single();
-        if (tErr) throw tErr;
+          .single<Training>();
 
-        const { data: track } = await supabase
+        if (trainingError) throw new Error(trainingError.message);
+
+        const { data: trackerData, error: trackerError } = await supabase
           .from("training_tracker")
           .select("*")
           .eq("employee_id", currentUser.id)
           .eq("training_id", id)
-          .maybeSingle();
+          .maybeSingle<TrainingTracker>();
 
-        setTraining(t);
-        setTracker(track);
-      } catch (err: any) {
-        setError(err.message);
+        if (trackerError) throw new Error(trackerError.message);
+
+        setTraining(trainingData);
+        setTracker(trackerData);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Error loading training.";
+        setError(message);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, [id, currentUser]);
 
   // 🌿 Handle signature submission
-  const handleAcknowledge = async () => {
+  const handleAcknowledge = async (): Promise<void> => {
     if (!currentUser || !sigCanvas.current) return;
+
     if (sigCanvas.current.isEmpty()) {
       alert("Please sign before submitting!");
       return;
@@ -100,18 +131,23 @@ export default function TrainingDetail() {
         },
         { onConflict: "employee_id,training_id" }
       );
-      if (error) throw error;
 
-      setTracker((prev: any) => ({
-        ...prev,
+      if (error) throw new Error(error.message);
+
+      setTracker((prev) => ({
+        ...(prev ?? {}),
         docu_signed_at: new Date().toISOString(),
         signature_data: signatureData,
+        employee_id: currentUser.id,
+        training_id: id ?? "",
       }));
 
       sigCanvas.current.clear();
       alert("✅ Signature saved successfully!");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Error saving signature.";
+      setError(message);
     } finally {
       setAckLoading(false);
     }
@@ -141,8 +177,8 @@ export default function TrainingDetail() {
 
       {/* Media Section */}
       <div className="space-y-6">
-        {training.media?.length > 0 ? (
-          training.media.map((m: MediaItem, i: number) => (
+        {training.media?.length ? (
+          training.media.map((m, i) => (
             <div
               key={i}
               className="rounded-xl border border-hemp-sage/40 bg-white p-4 shadow-sm"

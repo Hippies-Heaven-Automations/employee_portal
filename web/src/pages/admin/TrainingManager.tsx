@@ -53,8 +53,10 @@ export default function TrainingManager() {
         .order("created_at", { ascending: false });
       if (error) throw error;
       setTrainings((data as Training[]) || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to load trainings.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -99,9 +101,12 @@ export default function TrainingManager() {
       setEditing(null);
       setShowForm(false);
       fetchTrainings();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "An unexpected error occurred.";
+      alert(message);
     }
+
   };
 
   // 🌿 Handle delete

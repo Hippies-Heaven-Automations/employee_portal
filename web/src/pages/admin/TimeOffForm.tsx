@@ -3,8 +3,19 @@ import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Loader2, X, PlaneTakeoff, Calendar } from "lucide-react";
 
+interface TimeOff {
+  id: string;
+  employee_id: string;
+  start_date: string;
+  end_date: string;
+  reason: string;
+  status: string;
+  created_at: string;
+  full_name: string | null;
+}
+
 interface TimeOffFormProps {
-  request: any | null;
+  request: TimeOff | null;
   onClose: () => void;
   onSave: () => void;
 }

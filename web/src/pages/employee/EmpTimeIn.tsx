@@ -17,6 +17,7 @@ export default function EmpTimeIn() {
   const [userId, setUserId] = useState<string | null>(null);
   const [liveDuration, setLiveDuration] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // 🌿 Fetch current user
   useEffect(() => {
@@ -32,7 +33,7 @@ export default function EmpTimeIn() {
     if (!userId) return;
     setLoading(true);
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("shift_logs")
       .select("*")
       .eq("employee_id", userId)
@@ -48,8 +49,26 @@ export default function EmpTimeIn() {
   };
 
   useEffect(() => {
-    fetchLogs();
+    if (!userId) return;
+    (async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("shift_logs")
+        .select("*")
+        .eq("employee_id", userId)
+        .order("shift_start", { ascending: false });
+
+      if (error) {
+        console.error(error);
+      } else {
+        setLogs(data || []);
+        const openShift = data?.find((l) => !l.shift_end);
+        setIsClockedIn(!!openShift);
+      }
+      setLoading(false);
+    })();
   }, [userId]);
+
 
   // 🌿 Live duration updater
   useEffect(() => {
@@ -100,8 +119,10 @@ export default function EmpTimeIn() {
         }
       }
       await fetchLogs();
-    } catch (err: any) {
-      alert(err.message || "Action failed.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to fetch tracker records.";
+      setError(message);
     } finally {
       setProcessing(false);
     }

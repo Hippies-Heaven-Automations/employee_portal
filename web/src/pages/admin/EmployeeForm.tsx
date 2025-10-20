@@ -3,8 +3,18 @@ import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Loader2, X, UserPlus, UserCog } from "lucide-react";
 
+interface Employee {
+  id: string;
+  full_name: string;
+  email: string;
+  contact_number?: string;
+  address?: string;
+  emergency_contact?: string;
+  employee_type: string;
+  created_at?: string;
+}
 interface Props {
-  employee: any | null;
+  employee: Employee | null;
   onClose: () => void;
   onSave: () => void;
 }

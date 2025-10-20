@@ -17,24 +17,27 @@ export default function TrainingList() {
   const [employeeType, setEmployeeType] = useState<string>("");
 
   useEffect(() => {
-    const fetchTrainings = async () => {
+    const fetchTrainings = async (): Promise<void> => {
       try {
         setLoading(true);
+
         const {
           data: { user },
           error: userError,
         } = await supabase.auth.getUser();
 
-        if (userError || !user) throw new Error("No active user session.");
+        if (userError || !user) {
+          throw new Error("No active user session.");
+        }
 
         // 🌿 Fetch employee type
         const { data: profile } = await supabase
           .from("profiles")
           .select("employee_type")
           .eq("id", user.id)
-          .maybeSingle();
+          .maybeSingle<{ employee_type: string }>();
 
-        const type = profile?.employee_type || "VA";
+        const type = profile?.employee_type ?? "VA";
         setEmployeeType(type);
 
         // 🌿 Fetch trainings matching allowed type
@@ -43,14 +46,21 @@ export default function TrainingList() {
           .select("id, title, description, allowed_types, requires_signature")
           .contains("allowed_types", [type]);
 
-        if (error) throw error;
-        setTrainings(data || []);
-      } catch (err: any) {
-        setError(err.message || "Failed to load trainings.");
+        if (error) throw new Error(error.message);
+
+        setTrainings(data ?? []);
+      } catch (err: unknown) {
+        // ✅ Properly typed catch block
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Failed to load trainings.";
+        setError(message);
       } finally {
         setLoading(false);
       }
     };
+
     fetchTrainings();
   }, []);
 

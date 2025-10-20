@@ -3,14 +3,27 @@ import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Loader2, X, CalendarPlus, CalendarCog, Clock } from "lucide-react";
 
+interface Schedule {
+  id: string;
+  employee_id: string;
+  date: string;        // yyyy-mm-dd (stored in America/Chicago date)
+  time_in: string;     // HH:mm (Chicago wall time)
+  time_out: string;    // HH:mm (Chicago wall time)
+  created_at: string;
+  profiles?: { full_name: string };
+}
+interface Employee {
+  id: string;
+  full_name: string;
+}
 interface ScheduleFormProps {
-  schedule: any | null;
+  schedule: Schedule | null;
   onClose: () => void;
   onSave: () => void;
 }
 
 export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleFormProps) {
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [formData, setFormData] = useState({
     employee_id: schedule?.employee_id || "",
     date: schedule?.date || "",

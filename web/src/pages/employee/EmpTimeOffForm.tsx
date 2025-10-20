@@ -21,7 +21,7 @@ export default function EmpTimeOffForm({ onClose, onSave }: Props) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
 
@@ -44,20 +44,22 @@ export default function EmpTimeOffForm({ onClose, onSave }: Props) {
         created_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from("time_off_requests")
-        .insert([payload]);
+      const { error } = await supabase.from("time_off_requests").insert([payload]);
+      if (error) throw new Error(error.message);
 
-      if (error) throw error;
-
-      // Refresh table and close modal
+      // ✅ Refresh parent table and close modal
       onSave();
       onClose();
 
       // Reset form
       setFormData({ start_date: "", end_date: "", reason: "" });
-    } catch (err: any) {
-      alert(err.message || "Error submitting time-off request.");
+    } catch (err: unknown) {
+      // ✅ Properly typed error handling (no `any`)
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Error submitting time-off request.";
+      alert(message);
     } finally {
       setSaving(false);
     }
@@ -73,9 +75,7 @@ export default function EmpTimeOffForm({ onClose, onSave }: Props) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Start Date */}
           <label className="block">
-            <span className="text-sm font-medium text-hemp-forest">
-              Start Date
-            </span>
+            <span className="text-sm font-medium text-hemp-forest">Start Date</span>
             <input
               type="date"
               name="start_date"
@@ -88,9 +88,7 @@ export default function EmpTimeOffForm({ onClose, onSave }: Props) {
 
           {/* End Date */}
           <label className="block">
-            <span className="text-sm font-medium text-hemp-forest">
-              End Date
-            </span>
+            <span className="text-sm font-medium text-hemp-forest">End Date</span>
             <input
               type="date"
               name="end_date"

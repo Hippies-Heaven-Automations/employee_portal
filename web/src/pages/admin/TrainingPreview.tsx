@@ -53,8 +53,10 @@ export default function TrainingPreview() {
           .single();
         if (error) throw error;
         setTraining(data as Training);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Failed to load training details.";
+        setError(message);
       } finally {
         setLoading(false);
       }
