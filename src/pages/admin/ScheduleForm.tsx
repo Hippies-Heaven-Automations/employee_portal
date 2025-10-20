@@ -2,20 +2,24 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Loader2, X, CalendarPlus, CalendarCog, Clock } from "lucide-react";
+import { notifySuccess, notifyError } from "../../utils/notify";
+import { confirmAction } from "../../utils/confirm";
 
 interface Schedule {
   id: string;
   employee_id: string;
-  date: string;        // yyyy-mm-dd (stored in America/Chicago date)
-  time_in: string;     // HH:mm (Chicago wall time)
-  time_out: string;    // HH:mm (Chicago wall time)
+  date: string;
+  time_in: string;
+  time_out: string;
   created_at: string;
   profiles?: { full_name: string };
 }
+
 interface Employee {
   id: string;
   full_name: string;
 }
+
 interface ScheduleFormProps {
   schedule: Schedule | null;
   onClose: () => void;
@@ -48,13 +52,14 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
   // Fetch employees
   useEffect(() => {
     const fetchEmployees = async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name").order("full_name");
-      setEmployees(data || []);
+      const { data, error } = await supabase.from("profiles").select("id, full_name").order("full_name");
+      if (error) notifyError(`Error loading employees: ${error.message}`);
+      else setEmployees(data || []);
     };
     fetchEmployees();
   }, []);
 
-  // Compute Chicago offset (detect CDT/CST)
+  // Chicago offset (detect CDT/CST)
   function chicagoOffsetHours(dateISO: string) {
     if (!dateISO) return -6;
     const probe = new Date(dateISO + "T12:00:00Z");
@@ -62,26 +67,18 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
       timeZone: "America/Chicago",
       timeZoneName: "short",
     }).formatToParts(probe);
-    const abbr = parts.find(p => p.type === "timeZoneName")?.value || "";
+    const abbr = parts.find((p) => p.type === "timeZoneName")?.value || "";
     return abbr.includes("CDT") ? -5 : -6;
   }
 
   // Convert local (browser) time string to Chicago HH:mm string
   function toChicagoHHMM(localTime: string, dateISO: string) {
     if (!localTime) return "";
-
     const [hh, mm] = localTime.split(":").map(Number);
-
-    // Get the offset for Chicago at that date
-    const chicagoOffset = chicagoOffsetHours(dateISO); // -5 (CDT) or -6 (CST)
-
-    // Create a UTC datetime representing *Chicago wall clock time*
+    const chicagoOffset = chicagoOffsetHours(dateISO);
     const chicagoTimeUTC = new Date(Date.UTC(2024, 0, 1, hh - chicagoOffset, mm, 0));
-
-    // Return in 24-hour HH:mm format relative to Chicago local wall clock
     return chicagoTimeUTC.toISOString().slice(11, 16);
   }
-
 
   // Duration display
   const calculateDuration = (timeIn: string, timeOut: string) => {
@@ -92,13 +89,14 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
     if (diff < 0) diff += 24;
     return `${diff.toFixed(2)} hrs`;
   };
+
   useEffect(() => {
     setDuration(calculateDuration(formData.time_in, formData.time_out));
   }, [formData.time_in, formData.time_out]);
 
   // Slot selection autofill
   const handleSlotSelect = (slot: string) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       if (!slot) return { ...prev, slot: "", time_in: "", time_out: "" };
       const [start, end] = slot.split(" - ");
       const to24 = (label: string) => {
@@ -118,33 +116,39 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
 
     const chicagoTimeIn = toChicagoHHMM(formData.time_in, formData.date);
     const chicagoTimeOut = toChicagoHHMM(formData.time_out, formData.date);
 
     const payload = {
       employee_id: formData.employee_id,
-      date: formData.date, // Chicago date
+      date: formData.date,
       time_in: chicagoTimeIn,
       time_out: chicagoTimeOut,
       updated_at: new Date().toISOString(),
     };
 
-    let res;
-    if (schedule) {
-      res = await supabase.from("schedules").update(payload).eq("id", schedule.id);
-    } else {
-      res = await supabase.from("schedules").insert([payload]);
-    }
+    const action = async () => {
+      setSaving(true);
+      let res;
+      if (schedule) {
+        res = await supabase.from("schedules").update(payload).eq("id", schedule.id);
+      } else {
+        res = await supabase.from("schedules").insert([payload]);
+      }
 
-    if (res.error) alert(res.error.message);
-    else {
-      onSave();
-      onClose();
-    }
+      if (res.error) notifyError(`Error saving schedule: ${res.error.message}`);
+      else {
+        notifySuccess(schedule ? "Schedule updated successfully." : "Schedule added successfully.");
+        onSave();
+        onClose();
+      }
+      setSaving(false);
+    };
 
-    setSaving(false);
+    // Confirm only when editing, direct save when creating
+    if (schedule) confirmAction("Save changes to this schedule?", action);
+    else await action();
   };
 
   return (
@@ -154,7 +158,9 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
         <div className="flex items-center justify-between px-6 py-4 bg-hemp-sage/30 border-b border-hemp-sage/50">
           <div className="flex items-center gap-2">
             {schedule ? <CalendarCog className="text-hemp-green" size={22} /> : <CalendarPlus className="text-hemp-green" size={22} />}
-            <h2 className="text-xl font-semibold text-hemp-forest">{schedule ? "Edit Schedule" : "Add Schedule"}</h2>
+            <h2 className="text-xl font-semibold text-hemp-forest">
+              {schedule ? "Edit Schedule" : "Add Schedule"}
+            </h2>
           </div>
           <button onClick={onClose} className="text-gray-600 hover:text-hemp-green transition" aria-label="Close modal">
             <X size={22} />
@@ -172,7 +178,9 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
         <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5 text-gray-700">
           {/* Employee */}
           <div>
-            <label htmlFor="employee_id" className="block text-sm font-semibold mb-2">Employee</label>
+            <label htmlFor="employee_id" className="block text-sm font-semibold mb-2">
+              Employee
+            </label>
             <select
               id="employee_id"
               name="employee_id"
@@ -182,15 +190,19 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
               required
             >
               <option value="">Select Employee</option>
-              {employees.map(emp => (
-                <option key={emp.id} value={emp.id}>{emp.full_name}</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.full_name}
+                </option>
               ))}
             </select>
           </div>
 
           {/* Date */}
           <div>
-            <label htmlFor="date" className="block text-sm font-semibold mb-2">Date (Central Time)</label>
+            <label htmlFor="date" className="block text-sm font-semibold mb-2">
+              Date (Central Time)
+            </label>
             <input
               type="date"
               id="date"
@@ -204,7 +216,9 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
 
           {/* Slot Dropdown */}
           <div>
-            <label htmlFor="slot" className="block text-sm font-semibold mb-2">Select Time Slot (Optional)</label>
+            <label htmlFor="slot" className="block text-sm font-semibold mb-2">
+              Select Time Slot (Optional)
+            </label>
             <select
               id="slot"
               name="slot"
@@ -213,8 +227,10 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
               className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 text-gray-800 bg-white focus:ring-2 focus:ring-hemp-green"
             >
               <option value="">-- Select a slot --</option>
-              {timeSlots.map(slot => (
-                <option key={slot} value={slot}>{slot}</option>
+              {timeSlots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot}
+                </option>
               ))}
             </select>
             <p className="text-xs text-gray-500 mt-1">
@@ -225,7 +241,9 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
           {/* Time Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="time_in" className="block text-sm font-semibold mb-2">Time In (CT)</label>
+              <label htmlFor="time_in" className="block text-sm font-semibold mb-2">
+                Time In (CT)
+              </label>
               <input
                 type="time"
                 id="time_in"
@@ -237,7 +255,9 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
               />
             </div>
             <div>
-              <label htmlFor="time_out" className="block text-sm font-semibold mb-2">Time Out (CT)</label>
+              <label htmlFor="time_out" className="block text-sm font-semibold mb-2">
+                Time Out (CT)
+              </label>
               <input
                 type="time"
                 id="time_out"
@@ -254,7 +274,9 @@ export default function ScheduleForm({ schedule, onClose, onSave }: ScheduleForm
           {duration && (
             <div className="flex items-center gap-2 text-sm text-gray-700 mt-2">
               <Clock className="text-hemp-green" size={16} />
-              <span>Duration: <span className="font-semibold">{duration}</span></span>
+              <span>
+                Duration: <span className="font-semibold">{duration}</span>
+              </span>
             </div>
           )}
 

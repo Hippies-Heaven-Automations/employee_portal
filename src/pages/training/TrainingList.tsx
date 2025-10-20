@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { notifyError } from "../../utils/notify"; // ✅ keep consistent with others
 
 interface Training {
   id: string;
@@ -40,7 +41,7 @@ export default function TrainingList() {
         const type = profile?.employee_type ?? "VA";
         setEmployeeType(type);
 
-        // 🌿 Fetch trainings matching allowed type
+        // 🌿 Fetch trainings allowed for this employee type
         const { data, error } = await supabase
           .from("trainings")
           .select("id, title, description, allowed_types, requires_signature")
@@ -50,12 +51,10 @@ export default function TrainingList() {
 
         setTrainings(data ?? []);
       } catch (err: unknown) {
-        // ✅ Properly typed catch block
         const message =
-          err instanceof Error
-            ? err.message
-            : "Failed to load trainings.";
+          err instanceof Error ? err.message : "Failed to load trainings.";
         setError(message);
+        notifyError(message);
       } finally {
         setLoading(false);
       }
@@ -64,23 +63,29 @@ export default function TrainingList() {
     fetchTrainings();
   }, []);
 
-  // 🌿 UI states
-  if (loading)
+  // 🌿 Loading State
+  if (loading) {
     return (
       <div className="flex h-64 items-center justify-center text-hemp-forest">
-        Loading trainings...
+        <div className="animate-pulse text-hemp-forest/70 text-lg">
+          Loading trainings...
+        </div>
       </div>
     );
+  }
 
-  if (error)
+  // 🌿 Error State
+  if (error) {
     return (
-      <div className="p-4 text-center text-red-600">
+      <div className="p-6 text-center text-red-600 bg-red-50 border border-red-200 rounded-lg max-w-3xl mx-auto">
         ⚠️ {error}
       </div>
     );
+  }
 
   return (
     <div className="mx-auto max-w-5xl p-6">
+      {/* Header */}
       <h1 className="mb-2 text-3xl font-bold text-hemp-forest">
         🎓 My Trainings
       </h1>
@@ -89,6 +94,7 @@ export default function TrainingList() {
         <span className="font-semibold text-hemp-green">{employeeType}</span>
       </p>
 
+      {/* No Trainings */}
       {trainings.length === 0 ? (
         <div className="text-center text-hemp-forest/70 mt-10">
           <p className="text-lg">🌱 No trainings assigned for your role.</p>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
+import { notifySuccess } from "../../utils/notify"; // ✅ no changes to notify.ts
 
 interface Announcement {
   id: string;
@@ -26,6 +27,7 @@ export default function EmpAnnouncements() {
 
       if (error) throw error;
       setAnnouncements(data || []);
+      notifySuccess("Announcements updated successfully 🌿");
     } catch (err) {
       console.error("Error loading announcements:", err);
     } finally {
@@ -80,7 +82,10 @@ export default function EmpAnnouncements() {
                 <Button
                   variant="ghost"
                   className="text-hemp-green hover:bg-hemp-sage/40"
-                  onClick={() => setSelectedAnnouncement(a)}
+                  onClick={() => {
+                    setSelectedAnnouncement(a);
+                    notifySuccess(`Opened announcement: "${a.title}"`);
+                  }}
                 >
                   View
                 </Button>
@@ -109,7 +114,10 @@ export default function EmpAnnouncements() {
             </p>
             <div className="flex justify-end">
               <Button
-                onClick={() => setSelectedAnnouncement(null)}
+                onClick={() => {
+                  setSelectedAnnouncement(null);
+                  notifySuccess("Closed announcement view");
+                }}
                 className="bg-hemp-green text-white hover:bg-hemp-forest"
               >
                 Close

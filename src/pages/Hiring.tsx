@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { Button } from "../components/Button";
+import { notifySuccess, notifyError } from "../utils/notify";
 
 export default function Hiring() {
   const [formData, setFormData] = useState({
@@ -13,8 +14,6 @@ export default function Hiring() {
     preferred_interview_time: "",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -25,27 +24,24 @@ export default function Hiring() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    setError(null);
-    setSuccess(false);
 
-    const { error } = await supabase.from("applications").insert([
-      {
-        full_name: formData.full_name,
-        email: formData.email,
-        contact_number: formData.contact_number,
-        message: formData.message,
-        resume_url: formData.resume_url,
-        preferred_interview_date: formData.preferred_interview_date,
-        preferred_interview_time: formData.preferred_interview_time,
-        status: "pending",
-      },
-    ]);
+    try {
+      const { error } = await supabase.from("applications").insert([
+        {
+          full_name: formData.full_name,
+          email: formData.email,
+          contact_number: formData.contact_number,
+          message: formData.message,
+          resume_url: formData.resume_url,
+          preferred_interview_date: formData.preferred_interview_date,
+          preferred_interview_time: formData.preferred_interview_time,
+          status: "pending",
+        },
+      ]);
 
-    if (error) {
-      console.error(error);
-      setError("Failed to submit your application. Please try again.");
-    } else {
-      setSuccess(true);
+      if (error) throw error;
+
+      notifySuccess("✅ Your application was submitted successfully!");
       setFormData({
         full_name: "",
         email: "",
@@ -55,10 +51,15 @@ export default function Hiring() {
         preferred_interview_date: "",
         preferred_interview_time: "",
       });
-      setTimeout(() => setSuccess(false), 5000);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to submit your application. Please try again.";
+      notifyError(message);
+    } finally {
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
   };
 
   return (
@@ -82,18 +83,6 @@ export default function Hiring() {
             Fill out the form below to apply for a position with us.
           </p>
         </div>
-
-        {/* ✅ Success & Error */}
-        {success && (
-          <div className="bg-hemp-sage/40 border border-hemp-green text-hemp-forest px-4 py-2 rounded-lg mb-4 text-center font-medium">
-            ✅ Your application was submitted successfully!
-          </div>
-        )}
-        {error && (
-          <div className="bg-red-100 border border-red-300 text-red-800 px-4 py-2 rounded-lg mb-4 text-center font-medium">
-            ⚠️ {error}
-          </div>
-        )}
 
         {/* 🧾 Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -145,7 +134,7 @@ export default function Hiring() {
             required
           />
 
-          {/* 🌿 Interview Date and Time with Labels */}
+          {/* 🌿 Interview Date and Time */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label
@@ -185,7 +174,7 @@ export default function Hiring() {
             <Button
               type="submit"
               disabled={submitting}
-              className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 shadow-card"
+              className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 shadow-card disabled:opacity-60"
             >
               {submitting ? "Submitting..." : "Submit Application"}
             </Button>

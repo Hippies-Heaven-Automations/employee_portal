@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Clock, Edit3, Trash2, FilePlus } from "lucide-react";
+import { notifySuccess, notifyError } from "../../utils/notify";
+import { confirmAction } from "../../utils/confirm";
 
 interface ShiftLog {
   id: string;
@@ -43,7 +45,10 @@ export default function ShiftLogs() {
       .from("shift_logs_view")
       .select("*")
       .order("shift_start", { ascending: false });
-    if (!error) setLogs(data || []);
+
+    if (error) notifyError(`Failed to load shift logs: ${error.message}`);
+    else setLogs(data || []);
+
     setLoading(false);
   };
 
@@ -52,7 +57,9 @@ export default function ShiftLogs() {
       .from("profiles")
       .select("id, full_name")
       .order("full_name", { ascending: true });
-    if (!error) setEmployees(data || []);
+
+    if (error) notifyError(`Failed to load employees: ${error.message}`);
+    else setEmployees(data || []);
   };
 
   const handleChange = (
@@ -78,8 +85,9 @@ export default function ShiftLogs() {
       res = await supabase.from("shift_logs").insert([payload]);
     }
 
-    if (res.error) alert(res.error.message);
+    if (res.error) notifyError(res.error.message);
     else {
+      notifySuccess(selected ? "Shift log updated successfully." : "New shift log added!");
       setIsFormOpen(false);
       setSelected(null);
       fetchLogs();
@@ -87,10 +95,19 @@ export default function ShiftLogs() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this shift log?")) return;
-    const { error } = await supabase.from("shift_logs").delete().eq("id", id);
-    if (error) alert(error.message);
-    else fetchLogs();
+    confirmAction(
+      "Are you sure you want to delete this shift log?",
+      async () => {
+        const { error } = await supabase.from("shift_logs").delete().eq("id", id);
+        if (error) notifyError(error.message);
+        else {
+          notifySuccess("Shift log deleted successfully.");
+          fetchLogs();
+        }
+      },
+      "Delete",
+      "bg-red-600 hover:bg-red-700"
+    );
   };
 
   const formatDuration = (duration: string | null) => {
@@ -148,9 +165,7 @@ export default function ShiftLogs() {
                     className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition-all"
                   >
                     <td className="px-4 py-3 font-medium">{log.full_name}</td>
-                    <td className="px-4 py-3">
-                      {new Date(log.shift_start).toLocaleString()}
-                    </td>
+                    <td className="px-4 py-3">{new Date(log.shift_start).toLocaleString()}</td>
                     <td className="px-4 py-3">
                       {log.shift_end ? new Date(log.shift_end).toLocaleString() : "-"}
                     </td>

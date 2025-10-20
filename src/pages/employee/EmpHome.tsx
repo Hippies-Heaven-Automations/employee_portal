@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Link } from "react-router-dom";
+import { notifySuccess } from "../../utils/notify"; // ✅ same as others
 
 interface Announcement {
   id: string;
@@ -16,15 +17,6 @@ export default function EmpHome() {
   const [selectedAnnouncement, setSelectedAnnouncement] =
     useState<Announcement | null>(null);
 
-  // // 🌿 Fetch logged-in user (optional debug or for personalized greeting)
-  // useEffect(() => {
-  //   const getUser = async () => {
-  //     const { data } = await supabase.auth.getUser();
-  //     console.log("Logged-in User ID:", data.user?.id);
-  //   };
-  //   getUser();
-  // }, []);
-
   // 🌿 Fetch latest announcements
   const fetchAnnouncements = async () => {
     setLoading(true);
@@ -34,8 +26,13 @@ export default function EmpHome() {
       .order("created_at", { ascending: false })
       .limit(5);
 
-    if (error) console.error("Error fetching announcements:", error);
-    else setAnnouncements(data || []);
+    if (error) {
+      console.error("Error fetching announcements:", error);
+    } else {
+      setAnnouncements(data || []);
+      notifySuccess("Latest announcements loaded 🌿");
+    }
+
     setLoading(false);
   };
 
@@ -90,7 +87,10 @@ export default function EmpHome() {
                 <Button
                   variant="ghost"
                   className="text-hemp-green hover:bg-hemp-sage/40"
-                  onClick={() => setSelectedAnnouncement(a)}
+                  onClick={() => {
+                    setSelectedAnnouncement(a);
+                    notifySuccess(`Opened: “${a.title}”`);
+                  }}
                 >
                   View
                 </Button>
@@ -131,7 +131,10 @@ export default function EmpHome() {
             </p>
             <div className="flex justify-end">
               <Button
-                onClick={() => setSelectedAnnouncement(null)}
+                onClick={() => {
+                  setSelectedAnnouncement(null);
+                  notifySuccess("Closed announcement");
+                }}
                 className="bg-hemp-green text-white hover:bg-hemp-forest"
               >
                 Close

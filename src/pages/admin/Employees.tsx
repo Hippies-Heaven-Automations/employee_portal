@@ -3,6 +3,8 @@ import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import EmployeeForm from "./EmployeeForm";
 import { Pencil, Trash2, UserPlus, Search, ArrowUpDown } from "lucide-react";
+import { confirmAction } from "../../utils/confirm";
+import { notifySuccess, notifyError } from "../../utils/notify";
 
 interface Employee {
   id: string;
@@ -21,7 +23,7 @@ export default function Employees() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // 🌿 New states for filters and sorting
+  // 🌿 Filter + sort states
   const [searchTerm, setSearchTerm] = useState("");
   const [employeeType, setEmployeeType] = useState("all");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -33,7 +35,7 @@ export default function Employees() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) console.error(error);
+    if (error) notifyError(`Error fetching employees: ${error.message}`);
     else setEmployees(data || []);
     setLoading(false);
   };
@@ -42,11 +44,16 @@ export default function Employees() {
     fetchEmployees();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this employee?")) return;
-    const { error } = await supabase.from("profiles").delete().eq("id", id);
-    if (error) alert(error.message);
-    else fetchEmployees();
+  const handleDelete = (id: string) => {
+    confirmAction("Are you sure you want to delete this employee?", async () => {
+      const { error } = await supabase.from("profiles").delete().eq("id", id);
+
+      if (error) notifyError(`Error deleting employee: ${error.message}`);
+      else {
+        notifySuccess("✅ Employee deleted successfully!");
+        fetchEmployees();
+      }
+    });
   };
 
   const handleEdit = (employee: Employee) => {
@@ -63,28 +70,25 @@ export default function Employees() {
     setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
   };
 
-  // 🌿 Apply filters + search + sorting client-side
+  // 🌿 Apply filters + sorting + search
   const filteredEmployees = useMemo(() => {
     let filtered = employees;
 
-    // filter by employee type
     if (employeeType !== "all") {
       filtered = filtered.filter(
         (emp) => emp.employee_type?.toLowerCase() === employeeType
       );
     }
 
-    // search by name or email
     if (searchTerm.trim() !== "") {
-      const lowerSearch = searchTerm.toLowerCase();
+      const lower = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (emp) =>
-          emp.full_name.toLowerCase().includes(lowerSearch) ||
-          emp.email.toLowerCase().includes(lowerSearch)
+          emp.full_name.toLowerCase().includes(lower) ||
+          emp.email.toLowerCase().includes(lower)
       );
     }
 
-    // sort by name
     filtered = [...filtered].sort((a, b) => {
       if (sortOrder === "asc") return a.full_name.localeCompare(b.full_name);
       return b.full_name.localeCompare(a.full_name);
@@ -111,7 +115,6 @@ export default function Employees() {
 
       {/* 🌿 Smart Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5 bg-white/70 backdrop-blur-md border border-hemp-sage/40 rounded-xl p-4 shadow-sm transition-all duration-300">
-        {/* Left side: search + filter */}
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center">
           {/* Search */}
           <div className="relative flex-1 sm:min-w-[260px]">
@@ -151,7 +154,7 @@ export default function Employees() {
           </div>
         </div>
 
-        {/* Right side: sort toggle */}
+        {/* Sort */}
         <Button
           onClick={toggleSortOrder}
           variant="outline"
@@ -163,7 +166,6 @@ export default function Employees() {
           </span>
         </Button>
       </div>
-
 
       {/* 🌿 Table */}
       <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-hidden">

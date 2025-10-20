@@ -3,6 +3,8 @@ import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import AnnouncementForm from "./AnnouncementForm";
 import { Eye, Pencil, Trash2 } from "lucide-react";
+import { notifySuccess, notifyError } from "../../utils/notify";
+import { confirmAction } from "../../utils/confirm";
 
 interface Announcement {
   id: string;
@@ -25,7 +27,7 @@ export default function Announcements() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) console.error(error);
+    if (error) notifyError(`Error loading announcements: ${error.message}`);
     else setAnnouncements(data || []);
     setLoading(false);
   };
@@ -35,10 +37,14 @@ export default function Announcements() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this announcement?")) return;
-    const { error } = await supabase.from("announcements").delete().eq("id", id);
-    if (error) alert(error.message);
-    else fetchAnnouncements();
+    confirmAction("Delete this announcement?", async () => {
+      const { error } = await supabase.from("announcements").delete().eq("id", id);
+      if (error) notifyError(`Error deleting announcement: ${error.message}`);
+      else {
+        notifySuccess("Announcement deleted successfully.");
+        fetchAnnouncements();
+      }
+    }, "Delete", "bg-red-600 hover:bg-red-700");
   };
 
   const handleEdit = (announcement: Announcement) => {

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { notifySuccess, notifyError } from "../../utils/notify";
+import { confirmAction } from "../../utils/confirm";
 
 interface Training {
   id: string;
@@ -11,6 +13,7 @@ interface QuizQuestion {
   choices: string[];
   answer: string;
 }
+
 interface Quiz {
   id: string;
   training_id: string;
@@ -30,7 +33,7 @@ export default function QuizEditor() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // fetch trainings
+  // Fetch trainings
   useEffect(() => {
     const fetchTrainings = async () => {
       const { data, error } = await supabase
@@ -38,13 +41,13 @@ export default function QuizEditor() {
         .select("id, title")
         .order("title");
 
-      if (error) console.error(error);
+      if (error) notifyError(`Error loading trainings: ${error.message}`);
       else setTrainings(data || []);
     };
     fetchTrainings();
   }, []);
 
-  // fetch quizzes
+  // Fetch quizzes
   useEffect(() => {
     const fetchQuizzes = async () => {
       setLoading(true);
@@ -67,51 +70,53 @@ export default function QuizEditor() {
   };
 
   const handleSave = async () => {
-    try {
-      const parsed = JSON.parse(newQuizJSON);
-      const { error } = await supabase
-        .from("training_quizzes")
-        .update({ content: parsed })
-        .eq("id", selectedQuiz?.id);
+    confirmAction("Save changes to this quiz?", async () => {
+      try {
+        const parsed = JSON.parse(newQuizJSON);
+        const { error } = await supabase
+          .from("training_quizzes")
+          .update({ content: parsed })
+          .eq("id", selectedQuiz?.id);
 
-      if (error) throw error;
-      alert("Quiz updated!");
-      setSelectedQuiz(null);
-      window.location.reload();
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Unknown error occurred.";
-      alert("❌ Invalid JSON or failed update: " + message);
-    }
+        if (error) throw error;
+        notifySuccess("Quiz updated successfully.");
+        setSelectedQuiz(null);
+        window.location.reload();
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Unknown error occurred.";
+        notifyError("Invalid JSON or failed update: " + message);
+      }
+    });
   };
 
   const handleAddNew = async () => {
-    try {
-      const parsed = JSON.parse(newQuizJSON);
-      const { error } = await supabase.from("training_quizzes").insert({
-        training_id: newTrainingId,
-        content: parsed,
-        is_active: true,
-      });
-      if (error) throw error;
-      alert("✅ New quiz added!");
-      setNewQuizJSON("[]");
-      setNewTrainingId("");
-      window.location.reload();
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Unknown error occurred.";
-      alert("❌ Failed to add quiz: " + message);
-    }
+    confirmAction("Add this new quiz?", async () => {
+      try {
+        const parsed = JSON.parse(newQuizJSON);
+        const { error } = await supabase.from("training_quizzes").insert({
+          training_id: newTrainingId,
+          content: parsed,
+          is_active: true,
+        });
+        if (error) throw error;
+        notifySuccess("New quiz added successfully.");
+        setNewQuizJSON("[]");
+        setNewTrainingId("");
+        window.location.reload();
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Unknown error occurred.";
+        notifyError("Failed to add quiz: " + message);
+      }
+    });
   };
 
   if (loading)
     return <div className="p-6 text-gray-600">Loading quizzes...</div>;
 
   if (error)
-    return (
-      <div className="p-6 text-red-600">⚠️ {error}</div>
-    );
+    return <div className="p-6 text-red-600">{error}</div>;
 
   return (
     <div className="mx-auto max-w-5xl p-6">
@@ -137,7 +142,7 @@ export default function QuizEditor() {
                 <td className="p-3">{q.trainings?.title || "—"}</td>
                 <td className="p-3">{q.version}</td>
                 <td className="p-3 text-center">
-                  {q.is_active ? "✅" : "—"}
+                  {q.is_active ? "Yes" : "No"}
                 </td>
                 <td className="p-3 text-center">
                   {new Date(q.created_at).toLocaleString()}
@@ -145,7 +150,7 @@ export default function QuizEditor() {
                 <td className="p-3 text-center">
                   <button
                     onClick={() => handleEdit(q)}
-                    className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
+                    className="rounded bg-hemp-green px-3 py-1 text-white hover:bg-hemp-forest transition"
                   >
                     Edit
                   </button>
@@ -165,7 +170,7 @@ export default function QuizEditor() {
           <textarea
             value={newQuizJSON}
             onChange={(e) => setNewQuizJSON(e.target.value)}
-            className="h-64 w-full rounded border p-2 font-mono text-sm"
+            className="h-64 w-full rounded border p-2 font-mono text-sm focus:ring-2 focus:ring-hemp-green"
           />
           <div className="mt-4 flex justify-end space-x-2">
             <button
@@ -176,7 +181,7 @@ export default function QuizEditor() {
             </button>
             <button
               onClick={handleSave}
-              className="rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700"
+              className="rounded bg-hemp-green px-3 py-1 text-white hover:bg-hemp-forest transition"
             >
               Save Changes
             </button>
@@ -194,7 +199,7 @@ export default function QuizEditor() {
         <select
           value={newTrainingId}
           onChange={(e) => setNewTrainingId(e.target.value)}
-          className="mb-3 w-full rounded border p-2 text-sm"
+          className="mb-3 w-full rounded border p-2 text-sm focus:ring-2 focus:ring-hemp-green"
         >
           <option value="">-- Select Training --</option>
           {trainings.map((t) => (
@@ -208,7 +213,7 @@ export default function QuizEditor() {
         <textarea
           value={newQuizJSON}
           onChange={(e) => setNewQuizJSON(e.target.value)}
-          className="h-48 w-full rounded border p-2 font-mono text-sm"
+          className="h-48 w-full rounded border p-2 font-mono text-sm focus:ring-2 focus:ring-hemp-green"
           placeholder='[{"question": "Sample?", "choices": ["A","B"], "answer": "A"}]'
         />
 
@@ -216,9 +221,9 @@ export default function QuizEditor() {
           <button
             onClick={handleAddNew}
             disabled={!newTrainingId}
-            className={`rounded px-4 py-2 text-sm text-white ${
+            className={`rounded px-4 py-2 text-sm text-white transition ${
               newTrainingId
-                ? "bg-blue-600 hover:bg-blue-700"
+                ? "bg-hemp-green hover:bg-hemp-forest"
                 : "cursor-not-allowed bg-gray-300"
             }`}
           >

@@ -3,6 +3,8 @@ import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import TimeOffForm from "./TimeOffForm";
 import { Edit3, Trash2, PlaneTakeoff } from "lucide-react";
+import { notifySuccess, notifyError } from "../../utils/notify";
+import { confirmAction } from "../../utils/confirm";
 
 interface TimeOff {
   id: string;
@@ -24,7 +26,7 @@ export default function TimeOff() {
   const fetchRequests = async () => {
     setLoading(true);
     const { data, error } = await supabase.rpc("get_time_off_with_profiles");
-    if (error) console.error(error);
+    if (error) notifyError(`Failed to load requests: ${error.message}`);
     else setTimeOffs(data || []);
     setLoading(false);
   };
@@ -34,10 +36,19 @@ export default function TimeOff() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this request?")) return;
-    const { error } = await supabase.from("time_off_requests").delete().eq("id", id);
-    if (error) alert(error.message);
-    else fetchRequests();
+    confirmAction(
+      "Are you sure you want to delete this request?",
+      async () => {
+        const { error } = await supabase.from("time_off_requests").delete().eq("id", id);
+        if (error) notifyError(`Delete failed: ${error.message}`);
+        else {
+          notifySuccess("Leave request deleted successfully.");
+          fetchRequests();
+        }
+      },
+      "Delete",
+      "bg-red-600 hover:bg-red-700"
+    );
   };
 
   const handleEdit = (request: TimeOff) => {

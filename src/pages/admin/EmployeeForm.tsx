@@ -3,7 +3,8 @@ import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Loader2, X, UserPlus, UserCog } from "lucide-react";
 import { supabaseAdmin } from "../../lib/supabaseAdminClient";
-import toast from "react-hot-toast";
+import { notifySuccess, notifyError } from "../../utils/notify";
+import { confirmAction } from "../../utils/confirm"; // ✅ new import
 
 interface Employee {
   id: string;
@@ -15,6 +16,7 @@ interface Employee {
   employee_type: string;
   created_at?: string;
 }
+
 interface Props {
   employee: Employee | null;
   onClose: () => void;
@@ -40,7 +42,6 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
 
     const payload = {
       ...formData,
@@ -48,23 +49,27 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
     };
 
     if (employee) {
-      // ✏️ Update existing employee
-      const { error } = await supabase
-        .from("profiles")
-        .update(payload)
-        .eq("id", employee.id);
+      // 🟢 Confirm before updating existing employee
+      confirmAction("Save changes to this employee?", async () => {
+        setSaving(true);
+        const { error } = await supabase
+          .from("profiles")
+          .update(payload)
+          .eq("id", employee.id);
 
-      if (error) toast.error(`Error updating profile: ${error.message}`);
-      else {
-        toast.success("✅ Employee updated successfully!");
-        onSave();
-        onClose();
-      }
+        if (error) notifyError(`Error updating profile: ${error.message}`);
+        else {
+          notifySuccess("✅ Employee updated successfully!");
+          onSave();
+          onClose();
+        }
+        setSaving(false);
+      });
     } else {
-      // 🆕 Create new employee
+      // 🆕 Create new employee (no confirmation)
+      setSaving(true);
       const password = Math.random().toString(36).slice(-10);
 
-      // 1️⃣ Create auth user (triggers handle_new_user)
       const { data: newUser, error: userError } =
         await supabaseAdmin.auth.admin.createUser({
           email: formData.email,
@@ -77,12 +82,11 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
         });
 
       if (userError) {
-        toast.error(`Error creating auth user: ${userError.message}`);
+        notifyError(`Error creating auth user: ${userError.message}`);
         setSaving(false);
         return;
       }
 
-      // 2️⃣ Update optional profile fields
       const updatePayload: Record<string, string> = {};
       if (formData.contact_number?.trim())
         updatePayload.contact_number = formData.contact_number.trim();
@@ -100,23 +104,20 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
           .eq("id", newUser.user.id);
 
         if (updateError) {
-          toast.error(`Error updating profile: ${updateError.message}`);
+          notifyError(`Error updating profile: ${updateError.message}`);
           setSaving(false);
           return;
         }
       }
 
-      // 3️⃣ Success notification (with password)
-      toast.success(
-        `Employee created successfully! Temporary password: ${password}`,
-        { duration: 8000 }
+      notifySuccess(
+        `Employee created successfully! Temporary password: ${password}`
       );
 
       onSave();
       onClose();
+      setSaving(false);
     }
-
-    setSaving(false);
   };
 
   return (

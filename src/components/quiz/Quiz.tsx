@@ -44,6 +44,8 @@ export default function Quiz({ trainingId }: QuizProps) {
 
   // 🌿 Fetch quiz + check previous attempt
   useEffect(() => {
+    if (!trainingId || !userId) return; // ✅ guard to prevent race condition
+
     const fetchQuiz = async () => {
       try {
         setLoading(true);
@@ -103,17 +105,18 @@ export default function Quiz({ trainingId }: QuizProps) {
         setVersion(data.version);
         setAnswers(new Array(randomized.length).fill(""));
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.error("Error loading quiz:", err.message);
-          setError(err.message);
-        } else {
-          console.error("Unknown error:", err);
-          setError("An unexpected error occurred.");
-        }
+        const message =
+          err instanceof Error
+            ? err.message
+            : "An unexpected error occurred.";
+        console.error("Error loading quiz:", message);
+        setError(message);
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (trainingId && userId) fetchQuiz();
+    fetchQuiz();
   }, [trainingId, userId]);
 
   // 🌿 Handle choice
@@ -143,6 +146,12 @@ export default function Quiz({ trainingId }: QuizProps) {
   const handleSubmit = async () => {
     if (!userId || !version) {
       setError("Missing user session or quiz version.");
+      return;
+    }
+
+    // ✅ Prevent submission if unanswered questions remain
+    if (answers.some((a) => !a)) {
+      setError("Please answer all questions before submitting.");
       return;
     }
 
@@ -182,13 +191,10 @@ export default function Quiz({ trainingId }: QuizProps) {
 
       setFinished(true);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error("Error loading quiz:", err.message);
-        setError(err.message);
-      } else {
-        console.error("Unknown error:", err);
-        setError("An unexpected error occurred.");
-      }
+      const message =
+        err instanceof Error ? err.message : "An unexpected error occurred.";
+      console.error("Error submitting quiz:", message);
+      setError(message);
     } finally {
       setSubmitting(false);
     }
@@ -207,7 +213,11 @@ export default function Quiz({ trainingId }: QuizProps) {
       <div className="p-4 text-center text-red-600 space-y-3">
         ⚠️ {error}
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            setError(null);
+            setLoading(true);
+            setTimeout(() => window.location.reload(), 200);
+          }}
           className="rounded-md bg-hemp-green text-white px-4 py-2 text-sm font-medium hover:bg-hemp-forest"
         >
           Retry
@@ -272,7 +282,7 @@ export default function Quiz({ trainingId }: QuizProps) {
             ))}
           </ul>
 
-          <div className="mt-6 flex justify-between">
+          <div className="mt-6 flex justify-between gap-2">
             <button
               onClick={handlePrevious}
               disabled={currentIndex === 0 || submitting}
@@ -316,8 +326,8 @@ export default function Quiz({ trainingId }: QuizProps) {
 
       {finished && (
         <div className="text-center">
-          <h2 className="mb-4 text-xl font-semibold text-hemp-green">
-            🎉 Training Completed!
+          <h2 className="mb-4 text-xl font-semibold text-hemp-green flex items-center justify-center gap-2">
+            🎉 <span>Training Completed!</span>
           </h2>
           <p className="text-gray-700">
             Your score:{" "}

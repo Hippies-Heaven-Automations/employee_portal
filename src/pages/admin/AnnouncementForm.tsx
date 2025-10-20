@@ -2,6 +2,8 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Loader2, X, Megaphone } from "lucide-react";
+import { notifySuccess, notifyError } from "../../utils/notify";
+import { confirmAction } from "../../utils/confirm";
 
 interface Announcement {
   id: string;
@@ -11,6 +13,7 @@ interface Announcement {
   updated_at?: string;
   created_by?: string | null;
 }
+
 interface AnnouncementFormProps {
   announcement: Announcement | null;
   onClose: () => void;
@@ -30,7 +33,6 @@ export default function AnnouncementForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
 
     const payload = {
       title: formData.title.trim(),
@@ -39,19 +41,37 @@ export default function AnnouncementForm({
       updated_at: new Date().toISOString(),
     };
 
-    let res;
     if (announcement) {
-      res = await supabase.from("announcements").update(payload).eq("id", announcement.id);
-    } else {
-      res = await supabase.from("announcements").insert([payload]);
-    }
+      // 🟢 Confirm before updating existing announcement
+      confirmAction("Save changes to this announcement?", async () => {
+        setSaving(true);
+        const { error } = await supabase
+          .from("announcements")
+          .update(payload)
+          .eq("id", announcement.id);
 
-    if (res.error) alert(res.error.message);
-    else {
-      onSave();
-      onClose();
+        if (error) notifyError(`Error updating announcement: ${error.message}`);
+        else {
+          notifySuccess("Announcement updated successfully.");
+          onSave();
+          onClose();
+        }
+        setSaving(false);
+      });
+    } else {
+      // 🆕 Create new announcement (no confirmation)
+      setSaving(true);
+      const { error } = await supabase.from("announcements").insert([payload]);
+
+      if (error) {
+        notifyError(`Error creating announcement: ${error.message}`);
+      } else {
+        notifySuccess("Announcement created successfully.");
+        onSave();
+        onClose();
+      }
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   return (
@@ -89,9 +109,7 @@ export default function AnnouncementForm({
               name="title"
               placeholder="Enter announcement title"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-hemp-green"
               required
             />
@@ -110,9 +128,7 @@ export default function AnnouncementForm({
               name="content"
               placeholder="Write your announcement details here..."
               value={formData.content}
-              onChange={(e) =>
-                setFormData({ ...formData, content: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
               className="w-full border border-hemp-sage/60 rounded-lg px-4 py-3 text-gray-800 h-48 resize-none focus:outline-none focus:ring-2 focus:ring-hemp-green"
               required
             />

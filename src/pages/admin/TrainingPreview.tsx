@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { Loader2, FileText, PlayCircle } from "lucide-react";
+import { notifyError } from "../../utils/notify";
 
 interface MediaItem {
   type: "video" | "doc";
@@ -23,9 +24,8 @@ export default function TrainingPreview() {
   const { id } = useParams<{ id: string }>();
   const [training, setTraining] = useState<Training | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // 🌿 Helper to handle YouTube embeds
+  // 🌿 Helper for YouTube embeds
   const getEmbedUrl = (url: string) => {
     try {
       if (url.includes("watch?v=")) {
@@ -51,12 +51,13 @@ export default function TrainingPreview() {
           .select("*")
           .eq("id", id)
           .single();
+
         if (error) throw error;
         setTraining(data as Training);
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : "Failed to load training details.";
-        setError(message);
+        notifyError(message);
       } finally {
         setLoading(false);
       }
@@ -64,7 +65,7 @@ export default function TrainingPreview() {
     fetchTraining();
   }, [id]);
 
-  // 🌿 Loading / Error States
+  // 🌿 Loading state
   if (loading)
     return (
       <div className="flex h-64 items-center justify-center text-hemp-forest">
@@ -72,15 +73,12 @@ export default function TrainingPreview() {
       </div>
     );
 
-  if (error)
-    return (
-      <div className="p-4 text-center text-red-600 font-medium">
-        ⚠️ {error}
-      </div>
-    );
-
   if (!training)
-    return <p className="text-center text-gray-600">Training not found.</p>;
+    return (
+      <p className="text-center text-gray-600">
+        Training not found or failed to load.
+      </p>
+    );
 
   // 🌿 Render
   return (
@@ -107,10 +105,7 @@ export default function TrainingPreview() {
             >
               <div className="flex items-center gap-2 mb-3">
                 {item.type === "video" ? (
-                  <PlayCircle
-                    size={22}
-                    className="text-hemp-green"
-                  />
+                  <PlayCircle size={22} className="text-hemp-green" />
                 ) : (
                   <FileText size={20} className="text-hemp-green" />
                 )}

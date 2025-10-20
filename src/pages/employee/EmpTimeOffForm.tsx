@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
+import { notifySuccess, notifyError } from "../../utils/notify"; // ✅ keep consistent with others
 
 interface Props {
   onClose: () => void;
@@ -47,19 +48,19 @@ export default function EmpTimeOffForm({ onClose, onSave }: Props) {
       const { error } = await supabase.from("time_off_requests").insert([payload]);
       if (error) throw new Error(error.message);
 
-      // ✅ Refresh parent table and close modal
+      // ✅ Refresh parent data and close modal
       onSave();
       onClose();
 
       // Reset form
       setFormData({ start_date: "", end_date: "", reason: "" });
+      notifySuccess("🌿 Time-off request submitted successfully!");
     } catch (err: unknown) {
-      // ✅ Properly typed error handling (no `any`)
       const message =
         err instanceof Error
           ? err.message
           : "Error submitting time-off request.";
-      alert(message);
+      notifyError(message);
     } finally {
       setSaving(false);
     }

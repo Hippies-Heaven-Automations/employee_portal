@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { notifySuccess, notifyError } from "../../utils/notify"; // ✅ uses existing notify.ts
 
 interface Schedule {
   id: string;
@@ -36,11 +37,14 @@ export default function EmpSched() {
         .order("date", { ascending: true });
 
       if (error) throw error;
+
       setSchedules(data || []);
+      notifySuccess("Your schedules were loaded successfully 🌿");
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Failed to fetch tracker records.";
+        err instanceof Error ? err.message : "Failed to fetch your schedule.";
       setError(message);
+      notifyError(message);
     } finally {
       setLoading(false);
     }

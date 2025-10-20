@@ -2,36 +2,53 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useSessionRedirect } from "../hooks/useSessionRedirect";
+import { notifyError } from "../utils/notify";
 
 export default function LoginPage() {
   useSessionRedirect();
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // 🌿 Step 1: Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
 
-    if (error) {
-      setError(error.message);
-      return;
-    }
+      const user = data?.user;
+      if (!user) throw new Error("Login failed. Please try again.");
 
-    const user = data?.user;
-    const role = user?.user_metadata?.role || "employee";
+      // 🌿 Step 2: Fetch role from profiles table
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
 
-    // 🔁 Redirect based on role
-    if (role === "admin") {
-      navigate("/admin-dashboard");
-    } else {
-      navigate("/employee-dashboard");
+      if (profileError) throw profileError;
+      const role = profile?.role || "employee";
+
+      // 🌿 Step 3: Redirect based on role
+      if (role === "admin") navigate("/admin-dashboard");
+      else navigate("/employee-dashboard");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Error during login.";
+      setError(message);
+      notifyError(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,9 +105,10 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          className="mt-6 w-full bg-hemp-green hover:bg-hemp-forest text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-card"
+          disabled={loading}
+          className="mt-6 w-full bg-hemp-green hover:bg-hemp-forest text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-card disabled:opacity-60"
         >
-          Sign In
+          {loading ? "Signing In..." : "Sign In"}
         </button>
 
         <p className="mt-6 text-center text-hemp-ink/70 text-sm">

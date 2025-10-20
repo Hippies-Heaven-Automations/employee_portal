@@ -12,13 +12,15 @@ import {
   Search,
   ArrowUpDown,
 } from "lucide-react";
+import { notifySuccess, notifyError } from "../../utils/notify";
+import { confirmAction } from "../../utils/confirm";
 
 interface Schedule {
   id: string;
   employee_id: string;
-  date: string;        // yyyy-mm-dd (stored in America/Chicago date)
-  time_in: string;     // HH:mm (Chicago wall time)
-  time_out: string;    // HH:mm (Chicago wall time)
+  date: string; // yyyy-mm-dd (stored in America/Chicago date)
+  time_in: string; // HH:mm (Chicago wall time)
+  time_out: string; // HH:mm (Chicago wall time)
   created_at: string;
   profiles?: { full_name: string };
 }
@@ -43,7 +45,10 @@ export default function Schedule() {
       .from("schedules")
       .select(`*, profiles:employee_id(full_name)`)
       .order("date", { ascending: true });
-    if (!error) setSchedules(data || []);
+
+    if (error) notifyError(`Failed to load schedules: ${error.message}`);
+    else setSchedules(data || []);
+
     setLoading(false);
   };
 
@@ -58,28 +63,31 @@ export default function Schedule() {
     const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
     return new Date(d.setDate(diff));
   }
+
   function formatDate(date: Date) {
-    return date.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+    return date.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+    });
   }
 
-  // ---------- DST-aware Chicago→Manila diff (13h in CDT, 14h in CST) ----------
+  // ---------- DST-aware Chicago→Manila diff ----------
   function getTzDiffHours(dateISO: string) {
-    // Use schedule's actual date (Illinois noon to detect DST)
     const probe = new Date(dateISO + "T12:00:00Z");
     const parts = new Intl.DateTimeFormat("en-US", {
       timeZone: "America/Chicago",
       timeZoneName: "short",
     }).formatToParts(probe);
     const tzName = parts.find((p) => p.type === "timeZoneName")?.value || "";
-    const chicagoOffset = tzName.includes("CDT") ? -5 : -6; // hours vs UTC
-    return 8 - chicagoOffset; // PHT(UTC+8) - Chicago(UTC-5/-6)
+    const chicagoOffset = tzName.includes("CDT") ? -5 : -6;
+    return 8 - chicagoOffset;
   }
 
-  // ---------- Bottom table: format a stored Chicago wall time for display ----------
+  // ---------- Display formatting ----------
   function formatDisplayTime(timeString: string, dateISO: string, tz: "CST" | "PHT") {
     if (!timeString) return "";
     const [hh, mm] = timeString.split(":").map(Number);
-    // Build a neutral UTC base = Chicago wall time at UTC (we will shift by diff)
     let dt = new Date(Date.UTC(2024, 0, 1, hh, mm));
     if (tz === "PHT") {
       const diff = getTzDiffHours(dateISO);
@@ -88,16 +96,13 @@ export default function Schedule() {
     return dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
   }
 
-  // ---------- Weekly header slot conversion ----------
-  // For PHT, show EXACT mapping style you specified (9pm-12mn, 12mn-3am, ...).
-  // We compute via diff but format with nn/mn rules.
   function formatHourCompact(h: number) {
-    // h = 0..23 in PHT
-    if (h === 0) return "12mn";   // midnight
-    if (h === 12) return "12nn";  // noon
+    if (h === 0) return "12mn";
+    if (h === 12) return "12nn";
     if (h < 12) return `${h}am`;
     return `${h - 12}pm`;
   }
+
   function convertSlotLabel(slot: string, dateISO: string, tz: "CST" | "PHT") {
     const [a, b] = slot.split(" - ");
     const to24 = (label: string) => {
@@ -105,7 +110,7 @@ export default function Schedule() {
       let h = parseInt(num, 10);
       if (mer === "PM" && h < 12) h += 12;
       if (mer === "AM" && h === 12) h = 0;
-      return h; // 0..23
+      return h;
     };
     if (tz === "CST") return slot;
 
@@ -113,7 +118,6 @@ export default function Schedule() {
     const startH = (to24(a) + diff + 24) % 24;
     const endH = (to24(b) + diff + 24) % 24;
 
-    // Style like: 9pm - 12mn, 12mn - 3am, ...
     return `${formatHourCompact(startH)} - ${formatHourCompact(endH)}`;
   }
 
@@ -139,7 +143,7 @@ export default function Schedule() {
     setCurrentWeekStart(prev);
   };
 
-  // Filter to current week (by stored Chicago date)
+  // ---------- Filters ----------
   const filteredSchedules = useMemo(() => {
     const start = currentWeekStart;
     const end = new Date(currentWeekStart);
@@ -150,7 +154,6 @@ export default function Schedule() {
     });
   }, [schedules, currentWeekStart]);
 
-  // Group for dropdown
   const employeeSchedules = useMemo(() => {
     const map: Record<string, Schedule[]> = {};
     for (const s of schedules) {
@@ -161,7 +164,6 @@ export default function Schedule() {
     return map;
   }, [schedules]);
 
-  // Bottom table filtering/sorting
   const filteredFlatSchedules = useMemo(() => {
     let list = [...schedules];
     if (selectedEmployee !== "all") list = list.filter((s) => s.profiles?.full_name === selectedEmployee);
@@ -179,14 +181,27 @@ export default function Schedule() {
 
   // ---------- CRUD ----------
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this schedule?")) return;
-    const { error } = await supabase.from("schedules").delete().eq("id", id);
-    if (!error) fetchSchedules();
+    confirmAction(
+      "Are you sure you want to delete this schedule?",
+      async () => {
+        const { error } = await supabase.from("schedules").delete().eq("id", id);
+        if (error) {
+          notifyError(`Failed to delete: ${error.message}`);
+        } else {
+          notifySuccess("Schedule deleted successfully.");
+          fetchSchedules();
+        }
+      },
+      "Delete",
+      "bg-red-600 hover:bg-red-700"
+    );
   };
+
   const handleEdit = (s: Schedule) => {
     setSelectedSchedule(s);
     setIsFormOpen(true);
   };
+
   const handleAdd = () => {
     setSelectedSchedule(null);
     setIsFormOpen(true);

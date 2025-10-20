@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import EmpTimeOffForm from "./EmpTimeOffForm";
 import type { PostgrestError } from "@supabase/supabase-js";
-
+import { notifySuccess, notifyError } from "../../utils/notify"; // ✅ existing notify.ts
 
 interface TimeOff {
   id: string;
@@ -20,48 +20,48 @@ export default function EmpTimeOff() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   // 🌿 Fetch employee’s time-off requests
- const fetchTimeOffs = async (): Promise<void> => {
-  setLoading(true);
-  try {
-    const {
-      data: { user },
-      error: userError,
-    }: {
-      data: { user: { id: string } | null };
-      error: Error | null;
-    } = await supabase.auth.getUser();
+  const fetchTimeOffs = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const {
+        data: { user },
+        error: userError,
+      }: {
+        data: { user: { id: string } | null };
+        error: Error | null;
+      } = await supabase.auth.getUser();
 
-    if (userError || !user) {
-      console.error(userError);
-      return;
+      if (userError || !user) {
+        throw new Error("Unable to fetch user. Please log in again.");
+      }
+
+      const response = await supabase
+        .from("time_off_requests")
+        .select("id, start_date, end_date, reason, status, created_at")
+        .eq("employee_id", user.id)
+        .order("created_at", { ascending: false });
+
+      const data = response.data as TimeOff[] | null;
+      const error = response.error as PostgrestError | null;
+
+      if (error) throw new Error(error.message);
+      setTimeOffs(data ?? []);
+      notifySuccess("🌿 Time-off records loaded successfully!");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to load your time-off records.";
+      console.error("Error loading time-offs:", message);
+      notifyError(message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // ✅ Limit TypeScript inference by typing the response explicitly
-    const response = await supabase
-      .from("time_off_requests")
-      .select("id, start_date, end_date, reason, status, created_at")
-      .eq("employee_id", user.id)
-      .order("created_at", { ascending: false });
-
-    // ✅ Explicitly declare what we expect from Supabase
-    const data = response.data as TimeOff[] | null;
-    const error = response.error as PostgrestError | null;
-
-    if (error) throw new Error(error.message);
-    setTimeOffs(data ?? []);
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error("Error loading time-offs:", err.message);
-    } else {
-      console.error("Error loading time-offs:", err);
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
+  useEffect(() => {
+    fetchTimeOffs();
+  }, []);
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -109,9 +109,9 @@ export default function EmpTimeOff() {
             <tbody>
               {timeOffs.map((t) => {
                 const statusColor =
-                  t.status === "Approved"
+                  t.status.toLowerCase() === "approved"
                     ? "text-hemp-green font-semibold"
-                    : t.status === "Denied"
+                    : t.status.toLowerCase() === "denied"
                     ? "text-red-600 font-semibold"
                     : "text-amber-600 font-medium";
 
@@ -149,7 +149,10 @@ export default function EmpTimeOff() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 animate-fadeIn">
           <EmpTimeOffForm
             onClose={() => setIsFormOpen(false)}
-            onSave={fetchTimeOffs}
+            onSave={() => {
+              fetchTimeOffs();
+              notifySuccess("✅ Time-off request saved successfully!");
+            }}
           />
         </div>
       )}

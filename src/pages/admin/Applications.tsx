@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { FileText, Eye, Trash2, ClipboardList } from "lucide-react";
+import { notifySuccess, notifyError } from "../../utils/notify";
+import { confirmAction } from "../../utils/confirm";
 
 interface Application {
   id: string;
@@ -29,7 +31,7 @@ export default function Applications() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) console.error(error);
+    if (error) notifyError(`Error loading applications: ${error.message}`);
     else setApplications(data || []);
     setLoading(false);
   };
@@ -39,10 +41,14 @@ export default function Applications() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this application?")) return;
-    const { error } = await supabase.from("applications").delete().eq("id", id);
-    if (error) alert(error.message);
-    else fetchApplications();
+    confirmAction("Delete this application?", async () => {
+      const { error } = await supabase.from("applications").delete().eq("id", id);
+      if (error) notifyError(`Error deleting application: ${error.message}`);
+      else {
+        notifySuccess("Application deleted successfully.");
+        fetchApplications();
+      }
+    }, "Delete", "bg-red-600 hover:bg-red-700");
   };
 
   const handleEdit = (app: Application) => {
@@ -53,16 +59,20 @@ export default function Applications() {
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (!selectedApp) return;
     const newStatus = e.target.value;
-    const { error } = await supabase
-      .from("applications")
-      .update({ status: newStatus })
-      .eq("id", selectedApp.id);
 
-    if (error) alert(error.message);
-    else {
-      setSelectedApp({ ...selectedApp, status: newStatus });
-      fetchApplications();
-    }
+    confirmAction("Update application status?", async () => {
+      const { error } = await supabase
+        .from("applications")
+        .update({ status: newStatus })
+        .eq("id", selectedApp.id);
+
+      if (error) notifyError(`Error updating status: ${error.message}`);
+      else {
+        notifySuccess("Application status updated.");
+        setSelectedApp({ ...selectedApp, status: newStatus });
+        fetchApplications();
+      }
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -88,9 +98,13 @@ export default function Applications() {
       {/* 🌿 Table */}
       <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-6 text-center text-gray-500">Loading applications...</div>
+          <div className="p-6 text-center text-gray-500">
+            Loading applications...
+          </div>
         ) : applications.length === 0 ? (
-          <div className="p-6 text-center text-gray-500 italic">No applications found.</div>
+          <div className="p-6 text-center text-gray-500 italic">
+            No applications found.
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm text-gray-700">
@@ -152,6 +166,7 @@ export default function Applications() {
                         <Eye size={15} />
                         <span className="hidden sm:inline">View</span>
                       </Button>
+
                       <Button
                         onClick={() => handleDelete(a.id)}
                         variant="ghost"
@@ -191,22 +206,10 @@ export default function Applications() {
 
             {/* Content */}
             <div className="px-6 py-6 space-y-3 text-gray-700">
-              <p>
-                <strong className="text-gray-800">Name:</strong>{" "}
-                {selectedApp.full_name}
-              </p>
-              <p>
-                <strong className="text-gray-800">Email:</strong>{" "}
-                {selectedApp.email}
-              </p>
-              <p>
-                <strong className="text-gray-800">Contact:</strong>{" "}
-                {selectedApp.contact_number}
-              </p>
-              <p>
-                <strong className="text-gray-800">Message:</strong>{" "}
-                {selectedApp.message || "N/A"}
-              </p>
+              <p><strong className="text-gray-800">Name:</strong> {selectedApp.full_name}</p>
+              <p><strong className="text-gray-800">Email:</strong> {selectedApp.email}</p>
+              <p><strong className="text-gray-800">Contact:</strong> {selectedApp.contact_number}</p>
+              <p><strong className="text-gray-800">Message:</strong> {selectedApp.message || "N/A"}</p>
               <p>
                 <strong className="text-gray-800">Resume:</strong>{" "}
                 {selectedApp.resume_url ? (

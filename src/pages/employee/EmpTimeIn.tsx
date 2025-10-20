@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
+import { notifySuccess, notifyError } from "../../utils/notify";
 
 interface ShiftLog {
   id: string;
@@ -17,7 +18,6 @@ export default function EmpTimeIn() {
   const [userId, setUserId] = useState<string | null>(null);
   const [liveDuration, setLiveDuration] = useState("");
   const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // 🌿 Fetch current user
   useEffect(() => {
@@ -28,47 +28,33 @@ export default function EmpTimeIn() {
     fetchUser();
   }, []);
 
-  // 🌿 Fetch logs
-  const fetchLogs = async () => {
+  // 🌿 Fetch logs (memoized to satisfy eslint)
+  const fetchLogs = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
 
-    const { data } = await supabase
+    const { data, error: logError } = await supabase
       .from("shift_logs")
       .select("*")
       .eq("employee_id", userId)
       .order("shift_start", { ascending: false });
 
-    if (error) console.error(error);
-    else {
+    if (logError) {
+      console.error(logError);
+      notifyError("Error loading shift logs.");
+    } else {
       setLogs(data || []);
       const openShift = data?.find((l) => !l.shift_end);
       setIsClockedIn(!!openShift);
     }
+
     setLoading(false);
-  };
+  }, [userId]); // ✅ dependency satisfied
 
   useEffect(() => {
     if (!userId) return;
-    (async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("shift_logs")
-        .select("*")
-        .eq("employee_id", userId)
-        .order("shift_start", { ascending: false });
-
-      if (error) {
-        console.error(error);
-      } else {
-        setLogs(data || []);
-        const openShift = data?.find((l) => !l.shift_end);
-        setIsClockedIn(!!openShift);
-      }
-      setLoading(false);
-    })();
-  }, [userId]);
-
+    fetchLogs();
+  }, [userId, fetchLogs]); // ✅ no missing deps warning now
 
   // 🌿 Live duration updater
   useEffect(() => {
@@ -76,6 +62,7 @@ export default function EmpTimeIn() {
       setLiveDuration("");
       return;
     }
+
     const openShift = logs.find((log) => !log.shift_end);
     if (!openShift) return;
 
@@ -98,10 +85,11 @@ export default function EmpTimeIn() {
 
     try {
       if (!isClockedIn) {
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from("shift_logs")
           .insert([{ employee_id: userId, shift_start: new Date().toISOString() }]);
-        if (error) throw error;
+        if (insertError) throw insertError;
+        notifySuccess("⏰ Time In recorded successfully!");
       } else {
         const { data: openShift } = await supabase
           .from("shift_logs")
@@ -111,18 +99,21 @@ export default function EmpTimeIn() {
           .maybeSingle();
 
         if (openShift) {
-          const { error } = await supabase
+          const { error: updateError } = await supabase
             .from("shift_logs")
             .update({ shift_end: new Date().toISOString() })
             .eq("id", openShift.id);
-          if (error) throw error;
+          if (updateError) throw updateError;
+
+          notifySuccess("✅ Time Out recorded successfully!");
         }
       }
+
       await fetchLogs();
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Failed to fetch tracker records.";
-      setError(message);
+        err instanceof Error ? err.message : "Failed to record time action.";
+      notifyError(message);
     } finally {
       setProcessing(false);
     }
@@ -175,9 +166,7 @@ export default function EmpTimeIn() {
       {loading ? (
         <p className="text-center text-gray-500">Loading shift logs...</p>
       ) : logs.length === 0 ? (
-        <p className="text-center text-gray-600 italic">
-          No shift logs found.
-        </p>
+        <p className="text-center text-gray-600 italic">No shift logs found.</p>
       ) : (
         <div className="overflow-x-auto border border-hemp-sage/40 rounded-xl bg-white shadow-sm">
           <table className="min-w-full text-sm text-gray-800">

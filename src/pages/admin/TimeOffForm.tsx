@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Loader2, X, PlaneTakeoff, Calendar } from "lucide-react";
+import { notifySuccess, notifyError } from "../../utils/notify";
 
 interface TimeOff {
   id: string;
@@ -45,7 +46,9 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
       .from("profiles")
       .select("id, full_name")
       .order("full_name");
-    if (!error) setEmployees(data || []);
+
+    if (error) notifyError(`Failed to load employees: ${error.message}`);
+    else setEmployees(data || []);
   };
 
   const handleChange = (
@@ -58,7 +61,7 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
     e.preventDefault();
 
     if (new Date(formData.end_date) < new Date(formData.start_date)) {
-      alert("End date cannot be earlier than start date.");
+      notifyError("End date cannot be earlier than start date.");
       return;
     }
 
@@ -75,18 +78,17 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
 
     let res;
     if (request) {
-      res = await supabase
-        .from("time_off_requests")
-        .update(payload)
-        .eq("id", request.id);
+      res = await supabase.from("time_off_requests").update(payload).eq("id", request.id);
     } else {
       res = await supabase
         .from("time_off_requests")
         .insert([{ ...payload, created_at: new Date().toISOString() }]);
     }
 
-    if (res.error) alert(res.error.message);
-    else {
+    if (res.error) {
+      notifyError(res.error.message);
+    } else {
+      notifySuccess(request ? "Request updated successfully." : "New request added!");
       onSave();
       onClose();
     }
@@ -101,7 +103,7 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
   } as const;
 
   const statusKey = formData.status as keyof typeof statusColorMap;
-  const statusColor = statusColorMap[statusKey];  
+  const statusColor = statusColorMap[statusKey];
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 px-4">
@@ -128,10 +130,7 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
         </div>
 
         {/* 🌿 Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="px-6 py-6 space-y-5 text-gray-700"
-        >
+        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5 text-gray-700">
           {/* Employee */}
           <div>
             <label className="block text-sm font-semibold mb-2">Employee</label>
@@ -154,9 +153,7 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
           {/* Dates */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold mb-2">
-                Start Date
-              </label>
+              <label className="block text-sm font-semibold mb-2">Start Date</label>
               <input
                 type="date"
                 name="start_date"
@@ -167,9 +164,7 @@ export default function TimeOffForm({ request, onClose, onSave }: TimeOffFormPro
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2">
-                End Date
-              </label>
+              <label className="block text-sm font-semibold mb-2">End Date</label>
               <input
                 type="date"
                 name="end_date"
