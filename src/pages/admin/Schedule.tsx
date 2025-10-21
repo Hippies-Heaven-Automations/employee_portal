@@ -18,9 +18,9 @@ import { confirmAction } from "../../utils/confirm";
 interface Schedule {
   id: string;
   employee_id: string;
-  date: string; // yyyy-mm-dd (stored in America/Chicago date)
-  time_in: string; // HH:mm (Chicago wall time)
-  time_out: string; // HH:mm (Chicago wall time)
+  date: string;
+  time_in: string;
+  time_out: string;
   created_at: string;
   profiles?: { full_name: string };
 }
@@ -84,16 +84,17 @@ export default function Schedule() {
     return 8 - chicagoOffset;
   }
 
-  // ---------- Display formatting ----------
-  function formatDisplayTime(timeString: string, dateISO: string, tz: "CST" | "PHT") {
+  // ✅ Raw formatter for DB times (flat table)
+  function formatDisplayTimeRaw(timeString: string) {
     if (!timeString) return "";
     const [hh, mm] = timeString.split(":").map(Number);
-    let dt = new Date(Date.UTC(2024, 0, 1, hh, mm));
-    if (tz === "PHT") {
-      const diff = getTzDiffHours(dateISO);
-      dt = new Date(dt.getTime() + diff * 60 * 60 * 1000);
-    }
-    return dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+    const d = new Date();
+    d.setHours(hh, mm, 0, 0);
+    return d.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   }
 
   function formatHourCompact(h: number) {
@@ -127,7 +128,10 @@ export default function Schedule() {
     for (let i = 0; i < 7; i++) {
       const day = new Date(currentWeekStart);
       day.setDate(day.getDate() + i);
-      days.push({ date: day, label: day.toLocaleDateString("en-US", { weekday: "short" }) });
+      days.push({
+        date: day,
+        label: day.toLocaleDateString("en-US", { weekday: "short" }),
+      });
     }
     return days;
   }, [currentWeekStart]);
@@ -166,10 +170,15 @@ export default function Schedule() {
 
   const filteredFlatSchedules = useMemo(() => {
     let list = [...schedules];
-    if (selectedEmployee !== "all") list = list.filter((s) => s.profiles?.full_name === selectedEmployee);
+    if (selectedEmployee !== "all")
+      list = list.filter((s) => s.profiles?.full_name === selectedEmployee);
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      list = list.filter((s) => s.profiles?.full_name.toLowerCase().includes(q) || s.date.includes(q));
+      list = list.filter(
+        (s) =>
+          s.profiles?.full_name.toLowerCase().includes(q) ||
+          s.date.includes(q)
+      );
     }
     list.sort((a, b) => {
       const da = new Date(a.date).getTime();
@@ -211,7 +220,9 @@ export default function Schedule() {
     <section className="animate-fadeInUp text-gray-700">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-hemp-forest mb-2 sm:mb-0">Team Schedule</h1>
+        <h1 className="text-3xl font-bold text-hemp-forest mb-2 sm:mb-0">
+          Team Schedule
+        </h1>
         <Button
           onClick={handleAdd}
           className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 transition-all duration-300 shadow-card inline-flex items-center gap-2"
@@ -224,14 +235,28 @@ export default function Schedule() {
       {/* Filter Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-5 bg-white/70 backdrop-blur-md border border-hemp-sage/40 rounded-xl p-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <Button onClick={prevWeek} variant="outline" className="rounded-full p-2 border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white">
+          <Button
+            onClick={prevWeek}
+            variant="outline"
+            className="rounded-full p-2 border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white"
+          >
             <ChevronLeft size={18} />
           </Button>
           <div className="text-center">
-            <p className="font-semibold text-hemp-forest">Week of {formatDate(currentWeekStart)}</p>
-            <p className="text-sm text-gray-500">{timezone === "CST" ? "Central Time (Illinois)" : "Philippine Time"}</p>
+            <p className="font-semibold text-hemp-forest">
+              Week of {formatDate(currentWeekStart)}
+            </p>
+            <p className="text-sm text-gray-500">
+              {timezone === "CST"
+                ? "Central Time (Illinois)"
+                : "Philippine Time"}
+            </p>
           </div>
-          <Button onClick={nextWeek} variant="outline" className="rounded-full p-2 border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white">
+          <Button
+            onClick={nextWeek}
+            variant="outline"
+            className="rounded-full p-2 border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white"
+          >
             <ChevronRight size={18} />
           </Button>
         </div>
@@ -249,7 +274,9 @@ export default function Schedule() {
       {/* Weekly Table */}
       <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-x-auto mb-8">
         {loading ? (
-          <div className="p-6 text-center text-gray-500">Loading schedules...</div>
+          <div className="p-6 text-center text-gray-500">
+            Loading schedules...
+          </div>
         ) : (
           <table className="min-w-full text-sm text-gray-700">
             <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase tracking-wide text-xs">
@@ -259,79 +286,107 @@ export default function Schedule() {
                   <th key={d.label} className="px-4 py-3 text-center">
                     {d.label}
                     <br />
-                    <span className="text-xs text-gray-500">{formatDate(d.date)}</span>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(d.date)}
+                    </span>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {generateTimeSlots().map((slot) => {
-                // Left column label: CST slots or PHT mapping
                 const leftLabel =
                   timezone === "CST"
                     ? slot
-                    : convertSlotLabel(slot, currentWeekStart.toISOString().slice(0, 10), "PHT");
+                    : convertSlotLabel(
+                        slot,
+                        currentWeekStart.toISOString().slice(0, 10),
+                        "PHT"
+                      );
 
                 return (
-                  <tr key={slot} className="border-t border-hemp-sage/30 hover:bg-hemp-mist/40 transition-all">
-                    <td className="px-4 py-3 font-semibold text-gray-800">{leftLabel}</td>
+                  <tr
+                    key={slot}
+                    className="border-t border-hemp-sage/30 hover:bg-hemp-mist/40 transition-all"
+                  >
+                    <td className="px-4 py-3 font-semibold text-gray-800">
+                      {leftLabel}
+                    </td>
 
                     {getWeekDays.map((d) => {
-                      // Put schedule into correct day column after conversion
-                      const cellSchedules = filteredSchedules.filter((s) => {
-                        const schedDate = new Date(s.date); // Chicago calendar date
-                        if (timezone === "PHT") {
-                          const diff = getTzDiffHours(s.date);
-                          schedDate.setHours(schedDate.getHours() + diff); // shift to Manila calendar date
-                        }
-                        return schedDate.toDateString() === d.date.toDateString();
-                      });
+  const cellSchedules = filteredSchedules.filter((s) => {
+    // base date in Chicago
+    const schedDate = new Date(s.date);
 
-                      // Check if any schedule’s (converted) time falls within this displayed slot
-                      const match = cellSchedules.find((s) => {
-                        // Base Chicago hours from stored times
-                        const baseStartH = new Date(`1970-01-01T${s.time_in}`).getHours();
-                        const baseEndH   = new Date(`1970-01-01T${s.time_out}`).getHours();
+    // handle timezone conversion
+    if (timezone === "PHT") {
+      const diff = getTzDiffHours(s.date);
+      schedDate.setHours(schedDate.getHours() + diff);
+    }
 
-                        // Shift to display (Manila) if needed
-                        const diff = timezone === "PHT" ? getTzDiffHours(s.date) : 0;
-                        const startH = (baseStartH + diff + 24) % 24;
-                        const endH   = (baseEndH   + diff + 24) % 24;
+    // figure out if schedule crosses midnight
+    const startH = new Date(`1970-01-01T${s.time_in}`).getHours();
+    const endH = new Date(`1970-01-01T${s.time_out}`).getHours();
+    const crossesMidnight = endH <= startH;
 
-                        // Convert current slot boundaries into display hours (PHT or CST)
-                        const [a, b] = slot.split(" - ");
-                        const to24 = (label: string) => {
-                          const [num, mer] = label.split(" ");
-                          let h = parseInt(num, 10);
-                          if (mer === "PM" && h < 12) h += 12;
-                          if (mer === "AM" && h === 12) h = 0;
-                          return h;
-                        };
+    // include original day
+    if (schedDate.toDateString() === d.date.toDateString()) return true;
 
-                        let slotStartH = to24(a);
-                        let slotEndH   = to24(b);
-                        if (timezone === "PHT") {
-                          slotStartH = (slotStartH + diff + 24) % 24;
-                          slotEndH   = (slotEndH   + diff + 24) % 24;
-                        }
+    // if it crosses midnight, also include the next day
+    if (crossesMidnight) {
+      const nextDay = new Date(schedDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      if (nextDay.toDateString() === d.date.toDateString()) return true;
+    }
 
-                        const inRange = (h: number, a: number, b: number) =>
-                          a <= b ? (h >= a && h < b) : (h >= a || h < b);
+    return false;
+  });
 
-                        // Check start within slot
-                        if (inRange(startH, slotStartH, slotEndH)) return true;
-                        // Or end within slot
-                        if (inRange(endH, slotStartH, slotEndH)) return true;
+  const match = cellSchedules.find((s) => {
+    const baseStartH = new Date(`1970-01-01T${s.time_in}`).getHours();
+    const baseEndH = new Date(`1970-01-01T${s.time_out}`).getHours();
 
-                        return false;
-                      });
+    const diff = timezone === "PHT" ? getTzDiffHours(s.date) : 0;
+    const startH = (baseStartH + diff + 24) % 24;
+    const endH = (baseEndH + diff + 24) % 24;
 
-                      return (
-                        <td key={d.label + slot} className="px-4 py-3 text-center text-gray-700">
-                          {match ? <span className="font-medium text-hemp-forest">{match.profiles?.full_name}</span> : "-"}
-                        </td>
-                      );
-                    })}
+    const [a, b] = slot.split(" - ");
+    const to24 = (label: string) => {
+      const [num, mer] = label.split(" ");
+      let h = parseInt(num, 10);
+      if (mer === "PM" && h < 12) h += 12;
+      if (mer === "AM" && h === 12) h = 0;
+      return h;
+    };
+
+    let slotStartH = to24(a);
+    let slotEndH = to24(b);
+    if (timezone === "PHT") {
+      slotStartH = (slotStartH + diff + 24) % 24;
+      slotEndH = (slotEndH + diff + 24) % 24;
+    }
+
+    // ✅ overlap check — works for normal & overnight ranges
+    const overlaps =
+      (startH < slotEndH && endH > slotStartH) ||
+      (endH < startH && (slotStartH < endH || slotEndH > startH));
+
+    return overlaps;
+  });
+
+  return (
+    <td key={d.label + slot} className="px-4 py-3 text-center text-gray-700">
+      {match ? (
+        <span className="font-medium text-hemp-forest">
+          {match.profiles?.full_name}
+        </span>
+      ) : (
+        "-"
+      )}
+    </td>
+  );
+})}
+
                   </tr>
                 );
               })}
@@ -342,11 +397,16 @@ export default function Schedule() {
 
       {/* All Schedules (flat) */}
       <div className="bg-white border border-hemp-sage rounded-lg shadow-sm p-4">
-        <h2 className="text-2xl font-semibold text-hemp-forest mb-4">All Schedules</h2>
+        <h2 className="text-2xl font-semibold text-hemp-forest mb-4">
+          All Schedules
+        </h2>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4 bg-white/70 backdrop-blur-md border border-hemp-sage/40 rounded-xl p-3 shadow-sm">
           <div className="relative w-full sm:w-1/3">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
             <input
               type="text"
               placeholder="Search by employee name..."
@@ -362,7 +422,9 @@ export default function Schedule() {
           >
             <option value="all">View All</option>
             {Object.keys(employeeSchedules).map((name) => (
-              <option key={name} value={name}>{name}</option>
+              <option key={name} value={name}>
+                {name}
+              </option>
             ))}
           </select>
 
@@ -389,11 +451,17 @@ export default function Schedule() {
             </thead>
             <tbody>
               {filteredFlatSchedules.map((s) => (
-                <tr key={s.id} className="border-t border-hemp-sage/20 hover:bg-hemp-mist/40 transition-all">
+                <tr
+                  key={s.id}
+                  className="border-t border-hemp-sage/20 hover:bg-hemp-mist/40 transition-all"
+                >
                   <td className="px-4 py-2">{formatDate(new Date(s.date))}</td>
-                  <td className="px-4 py-2">{s.profiles?.full_name || "Unknown"}</td>
-                  <td className="px-4 py-2">{formatDisplayTime(s.time_in, s.date, timezone)}</td>
-                  <td className="px-4 py-2">{formatDisplayTime(s.time_out, s.date, timezone)}</td>
+                  <td className="px-4 py-2">
+                    {s.profiles?.full_name || "Unknown"}
+                  </td>
+                  {/* ✅ Print raw DB times exactly */}
+                  <td className="px-4 py-2">{formatDisplayTimeRaw(s.time_in)}</td>
+                  <td className="px-4 py-2">{formatDisplayTimeRaw(s.time_out)}</td>
                   <td className="px-4 py-2 flex gap-2">
                     <Button
                       onClick={() => handleEdit(s)}
@@ -414,7 +482,10 @@ export default function Schedule() {
               ))}
               {filteredFlatSchedules.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center text-gray-500 italic py-4">
+                  <td
+                    colSpan={5}
+                    className="text-center text-gray-500 italic py-4"
+                  >
                     No schedules found.
                   </td>
                 </tr>
@@ -448,4 +519,3 @@ function generateTimeSlots() {
     "5 AM - 8 AM",
   ];
 }
-
