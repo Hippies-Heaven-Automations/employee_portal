@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useSessionRedirect } from "../hooks/useSessionRedirect";
 import { notifyError } from "../utils/notify";
+import hhLogo from "../assets/hh-logo.png";
 
 export default function LoginPage() {
   useSessionRedirect();
@@ -64,8 +65,8 @@ export default function LoginPage() {
         className="relative z-10 w-full max-w-md bg-hemp-cream/70 backdrop-blur-md border border-hemp-sage rounded-2xl shadow-card p-8 animate-fadeInUp"
       >
         <div className="flex flex-col items-center mb-6">
-          <div className="w-14 h-14 rounded-full bg-hemp-green flex items-center justify-center shadow-md mb-3">
-            <span className="text-white text-2xl font-bold">🌿</span>
+          <div className="w-15 h-15 rounded-full bg-white flex items-center justify-center shadow-md mb-3">
+            <img src={hhLogo} alt="Hippies Heaven Logo" className="w-20 h-20 object-contain" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold text-hemp-forest">
             Employee Portal Login
