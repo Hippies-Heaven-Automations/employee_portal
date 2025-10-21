@@ -6,7 +6,6 @@ import { LogOut, User, Menu, X, AlertTriangle } from "lucide-react";
 import hhLogo from "../assets/hh-logo.png";
 import { createPortal } from "react-dom";
 
-
 export interface NavItem {
   to: string;
   label: string;
@@ -37,7 +36,7 @@ export default function Navbar({
     navigate("/login");
   };
 
-  // Lock body scroll while drawer open
+  // 🌿 Lock body scroll while drawer open
   useEffect(() => {
     const el = document.documentElement;
     el.style.overflow = mobileOpen ? "hidden" : "";
@@ -202,36 +201,48 @@ export default function Navbar({
           })}
         </div>
 
-        <div className="mt-auto border-t border-green-200 pt-3">
-          <button
-            onClick={() => {
-              onLinkClick?.();
-              navigate(
-                userType === "admin"
-                  ? "/admin-dashboard/profile"
-                  : "/employee-dashboard/profile"
-              );
-            }}
-            className="flex items-center gap-3 px-3 py-2 text-green-700/90 hover:text-green-800 hover:bg-green-100 rounded-md w-full text-left transition-all"
+        {/* 🌿 Footer Actions */}
+        <div className="mt-auto border-t border-green-200 pt-3 space-y-1">
+          {/* Profile Link */}
+          <NavLink
+            to={
+              userType === "admin"
+                ? "/admin-dashboard/profile"
+                : "/employee-dashboard/profile"
+            }
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md w-full font-medium transition-all duration-200",
+                isActive
+                  ? "bg-green-600 text-white shadow-sm"
+                  : "text-green-700/90 hover:text-green-800 hover:bg-green-100"
+              )
+            }
+            end
           >
-            <User
-              size={20}
-              className={cn(
-                "min-w-[20px] text-green-700 transition-all duration-300",
-                collapsed && "mx-auto"
-              )}
-            />
+            {({ isActive }) => (
+              <>
+                <User
+                  size={20}
+                  className={cn(
+                    "min-w-[20px] transition-all duration-300",
+                    isActive ? "text-white" : "text-green-700",
+                    collapsed && "mx-auto"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "truncate transition-all duration-300",
+                    collapsed && "opacity-0 w-0 overflow-hidden"
+                  )}
+                >
+                  Profile
+                </span>
+              </>
+            )}
+          </NavLink>
 
-            <span
-              className={cn(
-                "truncate transition-all duration-300",
-                collapsed && "opacity-0 w-0 overflow-hidden"
-              )}
-            >
-              Profile
-            </span>
-          </button>
-
+          {/* Logout */}
           <button
             onClick={() => setShowLogoutConfirm(true)}
             className="flex items-center gap-3 px-3 py-2 text-green-700/90 hover:text-green-800 hover:bg-green-100 rounded-md w-full text-left transition-all"
@@ -243,7 +254,6 @@ export default function Navbar({
                 collapsed && "mx-auto"
               )}
             />
-
             <span
               className={cn(
                 "truncate transition-all duration-300",
@@ -256,6 +266,7 @@ export default function Navbar({
         </div>
       </nav>
 
+      {/* 🌿 Logout Confirmation Modal */}
       {showLogoutConfirm &&
         createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fadeIn">
@@ -283,7 +294,7 @@ export default function Navbar({
               </div>
             </div>
           </div>,
-          document.body 
+          document.body
         )}
     </>
   );

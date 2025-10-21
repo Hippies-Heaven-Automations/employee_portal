@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import SignatureCanvas from "react-signature-canvas";
+import { notifyError, notifySuccess } from "../../utils/notify";
 
 interface MediaItem {
   type: "video" | "doc";
@@ -38,6 +39,7 @@ export default function TrainingDetail() {
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const sigCanvas = useRef<SignatureCanvas>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // 🌿 Fix YouTube embedding
   const getEmbedUrl = (url: string): string => {
@@ -106,12 +108,36 @@ export default function TrainingDetail() {
     fetchData();
   }, [id, currentUser]);
 
+  // 🌿 Ensure canvas scales correctly on resize / retina
+  useEffect(() => {
+    const resizeCanvas = () => {
+      if (!containerRef.current || !sigCanvas.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+      const canvas = sigCanvas.current.getCanvas();
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      canvas.width = rect.width * ratio;
+      canvas.height = 180 * ratio;
+      ctx.scale(ratio, ratio);
+
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = "180px";
+    };
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    return () => window.removeEventListener("resize", resizeCanvas);
+  }, []);
+
   // 🌿 Handle signature submission
   const handleAcknowledge = async (): Promise<void> => {
     if (!currentUser || !sigCanvas.current) return;
 
     if (sigCanvas.current.isEmpty()) {
-      alert("Please sign before submitting!");
+      notifyError("Please sign before submitting!");
       return;
     }
 
@@ -143,11 +169,11 @@ export default function TrainingDetail() {
       }));
 
       sigCanvas.current.clear();
-      alert("✅ Signature saved successfully!");
+      notifySuccess("✅ Signature saved successfully!");
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Error saving signature.";
-      setError(message);
+      notifyError(message);
     } finally {
       setAckLoading(false);
     }
@@ -220,16 +246,16 @@ export default function TrainingDetail() {
             completion before proceeding to the quiz.
           </p>
 
-          <div className="rounded-xl border border-hemp-sage/40 bg-hemp-mist/20 p-4">
-            // @ts-expect-error Incorrect upstream types
+          <div
+            ref={containerRef}
+            className="rounded-xl border border-hemp-sage/40 bg-hemp-mist/20 p-4"
+          >
             <SignatureCanvas
-              ref={sigCanvas}
+              ref={sigCanvas as React.MutableRefObject<SignatureCanvas>}
               penColor="black"
               canvasProps={{
-                width: 500,
-                height: 160,
                 className:
-                  "border border-hemp-sage/50 rounded-md bg-white w-full",
+                  "block rounded-md bg-white w-full h-[180px] border border-hemp-sage/50",
               }}
             />
             <div className="mt-3 flex gap-3">

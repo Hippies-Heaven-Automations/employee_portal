@@ -12,6 +12,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Hiring from "./pages/Hiring";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 
 // 🌿 Admin pages
 import AdminHome from "./pages/admin/AdminHome";
@@ -71,6 +72,8 @@ export default function App() {
           <Route path="trainingtracker" element={<TrainingTracker />} />
           <Route path="trainings" element={<TrainingManager />} />
           <Route path="trainings/:id/preview" element={<TrainingPreview />} />
+          
+          <Route path="profile" element={<Profile />} />
         </Route>
 
         {/* 🌿 Employee Dashboard */}
@@ -90,6 +93,8 @@ export default function App() {
           <Route path="training" element={<TrainingList />} />
           <Route path="training/:id" element={<TrainingDetail />} />
           <Route path="training/:id/quiz" element={<TrainingQuiz />} />
+          
+          <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>
     </Router>

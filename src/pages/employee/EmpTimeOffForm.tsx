@@ -44,7 +44,7 @@ export default function EmpTimeOffForm({ onClose, onSave }: Props) {
         start_date: formData.start_date,
         end_date: formData.end_date,
         reason: formData.reason,
-        status: "Pending",
+        status: "pending",
         created_at: new Date().toISOString(),
       };
 
@@ -141,35 +141,35 @@ export default function EmpTimeOffForm({ onClose, onSave }: Props) {
               className="w-full border border-hemp-sage/60 bg-white/60 rounded-lg px-4 py-3 h-28 resize-none focus:ring-2 focus:ring-hemp-green outline-none"
             />
           </div>
-        </form>
 
-        {/* 🌿 Footer */}
-        <div className="flex flex-col-reverse sm:flex-row justify-end sm:items-center gap-3 px-5 sm:px-6 py-4 border-t border-hemp-sage/40 bg-white/90 sticky bottom-0">
-          <Button
-            type="button"
-            onClick={onClose}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg px-5 py-2 w-full sm:w-auto"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={saving}
-            className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-5 sm:px-6 py-2 flex items-center justify-center gap-2 w-full sm:w-auto shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
-          >
-            {saving ? (
-              <>
-                <Loader2 size={18} className="animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              <>
-                <PlaneTakeoff size={18} />
-                Submit Request
-              </>
-            )}
-          </Button>
-        </div>
+          {/* 🌿 Footer */}
+          <div className="flex flex-col-reverse sm:flex-row justify-end sm:items-center gap-3 px-5 sm:px-6 py-4 border-t border-hemp-sage/40 bg-white/90 sticky bottom-0">
+            <Button
+              type="button"
+              onClick={onClose}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg px-5 py-2 w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-5 sm:px-6 py-2 flex items-center justify-center gap-2 w-full sm:w-auto shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
+            >
+              {saving ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <PlaneTakeoff size={18} />
+                  Submit Request
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
