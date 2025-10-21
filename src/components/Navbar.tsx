@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { cn } from "../utils";
-import { LogOut, User, Menu, X } from "lucide-react";
+import { LogOut, User, Menu, X, AlertTriangle } from "lucide-react";
 import hhLogo from "../assets/hh-logo.png";
+import { createPortal } from "react-dom";
 
 
 export interface NavItem {
@@ -29,6 +30,7 @@ export default function Navbar({
 }: NavbarProps) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -37,29 +39,21 @@ export default function Navbar({
 
   // Lock body scroll while drawer open
   useEffect(() => {
-    const el = document.documentElement; // more reliable than body across browsers
-    if (mobileOpen) {
-      el.style.overflow = "hidden";
-    } else {
-      el.style.overflow = "";
-    }
+    const el = document.documentElement;
+    el.style.overflow = mobileOpen ? "hidden" : "";
     return () => {
       el.style.overflow = "";
     };
   }, [mobileOpen]);
 
-  /* 🌿 PUBLIC NAVBAR (mobile drawer fixed) */
+  /* 🌿 PUBLIC NAVBAR */
   if (mode === "public") {
     return (
       <nav className="relative w-full border-b border-hemp-sage bg-hemp-cream/95 backdrop-blur-md shadow-sm z-50">
         <div className="mx-auto max-w-7xl flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           {/* Brand */}
           <div className="flex items-center gap-2 text-xl font-bold text-hemp-forest">
-            <img
-              src={hhLogo}
-              alt="Hippies Heaven Logo"
-              className="w-10 h-10 object-contain"
-            />
+            <img src={hhLogo} alt="Hippies Heaven Logo" className="w-10 h-10 object-contain" />
             <span>Hippies Heaven</span>
           </div>
 
@@ -84,7 +78,7 @@ export default function Navbar({
             ))}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Button */}
           <button
             onClick={() => setMobileOpen(true)}
             className="lg:hidden text-hemp-forest hover:text-hemp-green focus:outline-none focus:ring-2 focus:ring-hemp-green rounded-md"
@@ -94,7 +88,6 @@ export default function Navbar({
           </button>
         </div>
 
-        {/* ===== Mobile Overlay + Drawer (always mounted for smooth animations) ===== */}
         {/* Overlay */}
         <div
           className={cn(
@@ -107,25 +100,21 @@ export default function Navbar({
         {/* Drawer */}
         <aside
           className={cn(
-            "fixed right-0 top-0 z-50 h-svh w-80 max-w-[85vw] bg-hemp-cream shadow-2xl lg:hidden",
-            "transition-transform duration-300 ease-in-out",
+            "fixed right-0 top-0 z-50 h-svh w-80 max-w-[85vw] bg-hemp-cream shadow-2xl lg:hidden transition-transform duration-300 ease-in-out",
             mobileOpen ? "translate-x-0" : "translate-x-full"
           )}
-          aria-hidden={!mobileOpen}
         >
-          {/* Drawer header (sticky) */}
-          <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b border-hemp-sage bg-hemp-cream">
+          <div className="sticky top-0 flex items-center justify-between px-5 py-4 border-b border-hemp-sage bg-hemp-cream">
             <span className="font-semibold text-hemp-forest text-lg">Menu</span>
             <button
               onClick={() => setMobileOpen(false)}
-              className="text-hemp-forest hover:text-hemp-green focus:outline-none"
+              className="text-hemp-forest hover:text-hemp-green"
               aria-label="Close menu"
             >
               <X size={24} strokeWidth={2.2} />
             </button>
           </div>
 
-          {/* Drawer content scrolls independently */}
           <div className="px-5 py-4 overflow-y-auto h-[calc(100svh-56px)]">
             <nav className="flex flex-col">
               {links.map((l) => (
@@ -155,105 +144,147 @@ export default function Navbar({
 
   /* 🪴 PRIVATE SIDEBAR NAVBAR (Admin / Employee) */
   return (
-    <nav className="flex flex-col py-2 px-1">
-      <div className="flex flex-col flex-grow">
-        {links.map((l, idx) => {
-          const Icon = l.icon;
-          const colors = [
-            "text-orange-500",
-            "text-emerald-600",
-            "text-blue-500",
-            "text-amber-600",
-            "text-cyan-500",
-            "text-pink-500",
-            "text-purple-500",
-            "text-lime-600",
-          ];
+    <>
+      <nav className="flex flex-col py-2 px-1">
+        <div className="flex flex-col flex-grow">
+          {links.map((l, idx) => {
+            const Icon = l.icon;
+            const colors = [
+              "text-orange-500",
+              "text-emerald-600",
+              "text-blue-500",
+              "text-amber-600",
+              "text-cyan-500",
+              "text-pink-500",
+              "text-purple-500",
+              "text-lime-600",
+            ];
 
-          return (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end
-              onClick={() => onLinkClick?.()}
-              className={({ isActive }) =>
-                cn(
-                  "group flex items-center px-3 py-2 rounded-md font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-green-600 text-white shadow-sm"
-                    : "text-green-800/80 hover:text-green-900 hover:bg-green-100"
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {Icon && (
-                    <Icon
-                      size={18}
-                      className={cn(
-                        "flex-shrink-0 transition-colors duration-200",
-                        isActive ? "text-white" : colors[idx % colors.length],
-                        !isActive && "group-hover:text-green-800"
-                      )}
-                    />
-                  )}
-                  <span
-                    className={cn(
-                      "ml-3 truncate transition-all duration-300",
-                      collapsed && "opacity-0 w-0 overflow-hidden"
+            return (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                end
+                onClick={() => onLinkClick?.()}
+                className={({ isActive }) =>
+                  cn(
+                    "group flex items-center px-3 py-2 rounded-md font-medium transition-all duration-200",
+                    isActive
+                      ? "bg-green-600 text-white shadow-sm"
+                      : "text-green-800/80 hover:text-green-900 hover:bg-green-100"
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {Icon && (
+                      <Icon
+                        size={18}
+                        className={cn(
+                          "flex-shrink-0 transition-colors duration-200",
+                          isActive ? "text-white" : colors[idx % colors.length],
+                          !isActive && "group-hover:text-green-800"
+                        )}
+                      />
                     )}
-                  >
-                    {l.label}
-                  </span>
-                </>
-              )}
-            </NavLink>
-          );
-        })}
-      </div>
-
-
-      <div className="mt-auto border-t border-green-200 pt-3">
-        <button
-          onClick={() => {
-            onLinkClick?.();
-            navigate(
-              userType === "admin"
-                ? "/admin-dashboard/profile"
-                : "/employee-dashboard/profile"
+                    <span
+                      className={cn(
+                        "ml-3 truncate transition-all duration-300",
+                        collapsed && "opacity-0 w-0 overflow-hidden"
+                      )}
+                    >
+                      {l.label}
+                    </span>
+                  </>
+                )}
+              </NavLink>
             );
-          }}
-          className="flex items-center gap-3 px-3 py-2 text-green-700/90 hover:text-green-800 hover:bg-green-100 rounded-md w-full text-left transition-all"
-        >
-          <User size={18} className="text-green-700" />
-          <span
-            className={cn(
-              "truncate transition-all duration-300",
-              collapsed && "opacity-0 w-0 overflow-hidden"
-            )}
-          >
-            Profile
-          </span>
-        </button>
+          })}
+        </div>
 
-        <button
-          onClick={() => {
-            onLinkClick?.();
-            handleLogout();
-          }}
-          className="flex items-center gap-3 px-3 py-2 text-green-700/90 hover:text-green-800 hover:bg-green-100 rounded-md w-full text-left transition-all"
-        >
-          <LogOut size={18} className="text-green-700" />
-          <span
-            className={cn(
-              "truncate transition-all duration-300",
-              collapsed && "opacity-0 w-0 overflow-hidden"
-            )}
+        <div className="mt-auto border-t border-green-200 pt-3">
+          <button
+            onClick={() => {
+              onLinkClick?.();
+              navigate(
+                userType === "admin"
+                  ? "/admin-dashboard/profile"
+                  : "/employee-dashboard/profile"
+              );
+            }}
+            className="flex items-center gap-3 px-3 py-2 text-green-700/90 hover:text-green-800 hover:bg-green-100 rounded-md w-full text-left transition-all"
           >
-            Logout
-          </span>
-        </button>
-      </div>
-    </nav>
+            <User
+              size={20}
+              className={cn(
+                "min-w-[20px] text-green-700 transition-all duration-300",
+                collapsed && "mx-auto"
+              )}
+            />
+
+            <span
+              className={cn(
+                "truncate transition-all duration-300",
+                collapsed && "opacity-0 w-0 overflow-hidden"
+              )}
+            >
+              Profile
+            </span>
+          </button>
+
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            className="flex items-center gap-3 px-3 py-2 text-green-700/90 hover:text-green-800 hover:bg-green-100 rounded-md w-full text-left transition-all"
+          >
+            <LogOut
+              size={20}
+              className={cn(
+                "min-w-[20px] text-green-700 transition-all duration-300",
+                collapsed && "mx-auto"
+              )}
+            />
+
+            <span
+              className={cn(
+                "truncate transition-all duration-300",
+                collapsed && "opacity-0 w-0 overflow-hidden"
+              )}
+            >
+              Logout
+            </span>
+          </button>
+        </div>
+      </nav>
+
+      {showLogoutConfirm &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-xl border border-hemp-sage w-full max-w-sm p-6 text-center animate-slideUp">
+              <AlertTriangle className="text-hemp-green w-12 h-12 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-hemp-forest mb-2">
+                Confirm Logout
+              </h3>
+              <p className="text-sm text-gray-600 mb-5">
+                Are you sure you want to log out of your account?
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 rounded-lg bg-hemp-green hover:bg-hemp-forest text-white font-medium transition"
+                >
+                  Yes, Logout
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body 
+        )}
+    </>
   );
 }
