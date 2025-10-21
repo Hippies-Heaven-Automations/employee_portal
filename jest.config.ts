@@ -12,6 +12,7 @@ const config: Config = {
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
     "\\.(png|jpg|jpeg|gif|svg)$": "<rootDir>/__mocks__/fileMock.js",
     "^.+/lib/supabaseClient$": "<rootDir>/__mocks__/supabaseClient.ts",
+    "^.+/lib/supabaseAdminClient$": "<rootDir>/__mocks__/supabaseAdminClient.ts",
   },
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   transformIgnorePatterns: [

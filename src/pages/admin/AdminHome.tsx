@@ -1,5 +1,11 @@
-import { Megaphone, Users, Calendar, FileText, Clock } from "lucide-react";
-import { notifySuccess } from "../../utils/notify"; // ✅ no changes to notify.ts
+import {
+  Megaphone,
+  Users,
+  Calendar,
+  FileText,
+  Clock,
+} from "lucide-react";
+import { notifySuccess } from "../../utils/notify";
 
 export default function AdminHome() {
   const handleClick = (action: string) => {
@@ -7,19 +13,19 @@ export default function AdminHome() {
   };
 
   return (
-    <section className="animate-fadeInUp">
+    <section className="animate-fadeInUp text-hemp-ink">
       {/* 🌿 Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-hemp-forest mb-2">
+      <header className="mb-8 text-center sm:text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold text-hemp-forest mb-2">
           Welcome, Admin 🌿
         </h1>
-        <p className="text-hemp-ink/70">
+        <p className="text-hemp-ink/70 text-sm sm:text-base">
           Manage your team, schedules, and operations — all in one place.
         </p>
-      </div>
+      </header>
 
       {/* 🌈 Quick Stats */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-10">
         {[
           { icon: Users, label: "Employees", text: "View & manage staff records" },
           { icon: Megaphone, label: "Announcements", text: "Post updates for all users" },
@@ -28,31 +34,35 @@ export default function AdminHome() {
         ].map(({ icon: Icon, label, text }, i) => (
           <div
             key={i}
-            className="bg-hemp-cream/80 border border-hemp-sage rounded-xl shadow-card p-6 flex items-center gap-4 hover:shadow-lg transition-all duration-300 cursor-pointer"
             onClick={() => handleClick(label)}
+            className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-5 rounded-xl bg-hemp-cream/80 border border-hemp-sage shadow-card hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer text-center sm:text-left"
           >
-            <div className="w-12 h-12 rounded-full bg-hemp-green flex items-center justify-center text-white">
+            <div className="w-14 h-14 rounded-full bg-hemp-green flex items-center justify-center text-white shrink-0">
               <Icon size={24} />
             </div>
-            <div>
-              <h3 className="text-hemp-forest font-semibold text-lg">{label}</h3>
-              <p className="text-hemp-ink/70 text-sm">{text}</p>
+            <div className="flex-1">
+              <h3 className="text-hemp-forest font-semibold text-base sm:text-lg">
+                {label}
+              </h3>
+              <p className="text-hemp-ink/70 text-xs sm:text-sm mt-1">
+                {text}
+              </p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* 🕒 Recent Activity or Quick Access */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* 🕒 Recent Activity & Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Recent Activity */}
-        <div className="bg-hemp-cream/70 border border-hemp-sage rounded-2xl shadow-card p-6">
+        <div className="bg-hemp-cream/70 border border-hemp-sage rounded-2xl shadow-card p-5 sm:p-6">
           <div className="flex items-center gap-3 mb-4">
-            <Clock className="text-hemp-green" size={22} />
-            <h2 className="text-xl font-semibold text-hemp-forest">
+            <Clock className="text-hemp-green shrink-0" size={22} />
+            <h2 className="text-lg sm:text-xl font-semibold text-hemp-forest">
               Recent Activity
             </h2>
           </div>
-          <ul className="space-y-3 text-hemp-ink/80 text-sm">
+          <ul className="space-y-3 text-hemp-ink/80 text-sm sm:text-base">
             <li>🌱 New employee “Jane Doe” added to system.</li>
             <li>📢 Announcement “Team Meeting - Monday” posted.</li>
             <li>🕒 Schedule updated for November 20.</li>
@@ -61,14 +71,14 @@ export default function AdminHome() {
         </div>
 
         {/* Right: Quick Actions */}
-        <div className="bg-hemp-cream/70 border border-hemp-sage rounded-2xl shadow-card p-6">
+        <div className="bg-hemp-cream/70 border border-hemp-sage rounded-2xl shadow-card p-5 sm:p-6">
           <div className="flex items-center gap-3 mb-4">
-            <FileText className="text-hemp-green" size={22} />
-            <h2 className="text-xl font-semibold text-hemp-forest">
+            <FileText className="text-hemp-green shrink-0" size={22} />
+            <h2 className="text-lg sm:text-xl font-semibold text-hemp-forest">
               Quick Actions
             </h2>
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => handleClick("Add Employee")}
               className="w-full bg-hemp-green hover:bg-hemp-forest text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-card"

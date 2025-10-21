@@ -1,299 +1,320 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
-import { Clock, Edit3, Trash2, FilePlus } from "lucide-react";
+import TimeOffForm from "./TimeOffForm";
+import { Edit3, Trash2, PlaneTakeoff, Search, ArrowUpDown } from "lucide-react";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import { confirmAction } from "../../utils/confirm";
 
-interface ShiftLog {
+interface TimeOff {
   id: string;
   employee_id: string;
-  full_name: string;
-  shift_start: string;
-  shift_end: string | null;
-  duration: string | null;
-  notes: string | null;
+  start_date: string;
+  end_date: string;
+  reason: string;
+  status: string;
+  created_at: string;
+  full_name: string | null;
 }
 
-interface Employee {
-  id: string;
-  full_name: string;
-}
-
-export default function ShiftLogs() {
-  const [logs, setLogs] = useState<ShiftLog[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+export default function TimeOff() {
+  const [timeOffs, setTimeOffs] = useState<TimeOff[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<ShiftLog | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<TimeOff | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    employee_id: "",
-    shift_start: "",
-    shift_end: "",
-    notes: "",
-  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
-  // ✅ Fetch logs and employees
-  useEffect(() => {
-    fetchLogs();
-    fetchEmployees();
-  }, []);
-
-  const fetchLogs = async () => {
+  const fetchRequests = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("shift_logs_view")
-      .select("*")
-      .order("shift_start", { ascending: false });
-
-    if (error) notifyError(`Failed to load shift logs: ${error.message}`);
-    else setLogs(data || []);
-
+    const { data, error } = await supabase.rpc("get_time_off_with_profiles");
+    if (error) notifyError(`Failed to load requests: ${error.message}`);
+    else setTimeOffs(data || []);
     setLoading(false);
   };
 
-  const fetchEmployees = async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, full_name")
-      .order("full_name", { ascending: true });
-
-    if (error) notifyError(`Failed to load employees: ${error.message}`);
-    else setEmployees(data || []);
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const payload = {
-      employee_id: formData.employee_id,
-      shift_start: formData.shift_start ? new Date(formData.shift_start).toISOString() : null,
-      shift_end: formData.shift_end ? new Date(formData.shift_end).toISOString() : null,
-      notes: formData.notes,
-    };
-
-    let res;
-    if (selected) {
-      res = await supabase.from("shift_logs").update(payload).eq("id", selected.id);
-    } else {
-      res = await supabase.from("shift_logs").insert([payload]);
-    }
-
-    if (res.error) notifyError(res.error.message);
-    else {
-      notifySuccess(selected ? "Shift log updated successfully." : "New shift log added!");
-      setIsFormOpen(false);
-      setSelected(null);
-      fetchLogs();
-    }
-  };
+  useEffect(() => {
+    fetchRequests();
+  }, []);
 
   const handleDelete = async (id: string) => {
-    confirmAction(
-      "Are you sure you want to delete this shift log?",
-      async () => {
-        const { error } = await supabase.from("shift_logs").delete().eq("id", id);
-        if (error) notifyError(error.message);
-        else {
-          notifySuccess("Shift log deleted successfully.");
-          fetchLogs();
-        }
-      },
-      "Delete",
-      "bg-red-600 hover:bg-red-700"
-    );
+    confirmAction("Delete this request?", async () => {
+      const { error } = await supabase.from("time_off_requests").delete().eq("id", id);
+      if (error) notifyError(`Delete failed: ${error.message}`);
+      else {
+        notifySuccess("Leave request deleted successfully.");
+        fetchRequests();
+      }
+    }, "Delete", "bg-red-600 hover:bg-red-700");
   };
 
-  const formatDuration = (duration: string | null) => {
-    if (!duration) return "-";
-    const match = duration.match(/(\d+):(\d+):(\d+)/);
-    if (!match) return duration;
-    const [, h, m] = match;
-    return `${parseInt(h)}h ${parseInt(m)}m`;
+  const handleEdit = (r: TimeOff) => {
+    setSelectedRequest(r);
+    setIsFormOpen(true);
   };
+
+  const handleAdd = () => {
+    setSelectedRequest(null);
+    setIsFormOpen(true);
+  };
+
+  const toggleSortOrder = () => setSortOrder((p) => (p === "asc" ? "desc" : "asc"));
+
+  const getStatusStyle = (status: string) =>
+    status === "approved"
+      ? "bg-green-100 text-green-700 border-green-200"
+      : status === "denied"
+      ? "bg-red-100 text-red-700 border-red-200"
+      : "bg-yellow-100 text-yellow-700 border-yellow-200";
+
+  const highlight = (text = "") =>
+    !searchTerm.trim()
+      ? text
+      : text.replace(
+          new RegExp(`(${searchTerm})`, "gi"),
+          "<mark class='bg-hemp-sage/40 text-hemp-forest font-semibold'>$1</mark>"
+        );
+
+  const filtered = useMemo(() => {
+    let f = timeOffs;
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      f = f.filter(
+        (r) =>
+          r.full_name?.toLowerCase().includes(q) ||
+          r.reason.toLowerCase().includes(q)
+      );
+    }
+    return [...f].sort((a, b) => {
+      const A = new Date(a.start_date).getTime();
+      const B = new Date(b.start_date).getTime();
+      return sortOrder === "asc" ? A - B : B - A;
+    });
+  }, [timeOffs, searchTerm, sortOrder]);
+
+  const total = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const page = (p: number) => p >= 1 && p <= total && setCurrentPage(p);
 
   return (
     <section className="animate-fadeInUp text-gray-700">
-      {/* 🌿 Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-hemp-forest mb-2 sm:mb-0 flex items-center gap-2">
-          <Clock size={24} className="text-hemp-green" />
-          Shift Logs
-        </h1>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3 sm:gap-0">
+        <h1 className="text-3xl font-bold text-hemp-forest">Leave Request</h1>
         <Button
-          onClick={() => {
-            setFormData({ employee_id: "", shift_start: "", shift_end: "", notes: "" });
-            setSelected(null);
-            setIsFormOpen(true);
-          }}
-          className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 transition-all duration-300 shadow-card flex items-center gap-2"
+          onClick={handleAdd}
+          className="w-full sm:w-auto bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 shadow-card inline-flex justify-center items-center gap-2"
         >
-          <FilePlus size={18} />
-          Add Shift
+          <PlaneTakeoff size={18} />
+          <span className="hidden sm:inline">Add Request</span>
         </Button>
       </div>
 
-      {/* 🌿 Table */}
+      {/* Controls */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5 bg-white/70 backdrop-blur-md border border-hemp-sage/40 rounded-xl p-4 shadow-sm">
+        <div className="relative flex-1">
+          <Search
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          />
+          <input
+            placeholder="Search by employee or reason..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-hemp-sage/50 bg-white/60 text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-hemp-green focus:border-hemp-green"
+          />
+        </div>
+
+        <Button
+          onClick={toggleSortOrder}
+          variant="outline"
+          className="w-full sm:w-auto border-hemp-green/60 text-hemp-forest hover:bg-hemp-green hover:text-white rounded-lg px-5 py-2.5 flex items-center justify-center gap-2 shadow-sm"
+        >
+          <ArrowUpDown size={18} />
+          <span className="hidden sm:inline font-medium">
+            {sortOrder === "asc" ? "Oldest First" : "Newest First"}
+          </span>
+        </Button>
+      </div>
+
+      {/* Table / Cards */}
       <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-6 text-center text-gray-500">Loading shift logs...</div>
-        ) : logs.length === 0 ? (
-          <div className="p-6 text-center text-gray-500 italic">No shift logs found.</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-gray-700">
-              <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase tracking-wide text-xs">
-                <tr>
-                  <th className="px-4 py-3 text-left">Employee</th>
-                  <th className="px-4 py-3 text-left">Time In</th>
-                  <th className="px-4 py-3 text-left">Time Out</th>
-                  <th className="px-4 py-3 text-left">Duration</th>
-                  <th className="px-4 py-3 text-left">Notes</th>
-                  <th className="px-4 py-3 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((log) => (
-                  <tr
-                    key={log.id}
-                    className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition-all"
-                  >
-                    <td className="px-4 py-3 font-medium">{log.full_name}</td>
-                    <td className="px-4 py-3">{new Date(log.shift_start).toLocaleString()}</td>
-                    <td className="px-4 py-3">
-                      {log.shift_end ? new Date(log.shift_end).toLocaleString() : "-"}
-                    </td>
-                    <td className="px-4 py-3">{formatDuration(log.duration)}</td>
-                    <td className="px-4 py-3">{log.notes || "-"}</td>
-                    <td className="px-4 py-3 flex flex-wrap gap-2">
-                      <Button
-                        onClick={() => {
-                          setSelected(log);
-                          setFormData({
-                            employee_id: log.employee_id,
-                            shift_start: log.shift_start,
-                            shift_end: log.shift_end || "",
-                            notes: log.notes || "",
-                          });
-                          setIsFormOpen(true);
-                        }}
-                        variant="outline"
-                        className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white transition inline-flex items-center gap-1.5"
-                      >
-                        <Edit3 size={15} />
-                        <span className="hidden sm:inline">Edit</span>
-                      </Button>
-                      <Button
-                        onClick={() => handleDelete(log.id)}
-                        variant="ghost"
-                        className="text-red-600 hover:bg-red-50 inline-flex items-center gap-1.5"
-                      >
-                        <Trash2 size={16} />
-                        <span className="hidden sm:inline">Delete</span>
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="p-6 text-center text-gray-500">Loading requests...</div>
+        ) : paginated.length === 0 ? (
+          <div className="p-6 text-center text-gray-500 italic">
+            No requests found.
           </div>
+        ) : (
+          <>
+            {/* Desktop */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full text-sm text-gray-700">
+                <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase tracking-wide text-xs">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Employee</th>
+                    <th className="px-4 py-3 text-left">Start</th>
+                    <th className="px-4 py-3 text-left">End</th>
+                    <th className="px-4 py-3 text-left">Reason</th>
+                    <th className="px-4 py-3 text-left">Status</th>
+                    <th className="px-4 py-3 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.map((r) => (
+                    <tr
+                      key={r.id}
+                      className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition-all"
+                    >
+                      <td
+                        className="px-4 py-3 font-medium"
+                        dangerouslySetInnerHTML={{
+                          __html: highlight(r.full_name || "Unknown"),
+                        }}
+                      />
+                      <td className="px-4 py-3">
+                        {new Date(r.start_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        {new Date(r.end_date).toLocaleDateString()}
+                      </td>
+                      <td
+                        className="px-4 py-3"
+                        dangerouslySetInnerHTML={{ __html: highlight(r.reason) }}
+                      />
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2 py-1 rounded border text-xs font-semibold capitalize ${getStatusStyle(
+                            r.status
+                          )}`}
+                        >
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 flex flex-wrap gap-2">
+                        <Button
+                          onClick={() => handleEdit(r)}
+                          variant="outline"
+                          className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white inline-flex items-center gap-1.5"
+                        >
+                          <Edit3 size={15} />
+                          <span className="hidden sm:inline">Edit</span>
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(r.id)}
+                          variant="ghost"
+                          className="text-red-600 hover:bg-red-50 inline-flex items-center gap-1.5"
+                        >
+                          <Trash2 size={16} />
+                          <span className="hidden sm:inline">Delete</span>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile */}
+            <div className="block md:hidden divide-y divide-hemp-sage/40">
+              {paginated.map((r) => (
+                <div key={r.id} className="p-4 bg-white">
+                  <h2
+                    className="text-lg font-semibold text-hemp-forest"
+                    dangerouslySetInnerHTML={{
+                      __html: highlight(r.full_name || "Unknown"),
+                    }}
+                  />
+                  <p className="text-sm text-gray-600">
+                    📅 {new Date(r.start_date).toLocaleDateString()} –{" "}
+                    {new Date(r.end_date).toLocaleDateString()}
+                  </p>
+                  <p
+                    className="text-sm text-gray-600 mt-1"
+                    dangerouslySetInnerHTML={{ __html: highlight(r.reason) }}
+                  />
+                  <span
+                    className={`mt-2 inline-block px-2 py-1 rounded border text-xs font-semibold capitalize ${getStatusStyle(
+                      r.status
+                    )}`}
+                  >
+                    {r.status}
+                  </span>
+
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      onClick={() => handleEdit(r)}
+                      variant="outline"
+                      className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white px-3 py-1 text-sm flex items-center gap-1"
+                    >
+                      <Edit3 size={14} />
+                      <span className="hidden sm:inline">Edit</span>
+                    </Button>
+                    <Button
+                      onClick={() => handleDelete(r.id)}
+                      variant="ghost"
+                      className="text-red-600 hover:bg-red-50 px-3 py-1 text-sm flex items-center gap-1"
+                    >
+                      <Trash2 size={14} />
+                      <span className="hidden sm:inline">Delete</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
-      {/* 🌿 Add / Edit Modal */}
-      {isFormOpen && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 px-4">
-          <div className="bg-white border border-hemp-sage rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-fadeInUp">
-            <div className="flex items-center justify-between px-6 py-4 bg-hemp-sage/30 border-b border-hemp-sage/50">
-              <h2 className="text-xl font-semibold text-hemp-forest">
-                {selected ? "Edit Shift Log" : "Add Shift Log"}
-              </h2>
-              <button
-                onClick={() => setIsFormOpen(false)}
-                className="text-gray-600 hover:text-hemp-green transition"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5 text-gray-700">
-              <div>
-                <label className="block text-sm font-semibold mb-2">Employee</label>
-                <select
-                  name="employee_id"
-                  value={formData.employee_id}
-                  onChange={handleChange}
-                  className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-hemp-green"
-                  required
-                >
-                  <option value="">Select Employee</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.full_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Time In</label>
-                  <input
-                    type="datetime-local"
-                    name="shift_start"
-                    value={formData.shift_start ? formData.shift_start.slice(0, 16) : ""}
-                    onChange={handleChange}
-                    className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 focus:ring-2 focus:ring-hemp-green"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Time Out</label>
-                  <input
-                    type="datetime-local"
-                    name="shift_end"
-                    value={formData.shift_end ? formData.shift_end.slice(0, 16) : ""}
-                    onChange={handleChange}
-                    className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 focus:ring-2 focus:ring-hemp-green"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2">Notes</label>
-                <textarea
-                  name="notes"
-                  placeholder="Add remarks or summary..."
-                  value={formData.notes}
-                  onChange={handleChange}
-                  className="w-full border border-hemp-sage/60 rounded-lg px-4 py-2 h-24 resize-none focus:ring-2 focus:ring-hemp-green"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-hemp-sage/40">
-                <Button
-                  type="button"
-                  onClick={() => setIsFormOpen(false)}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg px-5 py-2 transition"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 transition"
-                >
-                  {selected ? "Update" : "Save"}
-                </Button>
-              </div>
-            </form>
-          </div>
+      {/* Pagination */}
+      {total > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
+          <Button
+            onClick={() => page(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm bg-hemp-sage/60 hover:bg-hemp-green hover:text-white disabled:opacity-50 rounded-lg"
+          >
+            Prev
+          </Button>
+          {Array.from({ length: total }, (_, i) => i + 1).map((p) => (
+            <button
+              key={p}
+              onClick={() => page(p)}
+              className={`px-3 py-1 rounded-md text-sm font-medium ${
+                currentPage === p
+                  ? "bg-hemp-green text-white"
+                  : "bg-white text-hemp-forest border border-hemp-sage hover:bg-hemp-mist"
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+          <Button
+            onClick={() => page(currentPage + 1)}
+            disabled={currentPage === total}
+            className="px-3 py-2 text-sm bg-hemp-sage/60 hover:bg-hemp-green hover:text-white disabled:opacity-50 rounded-lg"
+          >
+            Next
+          </Button>
         </div>
+      )}
+
+      {/* Modal */}
+      {isFormOpen && (
+        <TimeOffForm
+          request={selectedRequest}
+          onClose={() => setIsFormOpen(false)}
+          onSave={fetchRequests}
+        />
       )}
     </section>
   );

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { Link } from "react-router-dom";
-import { notifySuccess } from "../../utils/notify"; // ✅ same as others
 
 interface Announcement {
   id: string;
@@ -30,7 +29,6 @@ export default function EmpHome() {
       console.error("Error fetching announcements:", error);
     } else {
       setAnnouncements(data || []);
-      notifySuccess("Latest announcements loaded 🌿");
     }
 
     setLoading(false);
@@ -41,14 +39,19 @@ export default function EmpHome() {
   }, []);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <section className="p-6 max-w-5xl mx-auto animate-fadeInUp">
       {/* 🌿 Welcome Header */}
-      <h1 className="text-3xl font-bold text-hemp-forest mb-6">
-        Welcome to Your Dashboard 🌿
-      </h1>
+      <header className="text-center sm:text-left mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-hemp-forest mb-2">
+          Welcome to Your Dashboard 🌿
+        </h1>
+        <p className="text-hemp-ink/70 text-sm sm:text-base">
+          Stay updated with the latest news and announcements from your team.
+        </p>
+      </header>
 
       {/* 🌿 Latest Announcements */}
-      <h2 className="text-xl font-semibold text-hemp-green mb-3">
+      <h2 className="text-lg sm:text-xl font-semibold text-hemp-green mb-4">
         Latest Announcements
       </h2>
 
@@ -68,11 +71,11 @@ export default function EmpHome() {
       ) : (
         <div className="space-y-4">
           {announcements.map((a) => (
-            <div
+            <article
               key={a.id}
               className="border border-hemp-sage/50 rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition-all duration-200"
             >
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                 <div>
                   <h3 className="text-lg font-semibold text-hemp-forest">
                     {a.title}
@@ -86,20 +89,17 @@ export default function EmpHome() {
                 </div>
                 <Button
                   variant="ghost"
-                  className="text-hemp-green hover:bg-hemp-sage/40"
-                  onClick={() => {
-                    setSelectedAnnouncement(a);
-                    notifySuccess(`Opened: “${a.title}”`);
-                  }}
+                  className="self-start sm:self-center text-hemp-green hover:bg-hemp-sage/40 text-sm px-3 py-2"
+                  onClick={() => setSelectedAnnouncement(a)}
                 >
                   View
                 </Button>
               </div>
-            </div>
+            </article>
           ))}
 
           {/* 🌿 Link to all announcements */}
-          <div className="flex justify-end mt-4">
+          <div className="flex justify-end mt-6">
             <Link to="/employee-dashboard/announcements">
               <Button
                 variant="outline"
@@ -131,10 +131,7 @@ export default function EmpHome() {
             </p>
             <div className="flex justify-end">
               <Button
-                onClick={() => {
-                  setSelectedAnnouncement(null);
-                  notifySuccess("Closed announcement");
-                }}
+                onClick={() => setSelectedAnnouncement(null)}
                 className="bg-hemp-green text-white hover:bg-hemp-forest"
               >
                 Close
@@ -143,6 +140,6 @@ export default function EmpHome() {
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
