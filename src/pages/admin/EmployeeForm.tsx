@@ -70,9 +70,30 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
       });
     } else {
       // 🆕 Create new employee
+
+      // 🧩 Basic email format validation 
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(formData.email)) {
+        return handleError("Please enter a valid email address.");
+      }
+
+      // 🚫 Block obvious test/disposable addresses
+      const bannedPatterns = [
+        "test@",
+        "example@",
+        "mailinator",
+        "tempmail",
+        "yopmail",
+        "guerrillamail",
+        "discard",
+      ];
+      if (bannedPatterns.some((p) => formData.email.toLowerCase().includes(p))) {
+        return handleError("Please use a real company or personal email address.");
+      }
+      
       setSaving(true);
       const password = Math.random().toString(36).slice(-10);
-
+      
       const { data: newUser, error: userError } =
         await supabaseAdmin.auth.admin.createUser({
           email: formData.email,

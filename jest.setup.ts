@@ -12,6 +12,7 @@ Object.defineProperty(globalThis, "import", {
       env: {
         VITE_SUPABASE_URL: "https://mock.supabase.co",
         VITE_SUPABASE_ANON_KEY: "mock-anon-key",
+        VITE_CONTACT_FORM_MODE: "disabled",
         NODE_ENV: "test",
       },
     },
