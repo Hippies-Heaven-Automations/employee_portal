@@ -11,6 +11,7 @@ import {
   Clock,
   GraduationCap,
   BookOpen,
+  DollarSign,
   ChevronLeft,
   ChevronRight,
   X,
@@ -33,6 +34,7 @@ export default function AdminLayout() {
     { to: "/admin-dashboard/trainingtracker", label: "Training Tracker", icon: GraduationCap },
     { to: "/admin-dashboard/trainings", label: "Trainings", icon: BookOpen },
     { to: "/admin-dashboard/quizeditor", label: "Training Exam", icon: BookOpen },
+    { to: "/admin-dashboard/payroll", label: "Payroll Manager", icon: DollarSign },
   ];
 
   return (

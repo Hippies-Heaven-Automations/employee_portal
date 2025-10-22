@@ -26,6 +26,7 @@ import QuizEditor from "./pages/admin/QuizEditor";
 import TrainingTracker from "./pages/admin/TrainingTracker";
 import TrainingManager from "./pages/admin/TrainingManager";
 import TrainingPreview from "./pages/admin/TrainingPreview";
+import PayrollManager from "./pages/admin/PayrollManager";
 
 // 🌿 Employee pages
 import EmpHome from "./pages/employee/EmpHome";
@@ -33,6 +34,7 @@ import EmpSchedule from "./pages/employee/EmpSchedule";
 import EmpTimeIn from "./pages/employee/EmpTimeIn";
 import EmpTimeOff from "./pages/employee/EmpTimeOff";
 import EmpAnnouncements from "./pages/employee/EmpAnnouncements";
+import EmpPayroll from "./pages/employee/EmpPayroll";
 
 // 🌿 Training pages
 import TrainingDetail from "./pages/training/TrainingDetail";
@@ -72,6 +74,8 @@ export default function App() {
           <Route path="trainingtracker" element={<TrainingTracker />} />
           <Route path="trainings" element={<TrainingManager />} />
           <Route path="trainings/:id/preview" element={<TrainingPreview />} />
+          <Route path="payroll" element={<PayrollManager />} />
+
           
           <Route path="profile" element={<Profile />} />
         </Route>
@@ -93,6 +97,8 @@ export default function App() {
           <Route path="training" element={<TrainingList />} />
           <Route path="training/:id" element={<TrainingDetail />} />
           <Route path="training/:id/quiz" element={<TrainingQuiz />} />
+          <Route path="payroll" element={<EmpPayroll />} />
+
           
           <Route path="profile" element={<Profile />} />
         </Route>

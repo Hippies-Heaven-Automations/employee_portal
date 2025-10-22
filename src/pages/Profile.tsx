@@ -18,6 +18,13 @@ export default function Profile() {
     contact_number: "",
     emergency_contact: "",
     address: "",
+    position: "",
+    acronym: "",
+    nickname: "",
+    wise_tag: "",
+    wise_email: "",
+    bank_name: "",
+    account_number: "",
   });
 
   const [oldPassword, setOldPassword] = useState("");
@@ -39,7 +46,13 @@ export default function Profile() {
 
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("full_name, contact_number, emergency_contact, address")
+          .select(
+            `
+            full_name, contact_number, emergency_contact, address,
+            position, acronym, nickname,
+            wise_tag, wise_email, bank_name, account_number
+          `
+          )
           .eq("id", user.id)
           .single();
 
@@ -50,6 +63,13 @@ export default function Profile() {
           contact_number: profileData.contact_number ?? "",
           emergency_contact: profileData.emergency_contact ?? "",
           address: profileData.address ?? "",
+          position: profileData.position ?? "",
+          acronym: profileData.acronym ?? "",
+          nickname: profileData.nickname ?? "",
+          wise_tag: profileData.wise_tag ?? "",
+          wise_email: profileData.wise_email ?? "",
+          bank_name: profileData.bank_name ?? "",
+          account_number: profileData.account_number ?? "",
         });
       } catch (err: unknown) {
         notifyError(getErrorMessage(err) || "Failed to load profile");
@@ -60,7 +80,7 @@ export default function Profile() {
     loadUserProfile();
   }, []);
 
-  // 🌿 Save profile updates
+  // 🌿 Save editable fields
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
@@ -69,6 +89,7 @@ export default function Profile() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("User not found");
 
+      // only update employee-editable fields
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -153,65 +174,28 @@ export default function Profile() {
         </h2>
 
         {/* Email (readonly) */}
-        <div>
-          <label className="block text-sm font-medium text-hemp-forest mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            value={email}
-            readOnly
-            className="w-full border border-hemp-sage/50 rounded-md px-4 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
-          />
-        </div>
+        <ReadOnlyField label="Email" value={email} />
 
         {/* Full Name */}
-        <div>
-          <label className="block text-sm font-medium text-hemp-forest mb-1">
-            Full Name
-          </label>
-          <input
-            type="text"
-            value={profile.full_name}
-            onChange={(e) =>
-              setProfile({ ...profile, full_name: e.target.value })
-            }
-            placeholder="Enter your full name"
-            className="w-full border border-hemp-sage/50 rounded-md px-4 py-2 bg-white/60 focus:ring-2 focus:ring-hemp-green outline-none"
-          />
-        </div>
+        <EditableField
+          label="Full Name"
+          value={profile.full_name}
+          onChange={(v) => setProfile({ ...profile, full_name: v })}
+        />
 
         {/* Contact Number */}
-        <div>
-          <label className="block text-sm font-medium text-hemp-forest mb-1">
-            Contact Number
-          </label>
-          <input
-            type="text"
-            value={profile.contact_number}
-            onChange={(e) =>
-              setProfile({ ...profile, contact_number: e.target.value })
-            }
-            placeholder="Enter contact number"
-            className="w-full border border-hemp-sage/50 rounded-md px-4 py-2 bg-white/60 focus:ring-2 focus:ring-hemp-green outline-none"
-          />
-        </div>
+        <EditableField
+          label="Contact Number"
+          value={profile.contact_number}
+          onChange={(v) => setProfile({ ...profile, contact_number: v })}
+        />
 
         {/* Emergency Contact */}
-        <div>
-          <label className="block text-sm font-medium text-hemp-forest mb-1">
-            Emergency Contact
-          </label>
-          <input
-            type="text"
-            value={profile.emergency_contact}
-            onChange={(e) =>
-              setProfile({ ...profile, emergency_contact: e.target.value })
-            }
-            placeholder="Enter emergency contact"
-            className="w-full border border-hemp-sage/50 rounded-md px-4 py-2 bg-white/60 focus:ring-2 focus:ring-hemp-green outline-none"
-          />
-        </div>
+        <EditableField
+          label="Emergency Contact"
+          value={profile.emergency_contact}
+          onChange={(v) => setProfile({ ...profile, emergency_contact: v })}
+        />
 
         {/* Address */}
         <div>
@@ -242,56 +226,42 @@ export default function Profile() {
         </button>
       </div>
 
+      {/* 🌿 Admin-Managed Info (readonly) */}
+      <div className="rounded-xl border border-hemp-sage/40 bg-white/80 shadow p-6 space-y-3">
+        <h2 className="text-lg font-semibold text-hemp-forest">
+          Admin-Managed Details
+        </h2>
+
+        <ReadOnlyField label="Position / Title" value={profile.position} />
+        <ReadOnlyField label="Acronym" value={profile.acronym} />
+        <ReadOnlyField label="Nickname" value={profile.nickname} />
+        <ReadOnlyField label="Wise Tag" value={profile.wise_tag} />
+        <ReadOnlyField label="Wise Email" value={profile.wise_email} />
+        <ReadOnlyField label="Bank Name" value={profile.bank_name} />
+        <ReadOnlyField label="Account Number" value={profile.account_number} />
+      </div>
+
       {/* 🌿 Password Change */}
       <div className="rounded-xl border border-hemp-sage/40 bg-white/80 shadow p-6 space-y-4">
         <h2 className="text-lg font-semibold text-hemp-forest flex items-center gap-2">
           <Lock size={18} /> Change Password
         </h2>
 
-        {/* Old Password */}
-        <div>
-          <label className="block text-sm font-medium text-hemp-forest mb-1">
-            Current Password
-          </label>
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-            placeholder="Enter your current password"
-            className="w-full border border-hemp-sage/50 rounded-md px-4 py-2 bg-white/60 focus:ring-2 focus:ring-hemp-green outline-none"
-          />
-        </div>
-
-        {/* New Password */}
-        <div>
-          <label className="block text-sm font-medium text-hemp-forest mb-1">
-            New Password
-          </label>
-          <input
-            type="password"
-            autoComplete="new-password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Enter new password"
-            className="w-full border border-hemp-sage/50 rounded-md px-4 py-2 bg-white/60 focus:ring-2 focus:ring-hemp-green outline-none"
-          />
-        </div>
-
-        {/* Confirm Password */}
-        <div>
-          <label className="block text-sm font-medium text-hemp-forest mb-1">
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            autoComplete="confirm-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirm new password"
-            className="w-full border border-hemp-sage/50 rounded-md px-4 py-2 bg-white/60 focus:ring-2 focus:ring-hemp-green outline-none"
-          />
-        </div>
+        <PasswordField
+          label="Current Password"
+          value={oldPassword}
+          onChange={setOldPassword}
+        />
+        <PasswordField
+          label="New Password"
+          value={newPassword}
+          onChange={setNewPassword}
+        />
+        <PasswordField
+          label="Confirm Password"
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+        />
 
         <button
           onClick={handleChangePassword}
@@ -306,6 +276,72 @@ export default function Profile() {
           {changingPassword ? "Updating..." : "Update Password"}
         </button>
       </div>
+    </div>
+  );
+}
+
+// 🌿 Helper Components
+function EditableField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-hemp-forest mb-1">
+        {label}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={`Enter ${label.toLowerCase()}`}
+        className="w-full border border-hemp-sage/50 rounded-md px-4 py-2 bg-white/60 focus:ring-2 focus:ring-hemp-green outline-none"
+      />
+    </div>
+  );
+}
+
+function ReadOnlyField({ label, value }: { label: string; value?: string }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-hemp-forest mb-1">
+        {label}
+      </label>
+      <input
+        type="text"
+        value={value || "—"}
+        readOnly
+        className="w-full border border-hemp-sage/50 rounded-md px-4 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+      />
+    </div>
+  );
+}
+
+function PasswordField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-hemp-forest mb-1">
+        {label}
+      </label>
+      <input
+        type="password"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full border border-hemp-sage/50 rounded-md px-4 py-2 bg-white/60 focus:ring-2 focus:ring-hemp-green outline-none"
+      />
     </div>
   );
 }
