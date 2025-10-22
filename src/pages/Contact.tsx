@@ -1,11 +1,12 @@
 export default function Contact() {
-  //  Universal mode loader — Jest-safe and Vite-compatible
   let mode = "disabled";
 
-  // Only run import.meta access inside a dynamic Function (so Jest never parses it)
   try {
-    // eslint-disable-next-line no-new-func
-    const viteEnv = new Function("return typeof import !== 'undefined' ? import.meta.env : undefined")();
+    // Use dynamic function so Jest won't parse import.meta
+    const viteEnv = new Function(
+      "return typeof import !== 'undefined' ? import.meta.env : undefined"
+    )();
+
     if (viteEnv?.VITE_CONTACT_FORM_MODE) {
       mode = viteEnv.VITE_CONTACT_FORM_MODE;
     } else if (process?.env?.VITE_CONTACT_FORM_MODE) {
