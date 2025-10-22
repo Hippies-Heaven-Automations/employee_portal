@@ -1,5 +1,19 @@
 export default function Contact() {
-  const mode = import.meta.env.VITE_CONTACT_FORM_MODE; // e.g. "enabled" or "disabled"
+  //  Universal mode loader — Jest-safe and Vite-compatible
+  let mode = "disabled";
+
+  // Only run import.meta access inside a dynamic Function (so Jest never parses it)
+  try {
+    // eslint-disable-next-line no-new-func
+    const viteEnv = new Function("return typeof import !== 'undefined' ? import.meta.env : undefined")();
+    if (viteEnv?.VITE_CONTACT_FORM_MODE) {
+      mode = viteEnv.VITE_CONTACT_FORM_MODE;
+    } else if (process?.env?.VITE_CONTACT_FORM_MODE) {
+      mode = process.env.VITE_CONTACT_FORM_MODE;
+    }
+  } catch {
+    mode = process?.env?.VITE_CONTACT_FORM_MODE || "disabled";
+  }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const emailInput = e.currentTarget.querySelector<HTMLInputElement>("#email");

@@ -26,6 +26,15 @@ export default function Hiring() {
     setSubmitting(true);
 
     try {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+      const bannedPatterns = ["test@", "example@", "mailinator", "tempmail", "yopmail", "guerrillamail"];
+
+      if (!emailRegex.test(formData.email) || bannedPatterns.some(p => formData.email.toLowerCase().includes(p))) {
+        notifyError("Please enter a valid personal or business email address.");
+        setSubmitting(false);
+        return;
+      }
+
       const { error } = await supabase.from("applications").insert([
         {
           full_name: formData.full_name,
