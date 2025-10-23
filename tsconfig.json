@@ -16,6 +16,6 @@
     "isolatedModules": true,                       
     "types": ["vite/client", "jest", "@testing-library/jest-dom"]
   },
-  "include": ["src", "__tests__", "jest.config.ts", "global.d.ts"],
+  "include": ["src", "src/types", "__tests__", "jest.config.ts", "global.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

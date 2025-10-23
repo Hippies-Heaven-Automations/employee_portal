@@ -7,53 +7,46 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
-  Video,
-  FileText,
+  Link as LinkIcon,
 } from "lucide-react";
 
-interface MediaItem {
-  type: "video" | "doc";
-  title: string;
-  url: string;
-}
-
-interface Training {
+interface Agreement {
   id: string;
   title: string;
   description: string | null;
-  media: MediaItem[];
+  doc_links: string[];
   allowed_types: string[];
   created_at: string;
 }
 
-export default function TrainingManager() {
-  const [trainings, setTrainings] = useState<Training[]>([]);
+export default function AgreementManager() {
+  const [agreements, setAgreements] = useState<Agreement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [editing, setEditing] = useState<Training | null>(null);
+  const [editing, setEditing] = useState<Agreement | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
     description: "",
-    media: [] as MediaItem[],
+    doc_links: [] as string[],
     allowed_types: ["VA", "Store"],
   });
 
-  // 🌿 Fetch trainings
-  const fetchTrainings = async () => {
+  // 🌿 Fetch agreements
+  const fetchAgreements = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("trainings")
+        .from("agreements")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      setTrainings((data as Training[]) || []);
+      setAgreements((data as Agreement[]) || []);
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Failed to load trainings.";
+        err instanceof Error ? err.message : "Failed to load agreements.";
       setError(message);
     } finally {
       setLoading(false);
@@ -61,7 +54,7 @@ export default function TrainingManager() {
   };
 
   useEffect(() => {
-    fetchTrainings();
+    fetchAgreements();
   }, []);
 
   // 🌿 Handle save/update
@@ -73,30 +66,30 @@ export default function TrainingManager() {
       const payload = {
         title: form.title,
         description: form.description,
-        media: form.media,
+        doc_links: form.doc_links,
         allowed_types: form.allowed_types,
       };
 
       if (editing) {
         const { error } = await supabase
-          .from("trainings")
+          .from("agreements")
           .update(payload)
           .eq("id", editing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("trainings").insert([payload]);
+        const { error } = await supabase.from("agreements").insert([payload]);
         if (error) throw error;
       }
 
       setForm({
         title: "",
         description: "",
-        media: [],
+        doc_links: [],
         allowed_types: ["VA", "Store"],
       });
       setEditing(null);
       setShowForm(false);
-      fetchTrainings();
+      fetchAgreements();
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "An unexpected error occurred.";
@@ -106,44 +99,40 @@ export default function TrainingManager() {
 
   // 🌿 Handle delete
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this training?")) return;
-    const { error } = await supabase.from("trainings").delete().eq("id", id);
+    if (!confirm("Delete this agreement?")) return;
+    const { error } = await supabase.from("agreements").delete().eq("id", id);
     if (error) alert(error.message);
-    else fetchTrainings();
+    else fetchAgreements();
   };
 
   // 🌿 Handle edit
-  const handleEdit = (t: Training) => {
-    setEditing(t);
+  const handleEdit = (a: Agreement) => {
+    setEditing(a);
     setShowForm(true);
     setForm({
-      title: t.title,
-      description: t.description || "",
-      media: t.media || [],
-      allowed_types: t.allowed_types || ["VA", "Store"],
+      title: a.title,
+      description: a.description || "",
+      doc_links: a.doc_links || [],
+      allowed_types: a.allowed_types || ["VA", "Store"],
     });
   };
 
-  // 🌿 Manage media
-  const addMedia = (type: "video" | "doc") => {
+  // 🌿 Manage document links
+  const addDocLink = () => {
+    setForm({ ...form, doc_links: [...form.doc_links, ""] });
+  };
+
+  const updateDocLink = (index: number, value: string) => {
+    const newLinks = [...form.doc_links];
+    newLinks[index] = value;
+    setForm({ ...form, doc_links: newLinks });
+  };
+
+  const removeDocLink = (index: number) => {
     setForm({
       ...form,
-      media: [...form.media, { type, title: "", url: "" }],
+      doc_links: form.doc_links.filter((_, i) => i !== index),
     });
-  };
-
-  const updateMedia = <K extends keyof MediaItem>(
-    index: number,
-    field: K,
-    value: MediaItem[K]
-  ) => {
-    const newMedia = [...form.media];
-    newMedia[index] = { ...newMedia[index], [field]: value };
-    setForm({ ...form, media: newMedia });
-  };
-
-  const removeMedia = (index: number) => {
-    setForm({ ...form, media: form.media.filter((_, i) => i !== index) });
   };
 
   // 🌿 Allowed types toggle
@@ -162,7 +151,7 @@ export default function TrainingManager() {
   if (loading)
     return (
       <div className="flex h-64 items-center justify-center text-hemp-forest">
-        <Loader2 className="animate-spin mr-2" /> Loading trainings...
+        <Loader2 className="animate-spin mr-2" /> Loading agreements...
       </div>
     );
 
@@ -174,7 +163,7 @@ export default function TrainingManager() {
       {/* 🌿 Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h1 className="text-3xl font-bold text-hemp-forest flex items-center gap-2">
-          Manage Trainings
+          Manage Agreements
         </h1>
         <button
           onClick={() => {
@@ -183,7 +172,7 @@ export default function TrainingManager() {
               setForm({
                 title: "",
                 description: "",
-                media: [],
+                doc_links: [],
                 allowed_types: ["VA", "Store"],
               });
             }
@@ -197,15 +186,15 @@ export default function TrainingManager() {
             </>
           ) : (
             <>
-              <ChevronDown size={18} /> Add Training
+              <ChevronDown size={18} /> Add Agreement
             </>
           )}
         </button>
       </div>
 
-      {/* 🌿 Trainings Table */}
-      {trainings.length === 0 ? (
-        <p className="text-gray-500 italic text-center">No trainings found.</p>
+      {/* 🌿 Agreements Table */}
+      {agreements.length === 0 ? (
+        <p className="text-gray-500 italic text-center">No agreements found.</p>
       ) : (
         <div className="bg-white border border-hemp-sage rounded-xl shadow-sm overflow-hidden mb-6">
           <table className="w-full text-sm text-gray-700">
@@ -217,17 +206,17 @@ export default function TrainingManager() {
               </tr>
             </thead>
             <tbody>
-              {trainings.map((t) => (
+              {agreements.map((a) => (
                 <tr
-                  key={t.id}
+                  key={a.id}
                   className="border-t border-hemp-sage/30 hover:bg-hemp-mist/40 transition"
                 >
-                  <td className="p-3 font-medium text-hemp-forest">{t.title}</td>
-                  <td className="p-3">{t.allowed_types?.join(", ")}</td>
+                  <td className="p-3 font-medium text-hemp-forest">{a.title}</td>
+                  <td className="p-3">{a.allowed_types?.join(", ")}</td>
                   <td className="p-3 text-center">
                     <div className="flex justify-center gap-2">
                       <button
-                        onClick={() => handleEdit(t)}
+                        onClick={() => handleEdit(a)}
                         className="inline-flex items-center gap-1.5 rounded-md border border-hemp-green px-3 py-1 text-xs font-medium text-hemp-forest hover:bg-hemp-green hover:text-white transition"
                       >
                         <Edit3 size={14} />
@@ -235,7 +224,7 @@ export default function TrainingManager() {
                       </button>
 
                       <button
-                        onClick={() => handleDelete(t.id)}
+                        onClick={() => handleDelete(a.id)}
                         className="inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50 border border-red-200 transition"
                       >
                         <Trash2 size={14} />
@@ -245,7 +234,7 @@ export default function TrainingManager() {
                       <button
                         onClick={() =>
                           window.open(
-                            `/admin-dashboard/trainings/${t.id}/preview`,
+                            `/admin-dashboard/agreements/${a.id}/preview`,
                             "_blank"
                           )
                         }
@@ -284,7 +273,7 @@ export default function TrainingManager() {
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 className="w-full rounded-lg border border-hemp-sage/60 px-3 py-2 focus:ring-2 focus:ring-hemp-green"
-                placeholder="Training title"
+                placeholder="Agreement title"
               />
             </div>
 
@@ -303,68 +292,38 @@ export default function TrainingManager() {
               />
             </div>
 
-            {/* Media */}
+            {/* Document Links */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-sm font-semibold text-hemp-forest">
-                  Media Files
+                  Document Links
                 </label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => addMedia("video")}
-                    className="bg-hemp-green/10 text-hemp-green hover:bg-hemp-green/20 px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1"
-                  >
-                    <Video size={14} /> Add Video
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addMedia("doc")}
-                    className="bg-hemp-sage/40 hover:bg-hemp-sage/60 px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1"
-                  >
-                    <FileText size={14} /> Add Document
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={addDocLink}
+                  className="bg-hemp-green/10 text-hemp-green hover:bg-hemp-green/20 px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1"
+                >
+                  <LinkIcon size={14} /> Add Link
+                </button>
               </div>
 
-              {form.media.length > 0 && (
+              {form.doc_links.length > 0 && (
                 <div className="space-y-3">
-                  {form.media.map((m, i) => (
+                  {form.doc_links.map((l, i) => (
                     <div
                       key={i}
                       className="flex flex-col sm:flex-row sm:items-center gap-2 border border-hemp-sage/40 rounded-lg p-3 bg-hemp-mist/20"
                     >
-                      <select
-                        value={m.type}
-                        onChange={(e) =>
-                          updateMedia(
-                            i,
-                            "type",
-                            e.target.value as MediaItem["type"]
-                          )
-                        }
-                        className="border border-hemp-sage/60 rounded-md px-2 py-1 text-sm"
-                      >
-                        <option value="video">Video</option>
-                        <option value="doc">Document</option>
-                      </select>
                       <input
                         type="text"
-                        placeholder="Title"
-                        value={m.title}
-                        onChange={(e) => updateMedia(i, "title", e.target.value)}
-                        className="flex-1 border border-hemp-sage/60 rounded-md px-2 py-1 text-sm"
-                      />
-                      <input
-                        type="text"
-                        placeholder="URL"
-                        value={m.url}
-                        onChange={(e) => updateMedia(i, "url", e.target.value)}
+                        placeholder="Document URL"
+                        value={l}
+                        onChange={(e) => updateDocLink(i, e.target.value)}
                         className="flex-1 border border-hemp-sage/60 rounded-md px-2 py-1 text-sm"
                       />
                       <button
                         type="button"
-                        onClick={() => removeMedia(i)}
+                        onClick={() => removeDocLink(i)}
                         className="bg-red-500 hover:bg-red-600 text-white rounded-md px-2 py-1 text-xs"
                       >
                         ✕
@@ -405,7 +364,7 @@ export default function TrainingManager() {
                     setForm({
                       title: "",
                       description: "",
-                      media: [],
+                      doc_links: [],
                       allowed_types: ["VA", "Store"],
                     });
                   }}
@@ -418,7 +377,7 @@ export default function TrainingManager() {
                 type="submit"
                 className="bg-hemp-green hover:bg-hemp-forest text-white rounded-md px-5 py-2 text-sm font-semibold"
               >
-                {editing ? "Update Training" : "Add Training"}
+                {editing ? "Update Agreement" : "Add Agreement"}
               </button>
             </div>
           </form>

@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Loader2, GraduationCap, X } from "lucide-react";
 import { notifyError } from "../../utils/notify";
+import { confirmAction } from "../../utils/confirm";
+import toast from "react-hot-toast";
+
 
 interface QuizAnswer {
   question: string;
@@ -17,22 +20,17 @@ interface TrackerRow {
   quiz_score: number | null;
   quiz_version: number | null;
   completed_at: string | null;
-  docu_signed_at: string | null;
-  signature_data: string | null;
 }
 
-interface TrainingTrackerRowRaw {
+interface SummaryRow {
   employee_id: string;
   training_id: string;
+  employee_name: string;
+  training_title: string;
   quiz_score: number | null;
   quiz_version: number | null;
   completed_at: string | null;
-  docu_signed_at: string | null;
-  signature_data: string | null;
-  profiles?: { full_name?: string }[];
-  trainings?: { title?: string }[];
 }
-
 export default function TrainingTracker() {
   const [records, setRecords] = useState<TrackerRow[]>([]);
   const [filtered, setFiltered] = useState<TrackerRow[]>([]);
@@ -46,41 +44,33 @@ export default function TrainingTracker() {
   const [selectedQuizAnswers, setSelectedQuizAnswers] = useState<QuizAnswer[] | null>(null);
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<TrackerRow | null>(null);
-
+  const FEATURES = {
+    RETAKE_QUIZ: false, 
+  };
   // 🌿 Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from("training_tracker")
-          .select(`
-            employee_id,
-            training_id,
-            quiz_score,
-            quiz_version,
-            completed_at,
-            docu_signed_at,
-            signature_data,
-            profiles ( full_name ),
-            trainings ( title )
-          `)
+          .from("training_summary_secure")
+          .select("*")
           .order("completed_at", { ascending: false });
+
 
         if (error) throw error;
 
-        const formatted =
-          data?.map((row: TrainingTrackerRowRaw) => ({
+        const formatted: TrackerRow[] =
+          (data as SummaryRow[]).map((row) => ({
             employee_id: row.employee_id,
             training_id: row.training_id,
-            employee_name: row.profiles?.[0]?.full_name || "Unknown",
-            training_title: row.trainings?.[0]?.title || "Untitled Training",
+            employee_name: row.employee_name || "Unknown",
+            training_title: row.training_title || "Untitled Training",
             quiz_score: row.quiz_score,
             quiz_version: row.quiz_version,
             completed_at: row.completed_at,
-            docu_signed_at: row.docu_signed_at,
-            signature_data: row.signature_data,
           })) || [];
+
 
         setRecords(formatted);
         setFiltered(formatted);
@@ -187,8 +177,6 @@ export default function TrainingTracker() {
                   <th className="p-3 text-left">Training</th>
                   <th className="p-3 text-center">Score</th>
                   <th className="p-3 text-center">Version</th>
-                  <th className="p-3 text-center">Acknowledged</th>
-                  <th className="p-3 text-center">Signature</th>
                   <th className="p-3 text-center">Completed</th>
                   <th className="p-3 text-center">Action</th>
                 </tr>
@@ -203,33 +191,6 @@ export default function TrainingTracker() {
                     <td className="p-3">{r.training_title}</td>
                     <td className="p-3 text-center">{r.quiz_score ?? "—"}</td>
                     <td className="p-3 text-center">{r.quiz_version ?? "—"}</td>
-                    <td className="p-3 text-center">
-                      {r.docu_signed_at
-                        ? new Date(r.docu_signed_at).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    <td className="p-3 text-center">
-                      {r.signature_data ? (
-                        <button
-                          onClick={() => {
-                            const data = r.signature_data || "";
-                            const url = data.startsWith("data:")
-                              ? data
-                              : `data:image/png;base64,${data}`;
-                            const win = window.open();
-                            if (win)
-                              win.document.write(
-                                `<img src="${url}" style="max-width:100%;display:block;margin:auto;"/>`
-                              );
-                          }}
-                          className="text-hemp-green hover:underline font-medium"
-                        >
-                          View
-                        </button>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
                     <td className="p-3 text-center text-gray-600">
                       {r.completed_at
                         ? new Date(r.completed_at).toLocaleString(undefined, {
@@ -240,37 +201,84 @@ export default function TrainingTracker() {
                     </td>
                     <td className="p-3 text-center">
                       {r.quiz_score ? (
-                        <button
-                          onClick={async () => {
-                            const { data, error } = await supabase
-                              .from("training_tracker")
-                              .select("quiz_answers")
-                              .eq("employee_id", r.employee_id)
-                              .eq("training_id", r.training_id)
-                              .maybeSingle();
+                        <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                          {/* 🌿 View Answers */}
+                          <button
+                            onClick={async () => {
+                              const { data, error } = await supabase
+                                .from("training_tracker")
+                                .select("quiz_answers")
+                                .eq("employee_id", r.employee_id)
+                                .eq("training_id", r.training_id)
+                                .maybeSingle();
 
-                            if (error) {
-                              notifyError("Failed to load answers: " + error.message);
-                              return;
-                            }
+                              if (error) {
+                                notifyError("Failed to load answers: " + error.message);
+                                return;
+                              }
 
-                            if (!data?.quiz_answers) {
-                              notifyError("No quiz answers found for this record.");
-                              return;
-                            }
+                              if (!data?.quiz_answers) {
+                                notifyError("No quiz answers found for this record.");
+                                return;
+                              }
 
-                            setSelectedQuizAnswers(data.quiz_answers);
-                            setSelectedRecord(r);
-                            setShowQuizModal(true);
-                          }}
-                          className="rounded-md bg-hemp-green/10 px-3 py-1 text-xs font-semibold text-hemp-forest hover:bg-hemp-green/20 transition"
-                        >
-                          View Answers
-                        </button>
+                              setSelectedQuizAnswers(data.quiz_answers);
+                              setSelectedRecord(r);
+                              setShowQuizModal(true);
+                            }}
+                            className="rounded-md bg-hemp-green/10 px-3 py-1 text-xs font-semibold text-hemp-forest hover:bg-hemp-green/20 transition"
+                          >
+                            View Answers
+                          </button>
+
+                          {/* 🌿 Retake Quiz */}
+                          {FEATURES.RETAKE_QUIZ && (
+                            <button
+                              onClick={() =>
+                                confirmAction(
+                                  `Allow ${r.employee_name} to retake "${r.training_title}"?`,
+                                  async () => {
+                                    console.log("🧩 Resetting quiz with:", {
+                                      employee_id: r.employee_id,
+                                      training_id: r.training_id,
+                                    });
+
+                                    const { error } = await supabase.rpc("admin_reset_quiz", {
+                                      p_employee: r.employee_id,
+                                      p_training: r.training_id,
+                                    });
+                                    if (error) {
+                                      notifyError("Failed to reset quiz: " + error.message);
+                                      return;
+                                    }
+
+                                    toast.success(`✅ ${r.employee_name} can now retake the quiz.`);
+                                    // Optional: remove from local state
+                                    const refreshed = records.filter(
+                                      (rec) =>
+                                        !(
+                                          rec.employee_id === r.employee_id &&
+                                          rec.training_id === r.training_id
+                                        )
+                                    );
+                                    setRecords(refreshed);
+                                    setFiltered(refreshed);
+                                  },
+                                  "Confirm Reset",
+                                  "bg-red-600 hover:bg-red-700"
+                                )
+                              }
+                              className="rounded-md bg-red-100 text-red-700 hover:bg-red-200 text-xs font-semibold px-3 py-1 transition"
+                            >
+                              Retake Quiz
+                            </button>
+                          )} 
+                        </div>
                       ) : (
                         "—"
                       )}
                     </td>
+
                   </tr>
                 ))}
               </tbody>

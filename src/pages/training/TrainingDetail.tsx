@@ -1,8 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
-import SignatureCanvas from "react-signature-canvas";
-import { notifyError, notifySuccess } from "../../utils/notify";
+import { notifyError } from "../../utils/notify";
 
 interface MediaItem {
   type: "video" | "doc";
@@ -15,14 +14,6 @@ interface Training {
   title: string;
   description: string;
   media?: MediaItem[];
-  requires_signature?: boolean;
-}
-
-interface TrainingTracker {
-  employee_id: string;
-  training_id: string;
-  docu_signed_at?: string | null;
-  signature_data?: string | null;
 }
 
 interface SupabaseUser {
@@ -32,14 +23,14 @@ interface SupabaseUser {
 
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
-  const [training, setTraining] = useState<Training | null>(null);
-  const [tracker, setTracker] = useState<TrainingTracker | null>(null);
+  const [training, setTraining] = useState<(Training & {
+    hasActiveQuiz?: boolean;
+    alreadyTaken?: boolean;
+  }) | null>(null);
+
   const [loading, setLoading] = useState(true);
-  const [ackLoading, setAckLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
-  const sigCanvas = useRef<SignatureCanvas>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // 🌿 Fix YouTube embedding
   const getEmbedUrl = (url: string): string => {
@@ -69,7 +60,7 @@ export default function TrainingDetail() {
     loadUser();
   }, []);
 
-  // 🌿 Fetch training + tracker
+  // 🌿 Fetch training details
   useEffect(() => {
     if (!id || !currentUser) return;
 
@@ -77,29 +68,47 @@ export default function TrainingDetail() {
       try {
         setLoading(true);
 
+        // 1️⃣ Fetch the training details
         const { data: trainingData, error: trainingError } = await supabase
           .from("trainings")
           .select("*")
           .eq("id", id)
           .single<Training>();
 
-        if (trainingError) throw new Error(trainingError.message);
+        if (trainingError) throw trainingError;
+        if (!trainingData) throw new Error("Training not found.");
 
+        // 2️⃣ Check if there’s an active quiz
+        const { data: quizData, error: quizError } = await supabase
+          .from("training_quizzes")
+          .select("id")
+          .eq("training_id", id)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (quizError) throw quizError;
+
+        // 3️⃣ Check if user already completed it
         const { data: trackerData, error: trackerError } = await supabase
           .from("training_tracker")
-          .select("*")
-          .eq("employee_id", currentUser.id)
+          .select("id")
           .eq("training_id", id)
-          .maybeSingle<TrainingTracker>();
+          .eq("employee_id", currentUser.id)
+          .maybeSingle();
 
-        if (trackerError) throw new Error(trackerError.message);
+        if (trackerError) throw trackerError;
 
-        setTraining(trainingData);
-        setTracker(trackerData);
+        // 4️⃣ Save everything
+        setTraining({
+          ...trainingData,
+          hasActiveQuiz: !!quizData,
+          alreadyTaken: !!trackerData,
+        });
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : "Error loading training.";
         setError(message);
+        notifyError(message);
       } finally {
         setLoading(false);
       }
@@ -107,77 +116,6 @@ export default function TrainingDetail() {
 
     fetchData();
   }, [id, currentUser]);
-
-  // 🌿 Ensure canvas scales correctly on resize / retina
-  useEffect(() => {
-    const resizeCanvas = () => {
-      if (!containerRef.current || !sigCanvas.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-
-      const canvas = sigCanvas.current.getCanvas();
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      canvas.width = rect.width * ratio;
-      canvas.height = 180 * ratio;
-      ctx.scale(ratio, ratio);
-
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = "180px";
-    };
-
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-    return () => window.removeEventListener("resize", resizeCanvas);
-  }, []);
-
-  // 🌿 Handle signature submission
-  const handleAcknowledge = async (): Promise<void> => {
-    if (!currentUser || !sigCanvas.current) return;
-
-    if (sigCanvas.current.isEmpty()) {
-      notifyError("Please sign before submitting!");
-      return;
-    }
-
-    const signatureData = sigCanvas.current
-      .getCanvas()
-      .toDataURL("image/png");
-
-    try {
-      setAckLoading(true);
-
-      const { error } = await supabase.from("training_tracker").upsert(
-        {
-          employee_id: currentUser.id,
-          training_id: id,
-          docu_signed_at: new Date().toISOString(),
-          signature_data: signatureData,
-        },
-        { onConflict: "employee_id,training_id" }
-      );
-
-      if (error) throw new Error(error.message);
-
-      setTracker((prev) => ({
-        ...(prev ?? {}),
-        docu_signed_at: new Date().toISOString(),
-        signature_data: signatureData,
-        employee_id: currentUser.id,
-        training_id: id ?? "",
-      }));
-
-      sigCanvas.current.clear();
-      notifySuccess("✅ Signature saved successfully!");
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Error saving signature.";
-      notifyError(message);
-    } finally {
-      setAckLoading(false);
-    }
-  };
 
   // 🌿 Render states
   if (loading)
@@ -238,67 +176,25 @@ export default function TrainingDetail() {
         )}
       </div>
 
-      {/* Signature Section */}
-      {training.requires_signature && !tracker?.docu_signed_at && (
-        <div className="mt-10 border-t border-hemp-sage/40 pt-6">
-          <p className="text-hemp-forest mb-3 font-medium">
-            Please review the above materials and sign below to acknowledge
-            completion before proceeding to the quiz.
-          </p>
-
-          <div
-            ref={containerRef}
-            className="rounded-xl border border-hemp-sage/40 bg-hemp-mist/20 p-4"
-          >
-            <SignatureCanvas
-              ref={sigCanvas as React.MutableRefObject<SignatureCanvas>}
-              penColor="black"
-              canvasProps={{
-                className:
-                  "block rounded-md bg-white w-full h-[180px] border border-hemp-sage/50",
-              }}
-            />
-            <div className="mt-3 flex gap-3">
-              <button
-                onClick={() => sigCanvas.current?.clear()}
-                className="rounded-md bg-gray-100 px-4 py-2 text-sm hover:bg-gray-200 transition"
-              >
-                Clear
-              </button>
-              <button
-                onClick={handleAcknowledge}
-                disabled={ackLoading}
-                className="rounded-md bg-hemp-green px-4 py-2 text-sm font-medium text-white hover:bg-hemp-forest disabled:opacity-50 transition"
-              >
-                {ackLoading ? "Saving..." : "Sign & Continue"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Acknowledged State */}
-      {training.requires_signature && tracker?.docu_signed_at && (
-        <div className="mt-6 text-hemp-green text-sm italic">
-          ✅ Signed on{" "}
-          {new Date(tracker.docu_signed_at).toLocaleString(undefined, {
-            dateStyle: "medium",
-            timeStyle: "short",
-          })}
-        </div>
-      )}
-
       {/* Quiz Access */}
-      {(!training.requires_signature || tracker?.docu_signed_at) && (
-        <div className="mt-8">
-          <Link
-            to={`/employee-dashboard/training/${training.id}/quiz`}
-            className="inline-block rounded-md bg-hemp-green px-5 py-2 text-white font-medium hover:bg-hemp-forest transition"
-          >
-            Take Quiz
-          </Link>
-        </div>
-      )}
+      <div className="mt-8">
+        {training.hasActiveQuiz ? (
+          training.alreadyTaken ? (
+            <p className="text-gray-600 italic">
+              ✅ You’ve already completed this quiz.
+            </p>
+          ) : (
+            <Link
+              to={`/employee-dashboard/training/${training.id}/quiz`}
+              className="inline-block rounded-md bg-hemp-green px-5 py-2 text-white font-medium hover:bg-hemp-forest transition"
+            >
+              Take Quiz
+            </Link>
+          )
+        ) : (
+          <p className="text-gray-500 italic">No active training quiz available.</p>
+        )}
+      </div>
     </div>
   );
 }

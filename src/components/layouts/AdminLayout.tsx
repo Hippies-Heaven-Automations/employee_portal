@@ -9,8 +9,11 @@ import {
   FileText,
   Plane,
   Clock,
-  GraduationCap,
+  FileSignature,
+  ScrollText,
   BookOpen,
+  GraduationCap,
+  FileCheck,
   DollarSign,
   ChevronLeft,
   ChevronRight,
@@ -24,17 +27,26 @@ export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const links = [
-    { to: "/admin-dashboard", label: "Home", icon: Home },
-    { to: "/admin-dashboard/announcements", label: "Announcements", icon: Megaphone },
-    { to: "/admin-dashboard/employees", label: "Employees", icon: Users },
-    { to: "/admin-dashboard/schedule", label: "Schedule", icon: Calendar },
-    { to: "/admin-dashboard/applications", label: "Applications", icon: FileText },
-    { to: "/admin-dashboard/timeoff", label: "Leaves", icon: Plane },
-    { to: "/admin-dashboard/shiftlogs", label: "Time In Logs", icon: Clock },
-    { to: "/admin-dashboard/trainingtracker", label: "Training Tracker", icon: GraduationCap },
-    { to: "/admin-dashboard/trainings", label: "Trainings", icon: BookOpen },
-    { to: "/admin-dashboard/quizeditor", label: "Training Exam", icon: BookOpen },
-    { to: "/admin-dashboard/payroll", label: "Payroll Manager", icon: DollarSign },
+     { to: "/admin-dashboard", label: "Home", icon: Home },
+  { to: "/admin-dashboard/announcements", label: "Announcements", icon: Megaphone },
+  { to: "/admin-dashboard/employees", label: "Employees", icon: Users },
+  { to: "/admin-dashboard/schedule", label: "Schedule", icon: Calendar },
+  { to: "/admin-dashboard/applications", label: "Applications", icon: FileText },
+  { to: "/admin-dashboard/timeoff", label: "Leaves", icon: Plane },
+  { to: "/admin-dashboard/shiftlogs", label: "Time In Logs", icon: Clock },
+
+  // 🌿 Agreements
+  { to: "/admin-dashboard/agreements", label: "Agreements", icon: FileSignature },
+  { to: "/admin-dashboard/agreementtracker", label: "Agreement Tracker", icon: ScrollText },
+
+  // 🎓 Trainings
+  { to: "/admin-dashboard/trainings", label: "Trainings", icon: BookOpen },
+  { to: "/admin-dashboard/quizeditor", label: "Training Exam", icon: FileCheck },
+  { to: "/admin-dashboard/trainingtracker", label: "Training Tracker", icon: GraduationCap },
+
+  // 💰 Payroll
+  { to: "/admin-dashboard/payroll", label: "Payroll Manager", icon: DollarSign },
+
   ];
 
   return (

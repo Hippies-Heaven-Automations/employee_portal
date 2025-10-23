@@ -16,7 +16,6 @@ interface Training {
   description: string | null;
   media: MediaItem[];
   allowed_types: string[];
-  requires_signature: boolean;
   created_at: string;
 }
 
@@ -149,16 +148,6 @@ export default function TrainingPreview() {
             Allowed Employee Types:
           </span>{" "}
           {training.allowed_types?.join(", ") || "—"}
-        </p>
-        <p>
-          <span className="font-semibold text-hemp-forest">
-            Requires Signature:
-          </span>{" "}
-          {training.requires_signature ? (
-            <span className="text-green-600 font-medium">Yes</span>
-          ) : (
-            "No"
-          )}
         </p>
       </div>
     </section>

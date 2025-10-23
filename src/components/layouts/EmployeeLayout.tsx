@@ -8,6 +8,7 @@ import {
   Clock,
   BookOpen,
   DollarSign,
+  ScrollText ,
   ChevronLeft,
   ChevronRight,
   X,
@@ -24,6 +25,7 @@ export default function EmployeeLayout() {
     { to: "/employee-dashboard/schedule", label: "Schedule", icon: Calendar },
     { to: "/employee-dashboard/timeoff", label: "Leaves", icon: Plane },
     { to: "/employee-dashboard/timein", label: "Time In", icon: Clock },
+    { to: "/employee-dashboard/agreement", label: "Agreement", icon: ScrollText  },
     { to: "/employee-dashboard/training", label: "Training", icon: BookOpen },
     { to: "/employee-dashboard/payroll", label: "Payroll", icon: DollarSign },
 

@@ -89,27 +89,56 @@ export default function QuizEditor() {
   };
 
   const handleAddNew = async () => {
-    confirmAction("Add this new quiz?", async () => {
+    confirmAction("Add this new quiz and deactivate the old one?", async () => {
       try {
+        if (!newTrainingId) throw new Error("Select a training first.");
         const parsed = JSON.parse(newQuizJSON);
-        const { error } = await supabase.from("training_quizzes").insert({
+        if (!Array.isArray(parsed)) throw new Error("Quiz JSON must be an array.");
+
+        // Deactivate existing active quiz
+        await supabase
+          .from("training_quizzes")
+          .update({ is_active: false })
+          .eq("training_id", newTrainingId)
+          .eq("is_active", true);
+
+        // Compute next version
+        const { data: vdata } = await supabase
+          .from("training_quizzes")
+          .select("version")
+          .eq("training_id", newTrainingId)
+          .order("version", { ascending: false })
+          .limit(1);
+        const nextVersion = (vdata?.[0]?.version ?? 0) + 1;
+
+        // Insert new active quiz
+        const { error: insErr } = await supabase.from("training_quizzes").insert({
           training_id: newTrainingId,
-          content: parsed,
+          version: nextVersion,
           is_active: true,
+          content: parsed,
         });
-        if (error) throw error;
-        notifySuccess("New quiz added successfully.");
+        if (insErr) throw insErr;
+
+        notifySuccess("✅ New quiz added and old one deactivated.");
         setNewQuizJSON("[]");
         setNewTrainingId("");
-        window.location.reload();
+
+        const { data, error } = await supabase
+          .from("training_quizzes")
+          .select("*, trainings(title)")
+          .order("created_at", { ascending: false });
+        if (!error) setQuizzes(data || []);
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : "An unexpected error occurred.";
-        notifyError("Faild to add quiz " + message);
+        notifyError(`Failed to add quiz: ${message}`);
       }
 
     });
   };
+
+
 
   const toggleSortOrder = () =>
     setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
