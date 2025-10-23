@@ -30,6 +30,7 @@ import PayrollManager from "./pages/admin/PayrollManager";
 import AgreementTracker from "./pages/admin/AgreementTracker";
 import AgreementManager from "./pages/admin/AgreementManager";
 import AgreementPreview from "./pages/admin/AgreementPreview";
+import SecurityLogsManager from "./pages/security/SecurityLogsManager";
 
 // 🌿 Employee pages
 import EmpHome from "./pages/employee/EmpHome";
@@ -82,6 +83,7 @@ export default function App() {
           <Route path="trainingtracker" element={<TrainingTracker />} />
           <Route path="trainings" element={<TrainingManager />} />
           <Route path="trainings/:id/preview" element={<TrainingPreview />} />
+          <Route path="security" element={<SecurityLogsManager />} />
           <Route path="payroll" element={<PayrollManager />} />
           
           <Route path="profile" element={<Profile />} />
@@ -106,6 +108,7 @@ export default function App() {
           <Route path="training" element={<TrainingList />} />
           <Route path="training/:id" element={<TrainingDetail />} />
           <Route path="training/:id/quiz" element={<TrainingQuiz />} />
+          <Route path="security" element={<SecurityLogsManager />} />
           <Route path="payroll" element={<EmpPayroll />} />
           <Route path="profile" element={<Profile />} />
         </Route>

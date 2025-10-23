@@ -28,7 +28,9 @@ export default function EmployeeLayout() {
     { to: "/employee-dashboard/agreement", label: "Agreement", icon: ScrollText  },
     { to: "/employee-dashboard/training", label: "Training", icon: BookOpen },
     { to: "/employee-dashboard/payroll", label: "Payroll", icon: DollarSign },
-
+    
+    // 💰 Security
+    { to: "/admin-dashboard/security", label: "Security Logs", icon: DollarSign },
   ];
 
   return (

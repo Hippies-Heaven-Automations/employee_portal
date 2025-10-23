@@ -15,6 +15,7 @@ import {
   GraduationCap,
   FileCheck,
   DollarSign,
+  ShieldAlert,
   ChevronLeft,
   ChevronRight,
   X,
@@ -46,6 +47,9 @@ export default function AdminLayout() {
 
   // 💰 Payroll
   { to: "/admin-dashboard/payroll", label: "Payroll Manager", icon: DollarSign },
+
+  // 💰 Security
+  { to: "/admin-dashboard/security", label: "Security Logs", icon: ShieldAlert },
 
   ];
 
