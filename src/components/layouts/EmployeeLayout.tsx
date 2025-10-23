@@ -8,6 +8,7 @@ import {
   Clock,
   BookOpen,
   DollarSign,
+  ShieldAlert,
   ScrollText ,
   ChevronLeft,
   ChevronRight,
@@ -30,7 +31,7 @@ export default function EmployeeLayout() {
     { to: "/employee-dashboard/payroll", label: "Payroll", icon: DollarSign },
     
     // 💰 Security
-    { to: "/admin-dashboard/security", label: "Security Logs", icon: DollarSign },
+    { to: "/employee-dashboard/security", label: "Security Logs", icon: ShieldAlert },
   ];
 
   return (
