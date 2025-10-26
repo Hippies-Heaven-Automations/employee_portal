@@ -2,7 +2,7 @@ import { useRef } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { FileDown, Image as ImageIcon } from "lucide-react";
-import hhLogo from "../../assets/hh-logo.png";
+import hhLogo from "../../assets/hh_careers_logo.png";
 import { InvoiceData } from "../../types/payroll";
 
 export default function InvoicePreview({ invoiceData }: { invoiceData: InvoiceData }) {

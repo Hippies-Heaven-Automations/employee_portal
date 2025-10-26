@@ -21,7 +21,7 @@ import {
   X,
   Menu,
 } from "lucide-react";
-import hhLogo from "../../assets/hh-logo.png";
+import hhLogo from "../../assets/hh_careers_logo.png";
 
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);

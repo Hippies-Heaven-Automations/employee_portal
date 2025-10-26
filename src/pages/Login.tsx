@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useSessionRedirect } from "../hooks/useSessionRedirect";
 import { notifyError } from "../utils/notify";
-import hhLogo from "../assets/hh-logo.png";
+import hhLogo from "../assets/hh_careers_logo.png";
 
 export default function LoginPage() {
   useSessionRedirect();

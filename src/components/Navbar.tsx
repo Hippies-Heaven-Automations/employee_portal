@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { cn } from "../utils";
 import { LogOut, User, Menu, X, AlertTriangle } from "lucide-react";
-import hhLogo from "../assets/hh-logo.png";
+import hhLogo from "../assets/hh_careers_logo.png";
 import { createPortal } from "react-dom";
 
 export interface NavItem {
