@@ -8,6 +8,7 @@ import {
   Clock,
   BookOpen,
   DollarSign,
+  MessageSquare,
   ShieldAlert,
   ScrollText ,
   ChevronLeft,
@@ -23,6 +24,7 @@ export default function EmployeeLayout() {
 
   const links = [
     { to: "/employee-dashboard", label: "Home", icon: Home },
+    { to: "/employee-dashboard/messaging", label: "Messages", icon: MessageSquare },
     { to: "/employee-dashboard/schedule", label: "Schedule", icon: Calendar },
     { to: "/employee-dashboard/timeoff", label: "Leaves", icon: Plane },
     { to: "/employee-dashboard/timein", label: "Time In", icon: Clock },

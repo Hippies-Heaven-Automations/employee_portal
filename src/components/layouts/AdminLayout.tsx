@@ -16,6 +16,7 @@ import {
   FileCheck,
   DollarSign,
   ShieldAlert,
+  MessageSquare,
   ChevronLeft,
   ChevronRight,
   X,
@@ -28,28 +29,30 @@ export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const links = [
-     { to: "/admin-dashboard", label: "Home", icon: Home },
-  { to: "/admin-dashboard/announcements", label: "Announcements", icon: Megaphone },
-  { to: "/admin-dashboard/employees", label: "Employees", icon: Users },
-  { to: "/admin-dashboard/schedule", label: "Schedule", icon: Calendar },
-  { to: "/admin-dashboard/applications", label: "Applications", icon: FileText },
-  { to: "/admin-dashboard/timeoff", label: "Leaves", icon: Plane },
-  { to: "/admin-dashboard/shiftlogs", label: "Time In Logs", icon: Clock },
+    { to: "/admin-dashboard", label: "Home", icon: Home },
 
-  // 🌿 Agreements
-  { to: "/admin-dashboard/agreements", label: "Agreements", icon: FileSignature },
-  { to: "/admin-dashboard/agreementtracker", label: "Agreement Tracker", icon: ScrollText },
+    { to: "/admin-dashboard/messaging", label: "Messages", icon: MessageSquare },
+    { to: "/admin-dashboard/announcements", label: "Announcements", icon: Megaphone },
+    { to: "/admin-dashboard/employees", label: "Employees", icon: Users },
+    { to: "/admin-dashboard/schedule", label: "Schedule", icon: Calendar },
+    { to: "/admin-dashboard/applications", label: "Applications", icon: FileText },
+    { to: "/admin-dashboard/timeoff", label: "Leaves", icon: Plane },
+    { to: "/admin-dashboard/shiftlogs", label: "Time In Logs", icon: Clock },
 
-  // 🎓 Trainings
-  { to: "/admin-dashboard/trainings", label: "Trainings", icon: BookOpen },
-  { to: "/admin-dashboard/quizeditor", label: "Training Exam", icon: FileCheck },
-  { to: "/admin-dashboard/trainingtracker", label: "Training Tracker", icon: GraduationCap },
+    // 🌿 Agreements
+    { to: "/admin-dashboard/agreements", label: "Agreements", icon: FileSignature },
+    { to: "/admin-dashboard/agreementtracker", label: "Agreement Tracker", icon: ScrollText },
 
-  // 💰 Payroll
-  { to: "/admin-dashboard/payroll", label: "Payroll Manager", icon: DollarSign },
+    // 🎓 Trainings
+    { to: "/admin-dashboard/trainings", label: "Trainings", icon: BookOpen },
+    { to: "/admin-dashboard/quizeditor", label: "Training Exam", icon: FileCheck },
+    { to: "/admin-dashboard/trainingtracker", label: "Training Tracker", icon: GraduationCap },
 
-  // 💰 Security
-  { to: "/admin-dashboard/security", label: "Security Logs", icon: ShieldAlert },
+    // 💰 Payroll
+    { to: "/admin-dashboard/payroll", label: "Payroll Manager", icon: DollarSign },
+
+    // 💰 Security
+    { to: "/admin-dashboard/security", label: "Security Logs", icon: ShieldAlert },
 
   ];
 
