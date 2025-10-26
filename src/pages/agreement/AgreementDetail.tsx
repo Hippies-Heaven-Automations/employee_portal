@@ -2,7 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import SignatureCanvas from "react-signature-canvas";
-import { Loader2, FileText, Link as LinkIcon, PenTool, Trash2, CheckCircle } from "lucide-react";
+import {
+  Loader2,
+  FileText,
+  Link as LinkIcon,
+  PenTool,
+  Trash2,
+  CheckCircle,
+} from "lucide-react";
 import { notifySuccess, notifyError } from "../../utils/notify";
 
 interface Agreement {
@@ -81,7 +88,6 @@ export default function AgreementDetail() {
 
       setSigning(true);
 
-      // Extract base64 (remove "data:image/png;base64,")
       const base64Data = sig.replace(/^data:image\/png;base64,/, "");
 
       const payload = {
@@ -92,7 +98,6 @@ export default function AgreementDetail() {
         status: "signed",
       };
 
-      // Upsert (create or update)
       const { error } = await supabase.from("agreement_tracker").upsert(payload, {
         onConflict: "employee_id,agreement_id",
       });
@@ -114,6 +119,24 @@ export default function AgreementDetail() {
   // 🌿 Clear signature pad
   const clearSignature = () => {
     sigCanvas.current?.clear();
+  };
+
+  // 🧠 Helper: render PDF preview
+  const renderPDFViewer = (url: string) => {
+    const match = url.match(/\/d\/([^/]+)/); // Detect Drive file ID
+    const fileId = match ? match[1] : null;
+    const previewUrl = fileId
+      ? `https://drive.google.com/file/d/${fileId}/preview`
+      : url;
+
+    return (
+      <iframe
+        src={previewUrl}
+        className="w-full h-[600px] rounded-lg border border-hemp-sage/50 mt-3"
+        allow="autoplay"
+        title="PDF Preview"
+      ></iframe>
+    );
   };
 
   // 🌿 UI Rendering
@@ -166,14 +189,18 @@ export default function AgreementDetail() {
                   Document {i + 1}
                 </h2>
               </div>
+
               <a
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-hemp-green hover:text-hemp-forest font-medium"
               >
-                <LinkIcon size={14} className="mr-1" /> Open Document
+                <LinkIcon size={14} className="mr-1" /> Open in new tab
               </a>
+
+              {/* 👇 Inline PDF Preview */}
+              {renderPDFViewer(url)}
             </div>
           ))
         ) : (

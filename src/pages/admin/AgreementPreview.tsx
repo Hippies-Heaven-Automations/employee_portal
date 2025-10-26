@@ -30,6 +30,7 @@ interface TrackerRow {
     employee_type?: string;
   } | null;
 }
+
 export default function AgreementPreview() {
   const { id } = useParams<{ id: string }>();
   const [agreement, setAgreement] = useState<Agreement | null>(null);
@@ -69,15 +70,15 @@ export default function AgreementPreview() {
           .order("signed_at", { ascending: false });
 
         if (logErr) throw logErr;
-        
+
         const mapped: SignatureLog[] =
-        (logs as TrackerRow[]).map((l) => ({
+          (logs as TrackerRow[]).map((l) => ({
             id: l.id,
             employee_name: l.employees?.full_name ?? "—",
             employee_type: l.employees?.employee_type ?? "—",
             signed_at: l.signed_at ?? "",
             status: l.status ?? "pending",
-        })) ?? [];
+          })) ?? [];
 
         setSignatures(mapped);
       } catch (err: unknown) {
@@ -104,6 +105,25 @@ export default function AgreementPreview() {
         Agreement not found or failed to load.
       </p>
     );
+
+  // 🧠 Helper to render PDF viewer (Drive or direct)
+  const renderPDFViewer = (url: string) => {
+    // Check if it's a Google Drive link
+    const match = url.match(/\/d\/([^/]+)/);
+    const fileId = match ? match[1] : null;
+    const previewUrl = fileId
+      ? `https://drive.google.com/file/d/${fileId}/preview`
+      : url;
+
+    return (
+      <iframe
+        src={previewUrl}
+        className="w-full h-[600px] rounded-lg border border-hemp-sage/50 mt-3"
+        allow="autoplay"
+        title="PDF Preview"
+      ></iframe>
+    );
+  };
 
   return (
     <section className="animate-fadeInUp mx-auto max-w-5xl p-6 text-gray-700">
@@ -141,8 +161,11 @@ export default function AgreementPreview() {
                 className="inline-flex items-center text-hemp-green hover:text-hemp-forest font-medium mt-1"
               >
                 <LinkIcon size={14} className="mr-1" />
-                Open Document
+                Open in new tab
               </a>
+
+              {/* 👇 Inline PDF Viewer */}
+              {renderPDFViewer(url)}
             </div>
           ))
         ) : (
