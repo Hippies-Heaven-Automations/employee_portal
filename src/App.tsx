@@ -47,6 +47,11 @@ import TrainingQuiz from "./pages/training/TrainingQuiz";
 // 🌿 Agreement pages
 import AgreementDetail from "./pages/agreement/AgreementDetail";
 import AgreementList from "./pages/agreement/AgreementList";
+
+// 🌿 Messaging pages
+import Inbox from "./pages/messaging/Inbox";
+import Chat from "./pages/messaging/Chat";
+
 export default function App() {
   return (
     <Router>
@@ -85,6 +90,9 @@ export default function App() {
           <Route path="trainings/:id/preview" element={<TrainingPreview />} />
           <Route path="security" element={<SecurityLogsManager />} />
           <Route path="payroll" element={<PayrollManager />} />
+          <Route path="messaging" element={<Inbox />} />
+          <Route path="messaging/chat/:userId" element={<Chat />} />
+
           
           <Route path="profile" element={<Profile />} />
         </Route>
@@ -110,6 +118,8 @@ export default function App() {
           <Route path="training/:id/quiz" element={<TrainingQuiz />} />
           <Route path="security" element={<SecurityLogsManager />} />
           <Route path="payroll" element={<EmpPayroll />} />
+          <Route path="messaging" element={<Inbox />} />
+          <Route path="messaging/chat/:userId" element={<Chat />} />
           <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>

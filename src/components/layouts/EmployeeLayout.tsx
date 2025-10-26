@@ -17,14 +17,27 @@ import {
   Menu,
 } from "lucide-react";
 import hhLogo from "../../assets/hh_careers_logo.png";
+import { useUnreadMessages } from "../../hooks/useUnreadMessages";
 
 export default function EmployeeLayout() {
   const [collapsed, setCollapsed] = useState(false);   // desktop shrink
   const [mobileOpen, setMobileOpen] = useState(false); // mobile drawer
+  const { count } = useUnreadMessages();
 
   const links = [
-    { to: "/employee-dashboard", label: "Home", icon: Home },
-    { to: "/employee-dashboard/messaging", label: "Messages", icon: MessageSquare },
+    { to: "/employee-dashboard", label: "Home", icon: Home }, 
+    {
+      to: "/employee-dashboard/messaging",
+      label: "Messages",
+      icon: () => (
+        <div className="relative inline-block">
+          <MessageSquare className="w-5 h-5" />
+          {count > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-red-500 rounded-full border border-white"></span>
+          )}
+        </div>
+      ),
+    },
     { to: "/employee-dashboard/schedule", label: "Schedule", icon: Calendar },
     { to: "/employee-dashboard/timeoff", label: "Leaves", icon: Plane },
     { to: "/employee-dashboard/timein", label: "Time In", icon: Clock },

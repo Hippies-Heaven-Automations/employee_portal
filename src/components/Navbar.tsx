@@ -5,6 +5,8 @@ import { cn } from "../utils";
 import { LogOut, User, Menu, X, AlertTriangle } from "lucide-react";
 import hhLogo from "../assets/hh_careers_logo.png";
 import { createPortal } from "react-dom";
+import { useUnreadMessages } from "../hooks/useUnreadMessages";
+
 
 export interface NavItem {
   to: string;
@@ -30,6 +32,8 @@ export default function Navbar({
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const { count } = useUnreadMessages();
+
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -188,12 +192,19 @@ export default function Navbar({
                     )}
                     <span
                       className={cn(
-                        "ml-3 truncate transition-all duration-300",
+                        "ml-3 truncate transition-all duration-300 relative flex items-center",
                         collapsed && "opacity-0 w-0 overflow-hidden"
                       )}
                     >
                       {l.label}
+
+                      {l.label.toLowerCase().includes("message") && count > 0 && (
+                        <span className="ml-1 bg-red-500 text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none animate-pulse">
+                          {count}
+                        </span>
+                      )}
                     </span>
+
                   </>
                 )}
               </NavLink>

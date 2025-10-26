@@ -23,15 +23,28 @@ import {
   Menu,
 } from "lucide-react";
 import hhLogo from "../../assets/hh_careers_logo.png";
+import { useUnreadMessages } from "../../hooks/useUnreadMessages";
 
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { count } = useUnreadMessages();
 
   const links = [
     { to: "/admin-dashboard", label: "Home", icon: Home },
 
-    { to: "/admin-dashboard/messaging", label: "Messages", icon: MessageSquare },
+   {
+      to: "/admin-dashboard/messaging",
+      label: "Messages",
+      icon: () => (
+        <div className="relative inline-block">
+          <MessageSquare className="w-5 h-5" />
+          {count > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-red-500 rounded-full border border-white"></span>
+          )}
+        </div>
+      ),
+    },
     { to: "/admin-dashboard/announcements", label: "Announcements", icon: Megaphone },
     { to: "/admin-dashboard/employees", label: "Employees", icon: Users },
     { to: "/admin-dashboard/schedule", label: "Schedule", icon: Calendar },
@@ -55,7 +68,7 @@ export default function AdminLayout() {
     { to: "/admin-dashboard/security", label: "Security Logs", icon: ShieldAlert },
 
   ];
-
+  
   return (
     <div className="min-h-screen flex bg-[#F5FBF5] text-green-900 relative">
       {/* ===== Mobile Top Bar ===== */}
