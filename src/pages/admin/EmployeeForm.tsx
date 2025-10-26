@@ -8,8 +8,6 @@ import {
   UserPlus,
   UserCog,
   ShieldCheck,
-  Banknote,
-  IdCard,
   FileSignature,
 } from "lucide-react";
 import { notifySuccess, notifyError } from "../../utils/notify";
