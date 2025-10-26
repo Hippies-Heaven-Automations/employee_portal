@@ -19,8 +19,14 @@ interface Employee {
   contact_number?: string;
   address?: string;
   emergency_contact?: string;
-  employee_type: string;
-  created_at: string;
+  emergency_contact_phone?: string;
+  ssn_last4?: string;
+  driver_license_no?: string;
+  start_date?: string;
+  pay_rate?: number;
+  shirt_size?: string;
+  hoodie_size?: string;
+  employee_type: "Store" | "VA";
 }
 
 export default function Employees() {
