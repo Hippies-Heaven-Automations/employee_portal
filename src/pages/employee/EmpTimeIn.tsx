@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
 import { notifySuccess, notifyError } from "../../utils/notify";
+import EndOfShiftReportModal from "./EndOfShiftReportModal";
 
 interface ShiftLog {
   id: string;
@@ -18,6 +19,10 @@ export default function EmpTimeIn() {
   const [userId, setUserId] = useState<string | null>(null);
   const [liveDuration, setLiveDuration] = useState("");
   const [processing, setProcessing] = useState(false);
+
+  // 🌿 Modal control
+  const [showEOSR, setShowEOSR] = useState(false);
+  const [activeShiftId, setActiveShiftId] = useState<string | null>(null);
 
   // 🌿 Fetch current user
   useEffect(() => {
@@ -46,6 +51,7 @@ export default function EmpTimeIn() {
       setLogs(data || []);
       const openShift = data?.find((l) => !l.shift_end);
       setIsClockedIn(!!openShift);
+      setActiveShiftId(openShift?.id || null);
     }
 
     setLoading(false);
@@ -84,12 +90,14 @@ export default function EmpTimeIn() {
 
     try {
       if (!isClockedIn) {
+        // 🕒 TIME IN
         const { error: insertError } = await supabase
           .from("shift_logs")
           .insert([{ employee_id: userId, shift_start: new Date().toISOString() }]);
         if (insertError) throw insertError;
         notifySuccess("🕒 Time In recorded successfully!");
       } else {
+        // 🕔 TIME OUT — require report
         const { data: openShift } = await supabase
           .from("shift_logs")
           .select("id")
@@ -98,12 +106,10 @@ export default function EmpTimeIn() {
           .maybeSingle();
 
         if (openShift) {
-          const { error: updateError } = await supabase
-            .from("shift_logs")
-            .update({ shift_end: new Date().toISOString() })
-            .eq("id", openShift.id);
-          if (updateError) throw updateError;
-          notifySuccess("✅ Time Out recorded successfully!");
+          setActiveShiftId(openShift.id);
+          setShowEOSR(true); // open modal before allowing time-out
+        } else {
+          notifyError("No active shift found to close.");
         }
       }
 
@@ -114,6 +120,31 @@ export default function EmpTimeIn() {
       notifyError(message);
     } finally {
       setProcessing(false);
+    }
+  };
+
+  // 🌿 Handle EOSR submission
+  const handleSubmitReport = async (reportText: string) => {
+    if (!activeShiftId) return;
+    setProcessing(true);
+
+    const { error } = await supabase
+      .from("shift_logs")
+      .update({
+        end_of_shift_report: reportText,
+        report_submitted_at: new Date().toISOString(),
+        shift_end: new Date().toISOString(),
+      })
+      .eq("id", activeShiftId);
+
+    setProcessing(false);
+    setShowEOSR(false);
+
+    if (error) {
+      notifyError(`Failed to submit report: ${error.message}`);
+    } else {
+      notifySuccess("✅ End of Shift Report submitted and Time Out recorded.");
+      await fetchLogs();
     }
   };
 
@@ -136,7 +167,7 @@ export default function EmpTimeIn() {
           🕒 My Shift Logs
         </h1>
         <p className="text-sm text-hemp-ink/70">
-          Track your working hours and monitor your shift history.
+          Track your working hours and submit your End of Shift Report before clocking out.
         </p>
       </header>
 
@@ -219,47 +250,15 @@ export default function EmpTimeIn() {
               </tbody>
             </table>
           </div>
-
-          {/* 🌿 Mobile Cards */}
-          <div className="block sm:hidden divide-y divide-hemp-sage/40 bg-white border border-hemp-sage/50 rounded-xl shadow-sm mt-4">
-            {logs.map((log) => (
-              <div key={log.id} className="p-4">
-                <h3 className="font-semibold text-hemp-forest">
-                  {new Date(log.shift_start).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </h3>
-                <p className="text-sm text-gray-700">
-                  ⏰ In:{" "}
-                  {new Date(log.shift_start).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <p className="text-sm text-gray-700">
-                  🔚 Out:{" "}
-                  {log.shift_end
-                    ? new Date(log.shift_end).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : "-"}
-                </p>
-                <p className="text-sm mt-1 text-hemp-forest font-medium">
-                  ⏱ Duration:{" "}
-                  <span className="font-semibold">
-                    {log.shift_end
-                      ? formatDuration(log.duration)
-                      : liveDuration || "-"}
-                  </span>
-                </p>
-              </div>
-            ))}
-          </div>
         </>
       )}
+
+      {/* 🌿 End of Shift Report Modal */}
+      <EndOfShiftReportModal
+        isOpen={showEOSR}
+        onClose={() => setShowEOSR(false)}
+        onSubmit={handleSubmitReport}
+      />
     </section>
   );
 }

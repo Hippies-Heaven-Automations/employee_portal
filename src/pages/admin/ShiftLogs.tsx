@@ -1,98 +1,87 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/Button";
-import TimeOffForm from "./TimeOffForm";
-import { Edit3, Trash2, PlaneTakeoff, Search, ArrowUpDown } from "lucide-react";
-import { notifySuccess, notifyError } from "../../utils/notify";
-import { confirmAction } from "../../utils/confirm";
+import { Search, ArrowUpDown, Eye } from "lucide-react";
+import { notifyError } from "../../utils/notify";
 
-interface TimeOff {
+interface ShiftLog {
   id: string;
   employee_id: string;
-  start_date: string;
-  end_date: string;
-  reason: string;
-  status: string;
-  created_at: string;
+  shift_start: string;
+  shift_end: string | null;
+  duration: string | null;
+  end_of_shift_report: string | null;
+  report_submitted_at: string | null;
   full_name: string | null;
 }
 
-export default function TimeOff() {
-  const [timeOffs, setTimeOffs] = useState<TimeOff[]>([]);
+export default function ShiftLogs() {
+  const [logs, setLogs] = useState<ShiftLog[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<TimeOff | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const [selectedReport, setSelectedReport] = useState<string | null>(null);
+  const itemsPerPage = 10;
 
-  const fetchRequests = async () => {
+  // 🌿 Fetch Shift Logs
+  const fetchLogs = async () => {
     setLoading(true);
-    const { data, error } = await supabase.rpc("get_time_off_with_profiles");
-    if (error) notifyError(`Failed to load requests: ${error.message}`);
-    else setTimeOffs(data || []);
+
+    const { data, error } = await supabase
+      .from("shift_logs")
+      .select(
+        `
+        id,
+        employee_id,
+        shift_start,
+        shift_end,
+        duration,
+        end_of_shift_report,
+        report_submitted_at,
+        profiles(full_name)
+      `
+      )
+      .order("shift_start", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      notifyError("Failed to load shift logs.");
+    } else {
+      const formatted: ShiftLog[] = (data || []).map((d) => ({
+        id: d.id,
+        employee_id: d.employee_id,
+        shift_start: d.shift_start,
+        shift_end: d.shift_end,
+        duration: d.duration,
+        end_of_shift_report: d.end_of_shift_report,
+        report_submitted_at: d.report_submitted_at,
+        full_name:
+          (d as { profiles?: { full_name?: string } }).profiles?.full_name || "Unknown",
+      }));
+      setLogs(formatted);
+    }
+
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchRequests();
+    fetchLogs();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    confirmAction("Delete this request?", async () => {
-      const { error } = await supabase.from("time_off_requests").delete().eq("id", id);
-      if (error) notifyError(`Delete failed: ${error.message}`);
-      else {
-        notifySuccess("Leave request deleted successfully.");
-        fetchRequests();
-      }
-    }, "Delete", "bg-red-600 hover:bg-red-700");
-  };
-
-  const handleEdit = (r: TimeOff) => {
-    setSelectedRequest(r);
-    setIsFormOpen(true);
-  };
-
-  const handleAdd = () => {
-    setSelectedRequest(null);
-    setIsFormOpen(true);
-  };
-
-  const toggleSortOrder = () => setSortOrder((p) => (p === "asc" ? "desc" : "asc"));
-
-  const getStatusStyle = (status: string) =>
-    status === "approved"
-      ? "bg-green-100 text-green-700 border-green-200"
-      : status === "denied"
-      ? "bg-red-100 text-red-700 border-red-200"
-      : "bg-yellow-100 text-yellow-700 border-yellow-200";
-
-  const highlight = (text = "") =>
-    !searchTerm.trim()
-      ? text
-      : text.replace(
-          new RegExp(`(${searchTerm})`, "gi"),
-          "<mark class='bg-hemp-sage/40 text-hemp-forest font-semibold'>$1</mark>"
-        );
-
+  // 🌿 Filtering + Sorting
   const filtered = useMemo(() => {
-    let f = timeOffs;
+    let f = logs;
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      f = f.filter(
-        (r) =>
-          r.full_name?.toLowerCase().includes(q) ||
-          r.reason.toLowerCase().includes(q)
-      );
+      f = f.filter((l) => l.full_name?.toLowerCase().includes(q));
     }
     return [...f].sort((a, b) => {
-      const A = new Date(a.start_date).getTime();
-      const B = new Date(b.start_date).getTime();
+      const A = new Date(a.shift_start).getTime();
+      const B = new Date(b.shift_start).getTime();
       return sortOrder === "asc" ? A - B : B - A;
     });
-  }, [timeOffs, searchTerm, sortOrder]);
+  }, [logs, searchTerm, sortOrder]);
 
   const total = Math.ceil(filtered.length / itemsPerPage);
   const paginated = filtered.slice(
@@ -100,20 +89,27 @@ export default function TimeOff() {
     currentPage * itemsPerPage
   );
 
+  const toggleSortOrder = () =>
+    setSortOrder((p) => (p === "asc" ? "desc" : "asc"));
+
   const page = (p: number) => p >= 1 && p <= total && setCurrentPage(p);
+
+  // 🌿 Duration Formatter
+  const formatDuration = (duration: string | null) => {
+    if (!duration) return "-";
+    const match = duration.match(/(\d+):(\d+):(\d+)/);
+    if (!match) return duration;
+    const [, h, m] = match;
+    const hours = parseInt(h);
+    const minutes = parseInt(m);
+    return `${hours > 0 ? `${hours}h ` : ""}${minutes}m`;
+  };
 
   return (
     <section className="animate-fadeInUp text-gray-700">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3 sm:gap-0">
-        <h1 className="text-3xl font-bold text-hemp-forest">Leave Request</h1>
-        <Button
-          onClick={handleAdd}
-          className="w-full sm:w-auto bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 shadow-card inline-flex justify-center items-center gap-2"
-        >
-          <PlaneTakeoff size={18} />
-          <span className="hidden sm:inline">Add Request</span>
-        </Button>
+        <h1 className="text-3xl font-bold text-hemp-forest">Shift Logs</h1>
       </div>
 
       {/* Controls */}
@@ -124,7 +120,7 @@ export default function TimeOff() {
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
           />
           <input
-            placeholder="Search by employee or reason..."
+            placeholder="Search by employee name..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -149,24 +145,24 @@ export default function TimeOff() {
       {/* Table / Cards */}
       <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-6 text-center text-gray-500">Loading requests...</div>
+          <div className="p-6 text-center text-gray-500">Loading shift logs...</div>
         ) : paginated.length === 0 ? (
           <div className="p-6 text-center text-gray-500 italic">
-            No requests found.
+            No shift records found.
           </div>
         ) : (
           <>
-            {/* Desktop */}
+            {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full text-sm text-gray-700">
                 <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase tracking-wide text-xs">
                   <tr>
                     <th className="px-4 py-3 text-left">Employee</th>
-                    <th className="px-4 py-3 text-left">Start</th>
-                    <th className="px-4 py-3 text-left">End</th>
-                    <th className="px-4 py-3 text-left">Reason</th>
-                    <th className="px-4 py-3 text-left">Status</th>
-                    <th className="px-4 py-3 text-left">Actions</th>
+                    <th className="px-4 py-3 text-left">Date</th>
+                    <th className="px-4 py-3 text-left">Time In</th>
+                    <th className="px-4 py-3 text-left">Time Out</th>
+                    <th className="px-4 py-3 text-left">Duration</th>
+                    <th className="px-4 py-3 text-left">Report</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -175,48 +171,40 @@ export default function TimeOff() {
                       key={r.id}
                       className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition-all"
                     >
-                      <td
-                        className="px-4 py-3 font-medium"
-                        dangerouslySetInnerHTML={{
-                          __html: highlight(r.full_name || "Unknown"),
-                        }}
-                      />
+                      <td className="px-4 py-3 font-medium">{r.full_name}</td>
                       <td className="px-4 py-3">
-                        {new Date(r.start_date).toLocaleDateString()}
+                        {new Date(r.shift_start).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3">
-                        {new Date(r.end_date).toLocaleDateString()}
+                        {new Date(r.shift_start).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </td>
-                      <td
-                        className="px-4 py-3"
-                        dangerouslySetInnerHTML={{ __html: highlight(r.reason) }}
-                      />
                       <td className="px-4 py-3">
-                        <span
-                          className={`px-2 py-1 rounded border text-xs font-semibold capitalize ${getStatusStyle(
-                            r.status
-                          )}`}
-                        >
-                          {r.status}
-                        </span>
+                        {r.shift_end
+                          ? new Date(r.shift_end).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "-"}
                       </td>
-                      <td className="px-4 py-3 flex flex-wrap gap-2">
-                        <Button
-                          onClick={() => handleEdit(r)}
-                          variant="outline"
-                          className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white inline-flex items-center gap-1.5"
-                        >
-                          <Edit3 size={15} />
-                          <span className="hidden sm:inline">Edit</span>
-                        </Button>
-                        <Button
-                          onClick={() => handleDelete(r.id)}
-                          variant="ghost"
-                          className="text-red-600 hover:bg-red-50 inline-flex items-center gap-1.5"
-                        >
-                          <Trash2 size={16} />
-                          <span className="hidden sm:inline">Delete</span>
-                        </Button>
+                      <td className="px-4 py-3 font-medium text-hemp-forest">
+                        {r.shift_end ? formatDuration(r.duration) : "-"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.end_of_shift_report ? (
+                          <Button
+                            onClick={() => setSelectedReport(r.end_of_shift_report!)}
+                            variant="outline"
+                            className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white inline-flex items-center gap-1.5"
+                          >
+                            <Eye size={15} />
+                            <span>View</span>
+                          </Button>
+                        ) : (
+                          <span className="text-gray-400 italic">No report</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -224,50 +212,46 @@ export default function TimeOff() {
               </table>
             </div>
 
-            {/* Mobile */}
+            {/* Mobile Cards */}
             <div className="block md:hidden divide-y divide-hemp-sage/40">
               {paginated.map((r) => (
                 <div key={r.id} className="p-4 bg-white">
-                  <h2
-                    className="text-lg font-semibold text-hemp-forest"
-                    dangerouslySetInnerHTML={{
-                      __html: highlight(r.full_name || "Unknown"),
-                    }}
-                  />
+                  <h2 className="text-base font-semibold text-hemp-forest">
+                    {r.full_name}
+                  </h2>
                   <p className="text-sm text-gray-600">
-                    📅 {new Date(r.start_date).toLocaleDateString()} –{" "}
-                    {new Date(r.end_date).toLocaleDateString()}
+                    📅 {new Date(r.shift_start).toLocaleDateString()}
                   </p>
-                  <p
-                    className="text-sm text-gray-600 mt-1"
-                    dangerouslySetInnerHTML={{ __html: highlight(r.reason) }}
-                  />
-                  <span
-                    className={`mt-2 inline-block px-2 py-1 rounded border text-xs font-semibold capitalize ${getStatusStyle(
-                      r.status
-                    )}`}
-                  >
-                    {r.status}
-                  </span>
+                  <p className="text-sm text-gray-700">
+                    ⏰ In:{" "}
+                    {new Date(r.shift_start).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    🔚 Out:{" "}
+                    {r.shift_end
+                      ? new Date(r.shift_end).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "-"}
+                  </p>
+                  <p className="text-sm mt-1 text-hemp-forest font-medium">
+                    ⏱ Duration: {r.shift_end ? formatDuration(r.duration) : "-"}
+                  </p>
 
-                  <div className="flex gap-2 mt-3">
+                  {r.end_of_shift_report && (
                     <Button
-                      onClick={() => handleEdit(r)}
+                      onClick={() => setSelectedReport(r.end_of_shift_report!)}
                       variant="outline"
-                      className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white px-3 py-1 text-sm flex items-center gap-1"
+                      className="mt-3 border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white w-full justify-center"
                     >
-                      <Edit3 size={14} />
-                      <span className="hidden sm:inline">Edit</span>
+                      <Eye size={15} />
+                      View Report
                     </Button>
-                    <Button
-                      onClick={() => handleDelete(r.id)}
-                      variant="ghost"
-                      className="text-red-600 hover:bg-red-50 px-3 py-1 text-sm flex items-center gap-1"
-                    >
-                      <Trash2 size={14} />
-                      <span className="hidden sm:inline">Delete</span>
-                    </Button>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -289,7 +273,7 @@ export default function TimeOff() {
             <button
               key={p}
               onClick={() => page(p)}
-              className={`px-3 py-1 rounded-md text-sm font-medium ${
+              className={`px-3 py-1 rounded-md text-sm font-medium transition ${
                 currentPage === p
                   ? "bg-hemp-green text-white"
                   : "bg-white text-hemp-forest border border-hemp-sage hover:bg-hemp-mist"
@@ -308,13 +292,35 @@ export default function TimeOff() {
         </div>
       )}
 
-      {/* Modal */}
-      {isFormOpen && (
-        <TimeOffForm
-          request={selectedRequest}
-          onClose={() => setIsFormOpen(false)}
-          onSave={fetchRequests}
-        />
+      {/* 🧾 View Report Modal */}
+      {selectedReport && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-hemp-sage/50 overflow-hidden animate-fadeInUp">
+            <div className="px-5 py-4 border-b border-hemp-sage/40 bg-hemp-mist/40 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-hemp-forest">
+                End of Shift Report
+              </h3>
+              <button
+                onClick={() => setSelectedReport(null)}
+                className="text-gray-600 hover:text-hemp-forest text-xl leading-none"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-5 max-h-[70vh] overflow-y-auto text-gray-700 whitespace-pre-wrap">
+              {selectedReport}
+            </div>
+            <div className="px-5 py-4 border-t border-hemp-sage/40 bg-white flex justify-end">
+              <Button
+                onClick={() => setSelectedReport(null)}
+                variant="ghost"
+                className="px-4 py-2 text-gray-700 hover:bg-hemp-mist rounded-lg"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );
