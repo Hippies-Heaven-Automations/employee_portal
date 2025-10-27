@@ -35,6 +35,8 @@ interface Employee {
   wise_email?: string;
   bank_name?: string;
   account_number?: string;
+  wecard_certified?: boolean;
+  wecard_certificate_url?: string;
   created_at?: string;
 }
 
@@ -66,6 +68,8 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
     wise_email: employee?.wise_email || "",
     bank_name: employee?.bank_name || "",
     account_number: employee?.account_number || "",
+    wecard_certified: employee?.wecard_certified || false,
+    wecard_certificate_url: employee?.wecard_certificate_url || "",
   });
 
   const [saving, setSaving] = useState(false);
@@ -396,8 +400,56 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
           </section>
 
           {/* 💸 Payout Info remains unchanged... */}
-        </form>
+          {/* 🎓 WeCard Certification (Store Only) */}
+          {isStoreEmployee && (
+            <section>
+              <h3 className="text-sm font-semibold text-hemp-forest/70 mb-3 flex items-center gap-1">
+                <ShieldCheck size={15} className="text-hemp-green" />
+                WeCard Certification
+              </h3>
 
+              <div className="flex items-center gap-2 mb-3">
+                <input
+                  id="wecard_certified"
+                  type="checkbox"
+                  name="wecard_certified"
+                  checked={formData.wecard_certified || false}
+                  onChange={(e) =>
+                    setFormData({ ...formData, wecard_certified: e.target.checked })
+                  }
+                  className="h-4 w-4 text-hemp-green border-gray-300 rounded"
+                />
+                <label htmlFor="wecard_certified" className="text-sm text-gray-700">
+                  Certified in WeCard.org
+                </label>
+              </div>
+
+              <InputField
+                label="WeCard Certificate URL"
+                name="wecard_certificate_url"
+                value={formData.wecard_certificate_url || ""}
+                onChange={handleChange}
+                type="url"
+              />
+
+              {!formData.wecard_certified && (
+                <p className="text-xs text-gray-500 mt-2">
+                  ⚠️ Required for all in-store employees. Visit{" "}
+                  <a
+                    href="https://www.wecard.org"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-hemp-green hover:underline"
+                  >
+                    WeCard.org
+                  </a>{" "}
+                  to complete certification.
+                </p>
+              )}
+            </section>
+          )}
+
+        </form>
 
         {/* Footer */}
         <footer className="flex flex-col-reverse sm:flex-row justify-end sm:items-center gap-3 px-5 sm:px-6 py-4 border-t border-hemp-sage/40 bg-white/90 sticky bottom-0">

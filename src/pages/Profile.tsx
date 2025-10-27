@@ -33,6 +33,8 @@ export default function Profile() {
     pay_rate: "",
     shirt_size: "",
     hoodie_size: "",
+    wecard_certified: "",
+    wecard_certificate_url: "",
   });
 
   const [oldPassword, setOldPassword] = useState("");
@@ -58,7 +60,7 @@ export default function Profile() {
             full_name, contact_number, emergency_contact, emergency_contact_phone, address,
             position, acronym, nickname,
             wise_tag, wise_email, bank_name, account_number,
-            employee_type, ssn_last4, driver_license_no, start_date, pay_rate, shirt_size, hoodie_size
+            employee_type, ssn_last4, driver_license_no, start_date, pay_rate, shirt_size, hoodie_size, wecard_certified, wecard_certificate_url
           `
           )
           .eq("id", user.id)
@@ -86,6 +88,8 @@ export default function Profile() {
           pay_rate: data.pay_rate ?? "",
           shirt_size: data.shirt_size ?? "",
           hoodie_size: data.hoodie_size ?? "",
+          wecard_certified: data.wecard_certified ?? false,
+          wecard_certificate_url: data.wecard_certificate_url ?? ""
         });
       } catch (err) {
         notifyError(getErrorMessage(err) || "Failed to load profile");
@@ -271,6 +275,46 @@ export default function Profile() {
           <ReadOnlyField label="Pay Rate ($/hr)" value={profile.pay_rate} />
           <ReadOnlyField label="Shirt Size" value={profile.shirt_size} />
           <ReadOnlyField label="Hoodie Size" value={profile.hoodie_size} />
+        </div>
+      )}
+      {/* 🌿 WeCard Certification (Store only) */}
+      {isStore && (
+        <div className="rounded-xl border border-hemp-sage/50 bg-hemp-sage/10 shadow p-6 space-y-3">
+          <h2 className="text-lg font-semibold text-hemp-forest flex items-center gap-2">
+            🧾 WeCard Certification
+          </h2>
+
+          {profile.wecard_certified ? (
+            <>
+              <p className="text-hemp-green font-medium">✅ Certified</p>
+              {profile.wecard_certificate_url ? (
+                <a
+                  href={profile.wecard_certificate_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-sm text-hemp-forest underline hover:text-hemp-green"
+                >
+                  View Certificate
+                </a>
+              ) : (
+                <p className="text-gray-500 text-sm italic">
+                  No certificate link provided.
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-red-500 font-medium">
+              ❌ Not yet certified — Please complete training at{" "}
+              <a
+                href="https://www.wecard.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-hemp-forest hover:text-hemp-green"
+              >
+                WeCard.org
+              </a>
+            </p>
+          )}
         </div>
       )}
 
