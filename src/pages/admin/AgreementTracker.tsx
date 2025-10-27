@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import { Loader2, Signature, X } from "lucide-react";
+import { Loader2, Signature, X, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { notifyError } from "../../utils/notify";
 
 interface TrackerRow {
@@ -23,35 +23,34 @@ export default function AgreementTracker() {
   const [agreements, setAgreements] = useState<string[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
   const [selectedAgreement, setSelectedAgreement] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const [showSignature, setShowSignature] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<TrackerRow | null>(null);
 
-    // 🌿 Fetch agreement tracker records
-    useEffect(() => {
+  // 🌿 Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // 🌿 Fetch agreement tracker records
+  useEffect(() => {
     const fetchData = async () => {
-        try {
+      try {
         setLoading(true);
         const { data, error } = await supabase
-            .from("agreement_summary")
-            .select("*")
-            .order("signed_at", { ascending: false });
+          .from("agreement_summary")
+          .select("*")
+          .order("signed_at", { ascending: false });
 
         if (error) throw error;
 
-        interface SummaryRow {
-            employee_id: string;
-            agreement_id: string;
-            employee_name: string;
-            employee_type: string;
-            agreement_title: string;
-            signed_at: string | null;
-            status: string;
-            signature_base64: string | null;
-        }
-
         const formatted: TrackerRow[] =
-            (data as SummaryRow[]).map((row) => ({
+          (data || []).map((row) => ({
             employee_id: row.employee_id,
             agreement_id: row.agreement_id,
             employee_name: row.employee_name || "Unknown",
@@ -60,33 +59,41 @@ export default function AgreementTracker() {
             signed_at: row.signed_at,
             status: row.status,
             signature_base64: row.signature_base64,
-            })) || [];
+          })) || [];
 
         setRecords(formatted);
         setFiltered(formatted);
         setEmployees(Array.from(new Set(formatted.map((r) => r.employee_name))));
         setAgreements(Array.from(new Set(formatted.map((r) => r.agreement_title))));
-        } catch (err: unknown) {
+      } catch (err: unknown) {
         const message =
-            err instanceof Error ? err.message : "Failed to fetch agreement tracker.";
+          err instanceof Error ? err.message : "Failed to fetch agreement tracker.";
         notifyError(message);
-        } finally {
+      } finally {
         setLoading(false);
-        }
+      }
     };
     fetchData();
-    }, []);
+  }, []);
 
-
-  // 🔍 Filters
+  // 🔍 Filters and Search
   useEffect(() => {
     let results = [...records];
+
     if (selectedEmployee)
       results = results.filter((r) => r.employee_name === selectedEmployee);
+
     if (selectedAgreement)
       results = results.filter((r) => r.agreement_title === selectedAgreement);
+
+    if (searchTerm.trim())
+      results = results.filter((r) =>
+        r.employee_name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
     setFiltered(results);
-  }, [selectedEmployee, selectedAgreement, records]);
+    setCurrentPage(1);
+  }, [selectedEmployee, selectedAgreement, searchTerm, records]);
 
   // ⏳ Loading
   if (loading)
@@ -108,14 +115,35 @@ export default function AgreementTracker() {
 
       {/* 🌿 Filters */}
       <div className="mb-6 flex flex-wrap items-end gap-4">
-        <div>
-          <label className="block text-sm font-semibold text-hemp-forest mb-1">
+        {/* 🔍 Search Bar */}
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold text-hemp-forest mb-1">
+            Search Employee
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Type employee name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="rounded-lg border border-hemp-sage/60 pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-hemp-green w-64"
+            />
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+            />
+          </div>
+        </div>
+
+        {/* Employee Filter */}
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold text-hemp-forest mb-1">
             Employee
           </label>
           <select
             value={selectedEmployee}
             onChange={(e) => setSelectedEmployee(e.target.value)}
-            className="rounded-lg border border-hemp-sage/60 px-3 py-2 focus:ring-2 focus:ring-hemp-green"
+            className="rounded-lg border border-hemp-sage/60 px-3 py-2 focus:ring-2 focus:ring-hemp-green text-sm"
           >
             <option value="">All Employees</option>
             {employees.map((name) => (
@@ -124,14 +152,15 @@ export default function AgreementTracker() {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-hemp-forest mb-1">
+        {/* Agreement Filter */}
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold text-hemp-forest mb-1">
             Agreement
           </label>
           <select
             value={selectedAgreement}
             onChange={(e) => setSelectedAgreement(e.target.value)}
-            className="rounded-lg border border-hemp-sage/60 px-3 py-2 focus:ring-2 focus:ring-hemp-green"
+            className="rounded-lg border border-hemp-sage/60 px-3 py-2 focus:ring-2 focus:ring-hemp-green text-sm"
           >
             <option value="">All Agreements</option>
             {agreements.map((a) => (
@@ -140,11 +169,12 @@ export default function AgreementTracker() {
           </select>
         </div>
 
-        {(selectedEmployee || selectedAgreement) && (
+        {(selectedEmployee || selectedAgreement || searchTerm) && (
           <button
             onClick={() => {
               setSelectedEmployee("");
               setSelectedAgreement("");
+              setSearchTerm("");
             }}
             className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
           >
@@ -153,36 +183,86 @@ export default function AgreementTracker() {
         )}
       </div>
 
-      {/* 🌿 Table */}
+      {/* 🌿 Table / Mobile Cards */}
       <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-hidden">
         {filtered.length === 0 ? (
           <p className="p-6 text-center text-gray-500 italic">
             No matching records found.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-gray-700">
-              <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase text-xs tracking-wide">
-                <tr>
-                  <th className="p-3 text-left">Employee</th>
-                  <th className="p-3 text-left">Type</th>
-                  <th className="p-3 text-left">Agreement</th>
-                  <th className="p-3 text-center">Status</th>
-                  <th className="p-3 text-center">Signed</th>
-                  <th className="p-3 text-center">Signature</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((r, idx) => (
-                  <tr
-                    key={idx}
-                    className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition"
-                  >
-                    <td className="p-3">{r.employee_name}</td>
-                    <td className="p-3">{r.employee_type}</td>
-                    <td className="p-3">{r.agreement_title}</td>
-                    <td
-                      className={`p-3 text-center font-medium ${
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full text-sm text-gray-700">
+                <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase text-xs tracking-wide">
+                  <tr>
+                    <th className="p-3 text-left">Employee</th>
+                    <th className="p-3 text-left">Type</th>
+                    <th className="p-3 text-left">Agreement</th>
+                    <th className="p-3 text-center">Status</th>
+                    <th className="p-3 text-center">Signed</th>
+                    <th className="p-3 text-center">Signature</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.map((r, idx) => (
+                    <tr
+                      key={idx}
+                      className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition"
+                    >
+                      <td className="p-3">{r.employee_name}</td>
+                      <td className="p-3">{r.employee_type}</td>
+                      <td className="p-3">{r.agreement_title}</td>
+                      <td
+                        className={`p-3 text-center font-medium ${
+                          r.status === "signed"
+                            ? "text-green-600"
+                            : r.status === "revoked"
+                            ? "text-red-600"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {r.status}
+                      </td>
+                      <td className="p-3 text-center text-gray-600">
+                        {r.signed_at
+                          ? new Date(r.signed_at).toLocaleString(undefined, {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })
+                          : "—"}
+                      </td>
+                      <td className="p-3 text-center">
+                        {r.signature_base64 ? (
+                          <button
+                            onClick={() => {
+                              setSelectedRecord(r);
+                              setShowSignature(true);
+                            }}
+                            className="rounded-md bg-hemp-green/10 px-3 py-1 text-xs font-semibold text-hemp-forest hover:bg-hemp-green/20 transition"
+                          >
+                            View
+                          </button>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden divide-y divide-hemp-sage/30">
+              {paginated.map((r, idx) => (
+                <div key={idx} className="p-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-semibold text-hemp-forest text-base">
+                      {r.agreement_title}
+                    </h3>
+                    <span
+                      className={`text-sm font-medium ${
                         r.status === "signed"
                           ? "text-green-600"
                           : r.status === "revoked"
@@ -191,35 +271,63 @@ export default function AgreementTracker() {
                       }`}
                     >
                       {r.status}
-                    </td>
-                    <td className="p-3 text-center text-gray-600">
-                      {r.signed_at
-                        ? new Date(r.signed_at).toLocaleString(undefined, {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          })
-                        : "—"}
-                    </td>
-                    <td className="p-3 text-center">
-                      {r.signature_base64 ? (
-                        <button
-                          onClick={() => {
-                            setSelectedRecord(r);
-                            setShowSignature(true);
-                          }}
-                          className="rounded-md bg-hemp-green/10 px-3 py-1 text-xs font-semibold text-hemp-forest hover:bg-hemp-green/20 transition"
-                        >
-                          View Signature
-                        </button>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {r.employee_name} ({r.employee_type})
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Signed:{" "}
+                    {r.signed_at
+                      ? new Date(r.signed_at).toLocaleDateString()
+                      : "—"}
+                  </p>
+                  {r.signature_base64 && (
+                    <button
+                      onClick={() => {
+                        setSelectedRecord(r);
+                        setShowSignature(true);
+                      }}
+                      className="mt-2 text-xs bg-hemp-green/10 text-hemp-forest px-3 py-1 rounded-md hover:bg-hemp-green/20 transition"
+                    >
+                      View Signature
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex justify-center items-center gap-3 p-4 border-t border-hemp-sage/40 bg-hemp-mist/20 text-sm">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className={`flex items-center gap-1 px-3 py-1 rounded-md ${
+                  currentPage === 1
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-hemp-forest hover:bg-hemp-green/10"
+                }`}
+              >
+                <ChevronLeft size={16} /> Prev
+              </button>
+              <span className="font-medium text-hemp-forest">
+                Page {currentPage} of {totalPages || 1}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                className={`flex items-center gap-1 px-3 py-1 rounded-md ${
+                  currentPage === totalPages
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-hemp-forest hover:bg-hemp-green/10"
+                }`}
+              >
+                Next <ChevronRight size={16} />
+              </button>
+            </div>
+          </>
         )}
       </div>
 
