@@ -31,6 +31,9 @@ import AgreementTracker from "./pages/admin/AgreementTracker";
 import AgreementManager from "./pages/admin/AgreementManager";
 import AgreementPreview from "./pages/admin/AgreementPreview";
 import SecurityLogsManager from "./pages/security/SecurityLogsManager";
+// 🌿 Task pages
+import TaskManager from "./pages/tasks/TaskManager";
+import TaskDetail from "./pages/tasks/TaskDetail";
 
 // 🌿 Employee pages
 import EmpHome from "./pages/employee/EmpHome";
@@ -39,6 +42,7 @@ import EmpTimeIn from "./pages/employee/EmpTimeIn";
 import EmpTimeOff from "./pages/employee/EmpTimeOff";
 import EmpAnnouncements from "./pages/employee/EmpAnnouncements";
 import EmpPayroll from "./pages/employee/EmpPayroll";
+import EmpTasks from "./pages/employee/EmpTasks";
 // 🌿 Training pages
 import TrainingDetail from "./pages/training/TrainingDetail";
 import TrainingList from "./pages/training/TrainingList";
@@ -92,6 +96,9 @@ export default function App() {
           <Route path="payroll" element={<PayrollManager />} />
           <Route path="messaging" element={<Inbox />} />
           <Route path="messaging/chat/:userId" element={<Chat />} />
+          <Route path="tasks" element={<TaskManager />} />
+          <Route path="tasks/:id" element={<TaskDetail />} />
+
 
           
           <Route path="profile" element={<Profile />} />
@@ -121,6 +128,8 @@ export default function App() {
           <Route path="messaging" element={<Inbox />} />
           <Route path="messaging/chat/:userId" element={<Chat />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="tasks" element={<EmpTasks />} />
+          
         </Route>
       </Routes>
     </Router>

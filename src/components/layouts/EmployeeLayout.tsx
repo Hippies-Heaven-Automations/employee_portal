@@ -10,6 +10,7 @@ import {
   DollarSign,
   MessageSquare,
   ShieldAlert,
+  ClipboardList,
   ScrollText ,
   ChevronLeft,
   ChevronRight,
@@ -38,6 +39,7 @@ export default function EmployeeLayout() {
         </div>
       ),
     },
+    { to: "/employee-dashboard/tasks", label: "Tasks", icon: ClipboardList },
     { to: "/employee-dashboard/schedule", label: "Schedule", icon: Calendar },
     { to: "/employee-dashboard/timeoff", label: "Time Off Request", icon: Plane },
     { to: "/employee-dashboard/timein", label: "Clock In/Out", icon: Clock },

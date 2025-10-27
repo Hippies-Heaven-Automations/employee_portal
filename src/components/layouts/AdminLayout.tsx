@@ -17,6 +17,7 @@ import {
   DollarSign,
   ShieldAlert,
   MessageSquare,
+  ClipboardList,
   ChevronLeft,
   ChevronRight,
   X,
@@ -51,6 +52,7 @@ export default function AdminLayout() {
     { to: "/admin-dashboard/applications", label: "Applications", icon: FileText },
     { to: "/admin-dashboard/timeoff", label: "Time Off Request", icon: Plane },
     { to: "/admin-dashboard/shiftlogs", label: "Clock In/Out", icon: Clock },
+    { to: "/admin-dashboard/tasks", label: "Tasks", icon: ClipboardList },
 
     // 🌿 Agreements
     { to: "/admin-dashboard/agreements", label: "Agreements", icon: FileSignature },
