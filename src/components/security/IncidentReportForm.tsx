@@ -8,6 +8,7 @@ interface IncidentInput {
   id?: string;
   date: string;
   time: string;
+  type_of_incident: string; // ✅ new field
   description: string;
   footage_link?: string | null;
   management_contacted: boolean;
@@ -19,11 +20,10 @@ export default function IncidentReportForm({
   onClose,
   onSaved,
 }: {
-  initial: Partial<IncidentInput> | null; // ✅ replaces any | null
+  initial: Partial<IncidentInput> | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
-
   const now = useMemo(() => new Date(), []);
   const toISODate = (d: Date) => d.toISOString().slice(0, 10);
   const toHHMM = (d: Date) => d.toTimeString().slice(0, 5);
@@ -33,32 +33,32 @@ export default function IncidentReportForm({
     id: initial?.id,
     date: initial?.date || toISODate(now),
     time: initial?.time ? initial.time.slice(0, 5) : toHHMM(now),
+    type_of_incident: initial?.type_of_incident || "Employee Violation",
     description: initial?.description || "",
     footage_link: initial?.footage_link || "",
     management_contacted: !!initial?.management_contacted,
     police_contacted: !!initial?.police_contacted,
   });
 
-useEffect(() => {
-  if (initial) {
-    setForm({
-      id: initial.id ?? undefined,
-      date: initial.date ?? toISODate(now),
-      time: initial.time?.slice(0, 5) ?? toHHMM(now),
-      description: initial.description ?? "",
-      footage_link: initial.footage_link ?? "",
-      management_contacted: !!initial.management_contacted,
-      police_contacted: !!initial.police_contacted,
-    });
-  }
-}, [initial, now]);
+  useEffect(() => {
+    if (initial) {
+      setForm({
+        id: initial.id ?? undefined,
+        date: initial.date ?? toISODate(now),
+        time: initial.time?.slice(0, 5) ?? toHHMM(now),
+        type_of_incident: initial.type_of_incident ?? "Employee Violation",
+        description: initial.description ?? "",
+        footage_link: initial.footage_link ?? "",
+        management_contacted: !!initial.management_contacted,
+        police_contacted: !!initial.police_contacted,
+      });
+    }
+  }, [initial, now]);
 
-
-const onChange = <K extends keyof IncidentInput>(
-  key: K,
-  value: IncidentInput[K]
-) => setForm((s) => ({ ...s, [key]: value }));
-
+  const onChange = <K extends keyof IncidentInput>(
+    key: K,
+    value: IncidentInput[K]
+  ) => setForm((s) => ({ ...s, [key]: value }));
 
   const handleSave = async () => {
     if (!form.date || !form.time) {
@@ -77,6 +77,7 @@ const onChange = <K extends keyof IncidentInput>(
     const payload = {
       date: form.date,
       time: form.time + ":00",
+      type_of_incident: form.type_of_incident,
       description: form.description.trim(),
       footage_link: form.footage_link || null,
       management_contacted: form.management_contacted,
@@ -86,10 +87,15 @@ const onChange = <K extends keyof IncidentInput>(
 
     let errorMsg: string | null = null;
     if (form.id) {
-      const { error } = await supabase.from("incident_reports").update(payload).eq("id", form.id);
+      const { error } = await supabase
+        .from("incident_reports")
+        .update(payload)
+        .eq("id", form.id);
       errorMsg = error?.message || null;
     } else {
-      const { error } = await supabase.from("incident_reports").insert(payload);
+      const { error } = await supabase
+        .from("incident_reports")
+        .insert(payload);
       errorMsg = error?.message || null;
     }
 
@@ -141,6 +147,22 @@ const onChange = <K extends keyof IncidentInput>(
               onChange={(e) => onChange("time", e.target.value)}
               className="rounded-lg border border-hemp-sage/50 bg-white/60 px-3 py-2 focus:ring-2 focus:ring-hemp-green focus:border-hemp-green"
             />
+          </div>
+
+          {/* Type of Incident */}
+          <div className="sm:col-span-2 flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Type of Incident</label>
+            <select
+              value={form.type_of_incident}
+              onChange={(e) => onChange("type_of_incident", e.target.value)}
+              className="rounded-lg border border-hemp-sage/50 bg-white/60 px-3 py-2 focus:ring-2 focus:ring-hemp-green focus:border-hemp-green"
+            >
+              <option>Employee Violation</option>
+              <option>In-Store Disruption</option>
+              <option>Customer Complaint</option>
+              <option>Accident</option>
+              <option>Others</option>
+            </select>
           </div>
 
           {/* Description */}
