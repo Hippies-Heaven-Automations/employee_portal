@@ -49,8 +49,8 @@ export default function AdminLayout() {
     { to: "/admin-dashboard/employees", label: "Employees", icon: Users },
     { to: "/admin-dashboard/schedule", label: "Schedule", icon: Calendar },
     { to: "/admin-dashboard/applications", label: "Applications", icon: FileText },
-    { to: "/admin-dashboard/timeoff", label: "Leaves", icon: Plane },
-    { to: "/admin-dashboard/shiftlogs", label: "Time In Logs", icon: Clock },
+    { to: "/admin-dashboard/timeoff", label: "Time Off Request", icon: Plane },
+    { to: "/admin-dashboard/shiftlogs", label: "Clock In/Out", icon: Clock },
 
     // 🌿 Agreements
     { to: "/admin-dashboard/agreements", label: "Agreements", icon: FileSignature },
