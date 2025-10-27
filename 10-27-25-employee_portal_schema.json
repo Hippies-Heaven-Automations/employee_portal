@@ -1354,7 +1354,7 @@
           "schema_name": "realtime",
           "table_name": "subscription",
           "table_description": null,
-          "table_size": "104 kB",
+          "table_size": "80 kB",
           "kind": "r",
           "row_security_enabled": false,
           "row_security_forced": false
@@ -1613,15 +1613,6 @@
         },
         {
           "schema_name": "public",
-          "table_name": "profiles",
-          "table_description": null,
-          "table_size": "48 kB",
-          "kind": "r",
-          "row_security_enabled": true,
-          "row_security_forced": false
-        },
-        {
-          "schema_name": "public",
           "table_name": "payrolls_pkey",
           "table_description": null,
           "table_size": "16 kB",
@@ -1636,6 +1627,15 @@
           "table_size": "32 kB",
           "kind": "r",
           "row_security_enabled": false,
+          "row_security_forced": false
+        },
+        {
+          "schema_name": "public",
+          "table_name": "profiles",
+          "table_description": null,
+          "table_size": "48 kB",
+          "kind": "r",
+          "row_security_enabled": true,
           "row_security_forced": false
         },
         {
@@ -1919,15 +1919,6 @@
         },
         {
           "schema_name": "public",
-          "table_name": "incident_reports",
-          "table_description": null,
-          "table_size": "32 kB",
-          "kind": "r",
-          "row_security_enabled": true,
-          "row_security_forced": false
-        },
-        {
-          "schema_name": "public",
           "table_name": "v_cctv_logs",
           "table_description": null,
           "table_size": "0 bytes",
@@ -1942,6 +1933,15 @@
           "table_size": "24 kB",
           "kind": "r",
           "row_security_enabled": false,
+          "row_security_forced": false
+        },
+        {
+          "schema_name": "public",
+          "table_name": "incident_reports",
+          "table_description": null,
+          "table_size": "32 kB",
+          "kind": "r",
+          "row_security_enabled": true,
           "row_security_forced": false
         },
         {
@@ -2221,6 +2221,24 @@
           "table_name": "pg_stat_statements",
           "column_name": "queryid",
           "data_type": "bigint",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "training_tracker",
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": "now()",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "training_tracker",
+          "column_name": "quiz_version",
+          "data_type": "integer",
           "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
@@ -2767,51 +2785,6 @@
         },
         {
           "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "id",
-          "data_type": "uuid",
-          "is_nullable": "NO",
-          "column_default": "gen_random_uuid()",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "created_at",
-          "data_type": "timestamp with time zone",
-          "is_nullable": "YES",
-          "column_default": "now()",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "updated_at",
-          "data_type": "timestamp with time zone",
-          "is_nullable": "YES",
-          "column_default": "now()",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "start_date",
-          "data_type": "date",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "pay_rate",
-          "data_type": "numeric",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
           "table_name": "payrolls",
           "column_name": "id",
           "data_type": "uuid",
@@ -2871,6 +2844,60 @@
           "data_type": "timestamp with time zone",
           "is_nullable": "YES",
           "column_default": "now()",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "id",
+          "data_type": "uuid",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": "now()",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": "now()",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "start_date",
+          "data_type": "date",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "pay_rate",
+          "data_type": "numeric",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "wecard_certified",
+          "data_type": "boolean",
+          "is_nullable": "YES",
+          "column_default": "false",
           "character_maximum_length": null
         },
         {
@@ -3937,87 +3964,6 @@
         },
         {
           "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "id",
-          "data_type": "uuid",
-          "is_nullable": "NO",
-          "column_default": "gen_random_uuid()",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "date",
-          "data_type": "date",
-          "is_nullable": "NO",
-          "column_default": "CURRENT_DATE",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "time",
-          "data_type": "time without time zone",
-          "is_nullable": "NO",
-          "column_default": "CURRENT_TIME",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "contacted_management",
-          "data_type": "boolean",
-          "is_nullable": "YES",
-          "column_default": "false",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "police_contacted",
-          "data_type": "boolean",
-          "is_nullable": "YES",
-          "column_default": "false",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "inputted_by",
-          "data_type": "uuid",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "created_at",
-          "data_type": "timestamp with time zone",
-          "is_nullable": "YES",
-          "column_default": "now()",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "updated_at",
-          "data_type": "timestamp with time zone",
-          "is_nullable": "YES",
-          "column_default": "now()",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "management_contacted",
-          "data_type": "boolean",
-          "is_nullable": "YES",
-          "column_default": "false",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
           "table_name": "v_cctv_logs",
           "column_name": "id",
           "data_type": "uuid",
@@ -4104,6 +4050,87 @@
           "data_type": "uuid",
           "is_nullable": "NO",
           "column_default": "gen_random_uuid()",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "incident_reports",
+          "column_name": "id",
+          "data_type": "uuid",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "incident_reports",
+          "column_name": "date",
+          "data_type": "date",
+          "is_nullable": "NO",
+          "column_default": "CURRENT_DATE",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "incident_reports",
+          "column_name": "time",
+          "data_type": "time without time zone",
+          "is_nullable": "NO",
+          "column_default": "CURRENT_TIME",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "incident_reports",
+          "column_name": "contacted_management",
+          "data_type": "boolean",
+          "is_nullable": "YES",
+          "column_default": "false",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "incident_reports",
+          "column_name": "police_contacted",
+          "data_type": "boolean",
+          "is_nullable": "YES",
+          "column_default": "false",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "incident_reports",
+          "column_name": "inputted_by",
+          "data_type": "uuid",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "incident_reports",
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": "now()",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "incident_reports",
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": "now()",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "incident_reports",
+          "column_name": "management_contacted",
+          "data_type": "boolean",
+          "is_nullable": "YES",
+          "column_default": "false",
           "character_maximum_length": null
         },
         {
@@ -6366,6 +6393,15 @@
           "character_maximum_length": null
         },
         {
+          "table_schema": "public",
+          "table_name": "shift_logs",
+          "column_name": "report_submitted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
           "table_schema": "storage",
           "table_name": "buckets_analytics",
           "column_name": "type",
@@ -6484,71 +6520,8 @@
         },
         {
           "table_schema": "public",
-          "table_name": "training_tracker",
-          "column_name": "updated_at",
-          "data_type": "timestamp with time zone",
-          "is_nullable": "YES",
-          "column_default": "now()",
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "training_tracker",
-          "column_name": "quiz_version",
-          "data_type": "integer",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_26",
-          "column_name": "extension",
-          "data_type": "text",
-          "is_nullable": "NO",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "auth",
-          "table_name": "one_time_tokens",
-          "column_name": "token_hash",
-          "data_type": "text",
-          "is_nullable": "NO",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "auth",
-          "table_name": "one_time_tokens",
-          "column_name": "relates_to",
-          "data_type": "text",
-          "is_nullable": "NO",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "v_invoice_data",
-          "column_name": "remarks",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_30",
-          "column_name": "event",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "v_cctv_logs",
-          "column_name": "updated_by_name",
+          "table_name": "incident_reports",
+          "column_name": "footage_link",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -6558,6 +6531,15 @@
           "table_schema": "public",
           "table_name": "v_cctv_cameras",
           "column_name": "camera_name",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "v_cctv_cameras",
+          "column_name": "battery_type",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -6592,8 +6574,8 @@
         },
         {
           "table_schema": "public",
-          "table_name": "paystubs",
-          "column_name": "file_url",
+          "table_name": "shift_logs_view",
+          "column_name": "full_name",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -6601,8 +6583,8 @@
         },
         {
           "table_schema": "public",
-          "table_name": "shift_logs_view",
-          "column_name": "full_name",
+          "table_name": "paystubs",
+          "column_name": "file_url",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -6618,20 +6600,20 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "v_cctv_cameras",
-          "column_name": "battery_type",
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_30",
+          "column_name": "event",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
         {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_29",
-          "column_name": "topic",
+          "table_schema": "public",
+          "table_name": "v_cctv_cameras",
+          "column_name": "status",
           "data_type": "text",
-          "is_nullable": "NO",
+          "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -6647,7 +6629,16 @@
         {
           "table_schema": "public",
           "table_name": "v_cctv_cameras",
-          "column_name": "status",
+          "column_name": "notes",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "cash_removal_logs",
+          "column_name": "footage_link",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -6664,7 +6655,7 @@
         },
         {
           "table_schema": "public",
-          "table_name": "v_cctv_cameras",
+          "table_name": "cash_removal_logs",
           "column_name": "notes",
           "data_type": "text",
           "is_nullable": "YES",
@@ -6673,10 +6664,10 @@
         },
         {
           "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "full_name",
+          "table_name": "v_cctv_cameras",
+          "column_name": "updated_by_name",
           "data_type": "text",
-          "is_nullable": "NO",
+          "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -6718,20 +6709,20 @@
         },
         {
           "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "email",
+          "table_name": "agreement_tracker",
+          "column_name": "signature_base64",
           "data_type": "text",
-          "is_nullable": "NO",
+          "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
         {
           "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "contact_number",
+          "table_name": "agreement_tracker",
+          "column_name": "status",
           "data_type": "text",
           "is_nullable": "YES",
-          "column_default": null,
+          "column_default": "'pending'::text",
           "character_maximum_length": null
         },
         {
@@ -6745,17 +6736,17 @@
         },
         {
           "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "address",
+          "table_name": "payrolls",
+          "column_name": "status",
           "data_type": "text",
           "is_nullable": "YES",
-          "column_default": null,
+          "column_default": "'open'::text",
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "emergency_contact",
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_26",
+          "column_name": "event",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -6772,8 +6763,8 @@
         },
         {
           "table_schema": "realtime",
-          "table_name": "messages_2025_10_29",
-          "column_name": "extension",
+          "table_name": "messages_2025_10_30",
+          "column_name": "topic",
           "data_type": "text",
           "is_nullable": "NO",
           "column_default": null,
@@ -6825,11 +6816,74 @@
           "character_maximum_length": null
         },
         {
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_28",
+          "column_name": "topic",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
           "table_schema": "public",
-          "table_name": "cash_removal_logs",
-          "column_name": "footage_link",
+          "table_name": "profiles",
+          "column_name": "full_name",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "email",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "contact_number",
           "data_type": "text",
           "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "address",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "emergency_contact",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "training_summary_secure",
+          "column_name": "employee_name",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_28",
+          "column_name": "extension",
+          "data_type": "text",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -6870,9 +6924,36 @@
           "character_maximum_length": null
         },
         {
+          "table_schema": "auth",
+          "table_name": "sessions",
+          "column_name": "user_agent",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
           "table_schema": "public",
           "table_name": "profiles",
           "column_name": "nickname",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "auth",
+          "table_name": "sso_domains",
+          "column_name": "domain",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "auth",
+          "table_name": "sessions",
+          "column_name": "tag",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -6897,76 +6978,13 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "bank_name",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "account_number",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "ssn_last4",
+          "table_schema": "storage",
+          "table_name": "migrations",
+          "column_name": "name",
           "data_type": "character varying",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": 4
-        },
-        {
-          "table_schema": "auth",
-          "table_name": "sso_domains",
-          "column_name": "domain",
-          "data_type": "text",
           "is_nullable": "NO",
           "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "driver_license_no",
-          "data_type": "character varying",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": 20
-        },
-        {
-          "table_schema": "auth",
-          "table_name": "sessions",
-          "column_name": "user_agent",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "emergency_contact_phone",
-          "data_type": "character varying",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": 15
-        },
-        {
-          "table_schema": "auth",
-          "table_name": "sessions",
-          "column_name": "tag",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
+          "character_maximum_length": 100
         },
         {
           "table_schema": "auth",
@@ -6996,31 +7014,31 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "agreement_tracker",
-          "column_name": "signature_base64",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "agreement_tracker",
-          "column_name": "status",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": "'pending'::text",
-          "character_maximum_length": null
-        },
-        {
           "table_schema": "storage",
           "table_name": "migrations",
-          "column_name": "name",
+          "column_name": "hash",
           "data_type": "character varying",
           "is_nullable": "NO",
           "column_default": null,
-          "character_maximum_length": 100
+          "character_maximum_length": 40
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "bank_name",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "account_number",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
         },
         {
           "table_schema": "auth",
@@ -7032,13 +7050,13 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "storage",
-          "table_name": "migrations",
-          "column_name": "hash",
-          "data_type": "character varying",
+          "table_schema": "public",
+          "table_name": "applications",
+          "column_name": "full_name",
+          "data_type": "text",
           "is_nullable": "NO",
           "column_default": null,
-          "character_maximum_length": 40
+          "character_maximum_length": null
         },
         {
           "table_schema": "auth",
@@ -7046,33 +7064,6 @@
           "column_name": "resource_id",
           "data_type": "text",
           "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "shirt_size",
-          "data_type": "character varying",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": 10
-        },
-        {
-          "table_schema": "public",
-          "table_name": "profiles",
-          "column_name": "hoodie_size",
-          "data_type": "character varying",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": 10
-        },
-        {
-          "table_schema": "public",
-          "table_name": "applications",
-          "column_name": "full_name",
-          "data_type": "text",
-          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -7105,26 +7096,17 @@
         },
         {
           "table_schema": "public",
-          "table_name": "v_cctv_cameras",
-          "column_name": "updated_by_name",
-          "data_type": "text",
+          "table_name": "profiles",
+          "column_name": "ssn_last4",
+          "data_type": "character varying",
           "is_nullable": "YES",
           "column_default": null,
-          "character_maximum_length": null
+          "character_maximum_length": 4
         },
         {
           "table_schema": "public",
           "table_name": "applications",
           "column_name": "preferred_interview_time",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "schedules",
-          "column_name": "notes",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7150,7 +7132,16 @@
         },
         {
           "table_schema": "public",
-          "table_name": "cash_removal_logs",
+          "table_name": "profiles",
+          "column_name": "driver_license_no",
+          "data_type": "character varying",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": 20
+        },
+        {
+          "table_schema": "public",
+          "table_name": "schedules",
           "column_name": "notes",
           "data_type": "text",
           "is_nullable": "YES",
@@ -7158,13 +7149,40 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_26",
-          "column_name": "event",
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "emergency_contact_phone",
+          "data_type": "character varying",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": 15
+        },
+        {
+          "table_schema": "public",
+          "table_name": "training_summary_secure",
+          "column_name": "training_title",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
+        },
+        {
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_30",
+          "column_name": "extension",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "profiles",
+          "column_name": "shirt_size",
+          "data_type": "character varying",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": 10
         },
         {
           "table_schema": "auth",
@@ -7177,17 +7195,17 @@
         },
         {
           "table_schema": "public",
-          "table_name": "training_summary_secure",
-          "column_name": "employee_name",
-          "data_type": "text",
+          "table_name": "profiles",
+          "column_name": "hoodie_size",
+          "data_type": "character varying",
           "is_nullable": "YES",
           "column_default": null,
-          "character_maximum_length": null
+          "character_maximum_length": 10
         },
         {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_29",
-          "column_name": "event",
+          "table_schema": "public",
+          "table_name": "v_cctv_logs",
+          "column_name": "camera_name",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7204,11 +7222,11 @@
         },
         {
           "table_schema": "public",
-          "table_name": "payrolls",
-          "column_name": "status",
+          "table_name": "shift_logs",
+          "column_name": "notes",
           "data_type": "text",
           "is_nullable": "YES",
-          "column_default": "'open'::text",
+          "column_default": null,
           "character_maximum_length": null
         },
         {
@@ -7231,26 +7249,26 @@
         },
         {
           "table_schema": "public",
-          "table_name": "training_summary_secure",
-          "column_name": "training_title",
+          "table_name": "profiles",
+          "column_name": "wecard_certificate_url",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
         {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_30",
-          "column_name": "topic",
+          "table_schema": "public",
+          "table_name": "training_summary_secure",
+          "column_name": "certificate_url",
           "data_type": "text",
-          "is_nullable": "NO",
+          "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
         {
           "table_schema": "public",
           "table_name": "shift_logs",
-          "column_name": "notes",
+          "column_name": "end_of_shift_report",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7275,18 +7293,9 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_28",
-          "column_name": "topic",
-          "data_type": "text",
-          "is_nullable": "NO",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
           "table_schema": "public",
           "table_name": "training_summary_secure",
-          "column_name": "certificate_url",
+          "column_name": "video_url",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7304,7 +7313,7 @@
         {
           "table_schema": "public",
           "table_name": "training_summary_secure",
-          "column_name": "video_url",
+          "column_name": "quiz_url",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7321,8 +7330,17 @@
         },
         {
           "table_schema": "public",
-          "table_name": "training_summary_secure",
-          "column_name": "quiz_url",
+          "table_name": "sold_out_logs",
+          "column_name": "footage_link",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "sold_out_logs",
+          "column_name": "id_verified",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7347,18 +7365,9 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_28",
-          "column_name": "extension",
-          "data_type": "text",
-          "is_nullable": "NO",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
           "table_schema": "public",
-          "table_name": "sold_out_logs",
-          "column_name": "footage_link",
+          "table_name": "v_cctv_logs",
+          "column_name": "camera_status",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7374,18 +7383,18 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "auth",
-          "table_name": "mfa_factors",
-          "column_name": "friendly_name",
+          "table_schema": "public",
+          "table_name": "v_cctv_logs",
+          "column_name": "battery_type",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "sold_out_logs",
-          "column_name": "id_verified",
+          "table_schema": "auth",
+          "table_name": "mfa_factors",
+          "column_name": "friendly_name",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7411,28 +7420,28 @@
         },
         {
           "table_schema": "public",
-          "table_name": "v_cctv_logs",
-          "column_name": "notes",
+          "table_name": "v_invoice_data",
+          "column_name": "remarks",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "training_completion_log",
-          "column_name": "message",
+          "table_schema": "auth",
+          "table_name": "one_time_tokens",
+          "column_name": "token_hash",
           "data_type": "text",
-          "is_nullable": "YES",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "cctv_logs",
-          "column_name": "note",
+          "table_schema": "auth",
+          "table_name": "one_time_tokens",
+          "column_name": "relates_to",
           "data_type": "text",
-          "is_nullable": "YES",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -7442,6 +7451,15 @@
           "column_name": "query",
           "data_type": "text",
           "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "storage",
+          "table_name": "s3_multipart_uploads_parts",
+          "column_name": "etag",
+          "data_type": "text",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -7460,15 +7478,6 @@
           "column_name": "phone",
           "data_type": "text",
           "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "storage",
-          "table_name": "s3_multipart_uploads_parts",
-          "column_name": "etag",
-          "data_type": "text",
-          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -7500,6 +7509,15 @@
           "character_maximum_length": null
         },
         {
+          "table_schema": "public",
+          "table_name": "door_logs",
+          "column_name": "door_location",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
           "table_schema": "storage",
           "table_name": "objects",
           "column_name": "bucket_id",
@@ -7518,18 +7536,9 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_30",
-          "column_name": "extension",
-          "data_type": "text",
-          "is_nullable": "NO",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
           "table_schema": "public",
           "table_name": "door_logs",
-          "column_name": "door_location",
+          "column_name": "footage_link",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7556,7 +7565,16 @@
         {
           "table_schema": "public",
           "table_name": "door_logs",
-          "column_name": "footage_link",
+          "column_name": "note",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "training_tracker",
+          "column_name": "certificate_url",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7590,15 +7608,6 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "training_tracker",
-          "column_name": "certificate_url",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
           "table_schema": "realtime",
           "table_name": "messages",
           "column_name": "event",
@@ -7609,8 +7618,17 @@
         },
         {
           "table_schema": "public",
-          "table_name": "door_logs",
-          "column_name": "note",
+          "table_name": "incident_reports",
+          "column_name": "type_of_incident",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": "'Employee Violation'::text",
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "v_cctv_logs",
+          "column_name": "notes",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7618,10 +7636,10 @@
         },
         {
           "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "description",
+          "table_name": "sold_out_logs",
+          "column_name": "notes",
           "data_type": "text",
-          "is_nullable": "NO",
+          "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -7645,15 +7663,6 @@
         },
         {
           "table_schema": "public",
-          "table_name": "incident_reports",
-          "column_name": "footage_link",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
           "table_name": "training_tracker",
           "column_name": "signature_data",
           "data_type": "text",
@@ -7671,15 +7680,6 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "auth",
-          "table_name": "refresh_tokens",
-          "column_name": "parent",
-          "data_type": "character varying",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": 255
-        },
-        {
           "table_schema": "storage",
           "table_name": "s3_multipart_uploads",
           "column_name": "id",
@@ -7689,11 +7689,20 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "sold_out_logs",
-          "column_name": "notes",
-          "data_type": "text",
+          "table_schema": "auth",
+          "table_name": "refresh_tokens",
+          "column_name": "parent",
+          "data_type": "character varying",
           "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": 255
+        },
+        {
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_25",
+          "column_name": "extension",
+          "data_type": "text",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -7710,6 +7719,15 @@
           "table_schema": "storage",
           "table_name": "s3_multipart_uploads",
           "column_name": "bucket_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "storage",
+          "table_name": "s3_multipart_uploads",
+          "column_name": "version",
           "data_type": "text",
           "is_nullable": "NO",
           "column_default": null,
@@ -7736,15 +7754,6 @@
         {
           "table_schema": "storage",
           "table_name": "s3_multipart_uploads",
-          "column_name": "version",
-          "data_type": "text",
-          "is_nullable": "NO",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "storage",
-          "table_name": "s3_multipart_uploads",
           "column_name": "owner_id",
           "data_type": "text",
           "is_nullable": "YES",
@@ -7755,6 +7764,15 @@
           "table_schema": "public",
           "table_name": "agreement_summary",
           "column_name": "employee_name",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "agreement_summary",
+          "column_name": "employee_type",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7788,15 +7806,6 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "agreement_summary",
-          "column_name": "employee_type",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
           "table_schema": "storage",
           "table_name": "prefixes",
           "column_name": "bucket_id",
@@ -7806,11 +7815,11 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_25",
-          "column_name": "extension",
+          "table_schema": "public",
+          "table_name": "v_cctv_logs",
+          "column_name": "updated_by_name",
           "data_type": "text",
-          "is_nullable": "NO",
+          "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -7819,6 +7828,15 @@
           "table_name": "agreement_summary",
           "column_name": "agreement_title",
           "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "agreement_summary",
+          "column_name": "allowed_types",
+          "data_type": "ARRAY",
           "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
@@ -7853,15 +7871,6 @@
         {
           "table_schema": "public",
           "table_name": "agreement_summary",
-          "column_name": "allowed_types",
-          "data_type": "ARRAY",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "agreement_summary",
           "column_name": "doc_links",
           "data_type": "ARRAY",
           "is_nullable": "YES",
@@ -7870,7 +7879,7 @@
         },
         {
           "table_schema": "realtime",
-          "table_name": "messages_2025_10_27",
+          "table_name": "messages_2025_10_29",
           "column_name": "topic",
           "data_type": "text",
           "is_nullable": "NO",
@@ -7914,9 +7923,18 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_25",
-          "column_name": "event",
+          "table_schema": "public",
+          "table_name": "clock_logs",
+          "column_name": "footage_link",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "clock_logs",
+          "column_name": "note",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -7942,15 +7960,6 @@
         },
         {
           "table_schema": "public",
-          "table_name": "clock_logs",
-          "column_name": "footage_link",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
           "table_name": "training_summary",
           "column_name": "certificate_url",
           "data_type": "text",
@@ -7971,6 +7980,15 @@
           "table_schema": "public",
           "table_name": "training_summary",
           "column_name": "quiz_url",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "shift_summary",
+          "column_name": "full_name",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8014,8 +8032,8 @@
         },
         {
           "table_schema": "public",
-          "table_name": "shift_summary",
-          "column_name": "full_name",
+          "table_name": "safe_room_logs",
+          "column_name": "footage_link",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8023,8 +8041,8 @@
         },
         {
           "table_schema": "public",
-          "table_name": "clock_logs",
-          "column_name": "note",
+          "table_name": "safe_room_logs",
+          "column_name": "reason",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8041,7 +8059,7 @@
         },
         {
           "table_schema": "realtime",
-          "table_name": "messages_2025_10_27",
+          "table_name": "messages_2025_10_29",
           "column_name": "extension",
           "data_type": "text",
           "is_nullable": "NO",
@@ -8058,11 +8076,11 @@
           "character_maximum_length": 255
         },
         {
-          "table_schema": "public",
-          "table_name": "safe_room_logs",
-          "column_name": "footage_link",
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_27",
+          "column_name": "topic",
           "data_type": "text",
-          "is_nullable": "YES",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -8086,15 +8104,6 @@
         },
         {
           "table_schema": "public",
-          "table_name": "safe_room_logs",
-          "column_name": "reason",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
           "table_name": "payroll_invoices",
           "column_name": "remarks",
           "data_type": "text",
@@ -8104,28 +8113,10 @@
         },
         {
           "table_schema": "realtime",
-          "table_name": "messages_2025_10_28",
+          "table_name": "messages_2025_10_29",
           "column_name": "event",
           "data_type": "text",
           "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_27",
-          "column_name": "event",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "messages",
-          "column_name": "message",
-          "data_type": "text",
-          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -8139,9 +8130,36 @@
           "character_maximum_length": null
         },
         {
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_25",
+          "column_name": "event",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
           "table_schema": "public",
           "table_name": "employee_violations",
           "column_name": "description",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "employee_violations",
+          "column_name": "footage_link",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "v_invoice_data",
+          "column_name": "invoice_no",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8158,8 +8176,8 @@
         },
         {
           "table_schema": "public",
-          "table_name": "v_invoice_data",
-          "column_name": "invoice_no",
+          "table_name": "employee_violations",
+          "column_name": "notes",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8185,8 +8203,8 @@
         },
         {
           "table_schema": "public",
-          "table_name": "employee_violations",
-          "column_name": "footage_link",
+          "table_name": "shift_edit_log",
+          "column_name": "action",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8195,7 +8213,7 @@
         {
           "table_schema": "public",
           "table_name": "shift_edit_log",
-          "column_name": "action",
+          "column_name": "notes",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8211,18 +8229,18 @@
           "character_maximum_length": 255
         },
         {
-          "table_schema": "public",
-          "table_name": "shift_edit_log",
-          "column_name": "notes",
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_27",
+          "column_name": "extension",
           "data_type": "text",
-          "is_nullable": "YES",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "employee_violations",
-          "column_name": "notes",
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_28",
+          "column_name": "event",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8236,15 +8254,6 @@
           "is_nullable": "YES",
           "column_default": "''::character varying",
           "character_maximum_length": 255
-        },
-        {
-          "table_schema": "public",
-          "table_name": "v_cctv_logs",
-          "column_name": "camera_name",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
         },
         {
           "table_schema": "public",
@@ -8310,6 +8319,15 @@
           "character_maximum_length": null
         },
         {
+          "table_schema": "public",
+          "table_name": "v_invoice_data",
+          "column_name": "wise_tag",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
           "table_schema": "auth",
           "table_name": "audit_log_entries",
           "column_name": "ip_address",
@@ -8321,18 +8339,18 @@
         {
           "table_schema": "public",
           "table_name": "v_invoice_data",
-          "column_name": "wise_tag",
+          "column_name": "wise_email",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "v_invoice_data",
-          "column_name": "wise_email",
+          "table_schema": "auth",
+          "table_name": "oauth_authorizations",
+          "column_name": "authorization_id",
           "data_type": "text",
-          "is_nullable": "YES",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -8360,15 +8378,6 @@
           "column_name": "redirect_to",
           "data_type": "text",
           "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "auth",
-          "table_name": "oauth_authorizations",
-          "column_name": "authorization_id",
-          "data_type": "text",
-          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -8419,19 +8428,19 @@
         },
         {
           "table_schema": "auth",
-          "table_name": "mfa_amr_claims",
-          "column_name": "authentication_method",
+          "table_name": "oauth_authorizations",
+          "column_name": "resource",
           "data_type": "text",
-          "is_nullable": "NO",
+          "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
         {
           "table_schema": "auth",
-          "table_name": "oauth_authorizations",
-          "column_name": "resource",
+          "table_name": "mfa_amr_claims",
+          "column_name": "authentication_method",
           "data_type": "text",
-          "is_nullable": "YES",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -8446,8 +8455,17 @@
         },
         {
           "table_schema": "public",
-          "table_name": "v_cctv_logs",
-          "column_name": "camera_status",
+          "table_name": "cctv_logs",
+          "column_name": "notes",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_27",
+          "column_name": "event",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8464,10 +8482,10 @@
         },
         {
           "table_schema": "public",
-          "table_name": "v_cctv_logs",
-          "column_name": "battery_type",
+          "table_name": "cctv_cameras",
+          "column_name": "camera_name",
           "data_type": "text",
-          "is_nullable": "YES",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -8508,18 +8526,18 @@
           "character_maximum_length": null
         },
         {
-          "table_schema": "public",
-          "table_name": "cctv_logs",
-          "column_name": "notes",
+          "table_schema": "auth",
+          "table_name": "oauth_authorizations",
+          "column_name": "authorization_code",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
           "character_maximum_length": null
         },
         {
-          "table_schema": "auth",
-          "table_name": "oauth_authorizations",
-          "column_name": "authorization_code",
+          "table_schema": "public",
+          "table_name": "cctv_cameras",
+          "column_name": "battery_type",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8536,8 +8554,8 @@
         },
         {
           "table_schema": "public",
-          "table_name": "cctv_cameras",
-          "column_name": "camera_name",
+          "table_name": "messages",
+          "column_name": "message",
           "data_type": "text",
           "is_nullable": "NO",
           "column_default": null,
@@ -8555,43 +8573,7 @@
         {
           "table_schema": "public",
           "table_name": "cctv_cameras",
-          "column_name": "battery_type",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "realtime",
-          "table_name": "messages_2025_10_26",
-          "column_name": "topic",
-          "data_type": "text",
-          "is_nullable": "NO",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "auth",
-          "table_name": "identities",
-          "column_name": "provider",
-          "data_type": "text",
-          "is_nullable": "NO",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "cctv_cameras",
           "column_name": "notes",
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "character_maximum_length": null
-        },
-        {
-          "table_schema": "public",
-          "table_name": "v_invoice_data",
-          "column_name": "payroll_status",
           "data_type": "text",
           "is_nullable": "YES",
           "column_default": null,
@@ -8609,9 +8591,72 @@
         {
           "table_schema": "auth",
           "table_name": "identities",
+          "column_name": "provider",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "v_invoice_data",
+          "column_name": "payroll_status",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "cctv_logs",
+          "column_name": "note",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_26",
+          "column_name": "topic",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "auth",
+          "table_name": "identities",
           "column_name": "email",
           "data_type": "text",
           "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "training_completion_log",
+          "column_name": "message",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "realtime",
+          "table_name": "messages_2025_10_26",
+          "column_name": "extension",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null,
+          "character_maximum_length": null
+        },
+        {
+          "table_schema": "public",
+          "table_name": "incident_reports",
+          "column_name": "description",
+          "data_type": "text",
+          "is_nullable": "NO",
           "column_default": null,
           "character_maximum_length": null
         },
@@ -12988,24 +13033,6 @@
           "last_sign_in_at": "2025-10-26T12:15:41.367438+00:00"
         },
         {
-          "id": "ad2bf350-9f4e-4ed8-9ef6-a4517df03259",
-          "email": "employee@gmail.com",
-          "role": "authenticated",
-          "raw_app_meta_data": {
-            "provider": "email",
-            "providers": [
-              "email"
-            ]
-          },
-          "raw_user_meta_data": {
-            "role": "employee",
-            "username": "employeess@gmail.com",
-            "email_verified": true
-          },
-          "created_at": "2025-10-16T08:26:19.785006+00:00",
-          "last_sign_in_at": "2025-10-26T14:02:40.890137+00:00"
-        },
-        {
           "id": "009cb3b5-46be-42f4-8a05-cd7261e8bec5",
           "email": "test123@yahoo.com",
           "role": "authenticated",
@@ -13024,8 +13051,8 @@
           "last_sign_in_at": null
         },
         {
-          "id": "28a7b0c2-ded7-4587-b26b-917aaed46e50",
-          "email": "hippiesautomation@gmail.com",
+          "id": "ad2bf350-9f4e-4ed8-9ef6-a4517df03259",
+          "email": "employee@gmail.com",
           "role": "authenticated",
           "raw_app_meta_data": {
             "provider": "email",
@@ -13034,11 +13061,12 @@
             ]
           },
           "raw_user_meta_data": {
-            "role": "admin",
+            "role": "employee",
+            "username": "employeess@gmail.com",
             "email_verified": true
           },
-          "created_at": "2025-10-16T01:28:11.459834+00:00",
-          "last_sign_in_at": "2025-10-26T14:20:03.653422+00:00"
+          "created_at": "2025-10-16T08:26:19.785006+00:00",
+          "last_sign_in_at": "2025-10-27T04:27:09.13805+00:00"
         },
         {
           "id": "07eb2a83-93f5-4d87-b810-ea3bd2a20708",
@@ -13057,6 +13085,23 @@
           },
           "created_at": "2025-10-21T07:05:20.423744+00:00",
           "last_sign_in_at": null
+        },
+        {
+          "id": "28a7b0c2-ded7-4587-b26b-917aaed46e50",
+          "email": "hippiesautomation@gmail.com",
+          "role": "authenticated",
+          "raw_app_meta_data": {
+            "provider": "email",
+            "providers": [
+              "email"
+            ]
+          },
+          "raw_user_meta_data": {
+            "role": "admin",
+            "email_verified": true
+          },
+          "created_at": "2025-10-16T01:28:11.459834+00:00",
+          "last_sign_in_at": "2025-10-27T04:28:51.602208+00:00"
         },
         {
           "id": "c39b6199-6b0e-42ea-b957-05fe65691f82",
