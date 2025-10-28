@@ -100,7 +100,9 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
       driver_license_no: formData.driver_license_no?.trim() || null,
       start_date: formData.start_date || null,
       pay_rate:
-        formData.pay_rate !== undefined && formData.pay_rate !== null && formData.pay_rate !== ("" as any)
+        typeof formData.pay_rate === "number" && !Number.isNaN(formData.pay_rate)
+          ? formData.pay_rate
+          : formData.pay_rate && !isNaN(Number(formData.pay_rate))
           ? Number(formData.pay_rate)
           : null,
       shirt_size: formData.shirt_size || null,

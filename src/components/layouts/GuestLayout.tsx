@@ -12,7 +12,7 @@ export default function GuestLayout() {
           links={[
             { to: "/", label: "Home" },
             { to: "/about", label: "About" },
-            { to: "/hiring", label: "Hiring" },
+            { to: "/jobs", label: "Careers" }, // 🌿 Updated
             { to: "/contact", label: "Contact" },
             { to: "/login", label: "Login" },
           ]}
@@ -21,10 +21,6 @@ export default function GuestLayout() {
 
       {/* 🌿 Main content area */}
       <main className="flex-1 w-full">
-        {/* 
-          We make sure the Hero (and any full-width sections) can stretch edge-to-edge,
-          while standard pages still stay centered.
-        */}
         <div className="w-full">
           <Outlet />
         </div>
