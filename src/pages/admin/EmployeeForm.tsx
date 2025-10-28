@@ -82,20 +82,48 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true);
 
-    const payload = { ...formData, updated_at: new Date().toISOString() };
     const handleError = (msg: string) => {
       notifyError(msg);
       setSaving(false);
     };
 
+    const normalizedPayload = {
+      full_name: formData.full_name.trim(),
+      email: formData.email.trim(),
+      contact_number: formData.contact_number?.trim() || null,
+      address: formData.address?.trim() || null,
+      emergency_contact: formData.emergency_contact?.trim() || null,
+      emergency_contact_phone: formData.emergency_contact_phone?.trim() || null,
+      ssn_last4: formData.ssn_last4?.trim() || null,
+      driver_license_no: formData.driver_license_no?.trim() || null,
+      start_date: formData.start_date || null,
+      pay_rate:
+        formData.pay_rate !== undefined && formData.pay_rate !== null && formData.pay_rate !== ("" as any)
+          ? Number(formData.pay_rate)
+          : null,
+      shirt_size: formData.shirt_size || null,
+      hoodie_size: formData.hoodie_size || null,
+      employee_type: formData.employee_type,
+      position: formData.position?.trim() || null,
+      acronym: formData.acronym?.trim() || null,
+      nickname: formData.nickname?.trim() || null,
+      wise_tag: formData.wise_tag?.trim() || null,
+      wise_email: formData.wise_email?.trim() || null,
+      bank_name: formData.bank_name?.trim() || null,
+      account_number: formData.account_number?.trim() || null,
+      wecard_certified: formData.wecard_certified ?? false,
+      wecard_certificate_url: formData.wecard_certificate_url?.trim() || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    // ✅ Update existing
     if (employee) {
-      // 🟢 Edit existing employee
       confirmAction("Save changes to this employee?", async () => {
-        setSaving(true);
         const { error } = await supabase
           .from("profiles")
-          .update(payload)
+          .update(normalizedPayload)
           .eq("id", employee.id);
 
         if (error) handleError(`Error updating profile: ${error.message}`);
@@ -106,62 +134,57 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
           setSaving(false);
         }
       });
-    } else {
-      // 🆕 Create new employee
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(formData.email)) {
-        return handleError("Please enter a valid email address.");
-      }
-
-      const bannedPatterns = [
-        "test@",
-        "example@",
-        "mailinator",
-        "tempmail",
-        "yopmail",
-        "guerrillamail",
-        "discard",
-      ];
-      if (
-        bannedPatterns.some((p) => formData.email.toLowerCase().includes(p))
-      ) {
-        return handleError(
-          "Please use a real company or personal email address."
-        );
-      }
-
-      setSaving(true);
-      const password = Math.random().toString(36).slice(-10);
-
-      const { data: newUser, error: userError } =
-        await supabaseAdmin.auth.admin.createUser({
-          email: formData.email,
-          password,
-          email_confirm: true,
-          user_metadata: {
-            full_name: formData.full_name,
-            employee_type: formData.employee_type,
-          },
-        });
-
-      if (userError)
-        return handleError(`Error creating user: ${userError.message}`);
-
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update(payload)
-        .eq("id", newUser.user.id);
-
-      if (updateError)
-        return handleError(`Error updating profile: ${updateError.message}`);
-
-      notifySuccess(
-        `🎉 Employee created successfully! Temporary password: ${password}`
-      );
-      onSave();
-      onClose();
-      setSaving(false);
+      return;
     }
+
+    // ✅ Create new
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(formData.email))
+      return handleError("Please enter a valid email address.");
+
+    const bannedPatterns = ["test@", "example@", "mailinator", "tempmail", "yopmail"];
+    if (bannedPatterns.some((p) => formData.email.toLowerCase().includes(p)))
+      return handleError("Please use a real company or personal email address.");
+
+    const tempPassword = Math.random().toString(36).slice(-10);
+
+    const { data: newUser, error: userError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email: formData.email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          full_name: formData.full_name,
+          employee_type: formData.employee_type,
+        },
+      });
+
+    if (userError || !newUser?.user?.id)
+      return handleError(
+        `Error creating user: ${userError ? userError.message : "No user ID returned"}`
+      );
+
+    const profilePayload = {
+      id: newUser.user.id,
+      ...normalizedPayload,
+      created_at: new Date().toISOString(),
+    };
+
+    const { error: upsertError } = await supabaseAdmin
+      .from("profiles")
+      .upsert(profilePayload, { onConflict: "id" });
+
+
+    if (upsertError)
+      return handleError(`Error saving profile: ${upsertError.message}`);
+
+    notifySuccess(
+      `🎉 Employee created successfully!\nTemporary password: ${tempPassword}`
+    );
+
+    onSave();
+    onClose();
+    setSaving(false);
   };
 
   function DropdownField({
@@ -175,7 +198,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
     value: string;
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   }) {
-    const sizes = ["XXXXS", "XXXS", "XXS", "XS", "S", "M", "L", "XL", "XXL", "XXXL", "XXXXL"];
+    const sizes = ["XXS", "XS", "S", "M", "L", "XL", "XXL"];
     return (
       <div>
         <label className="block text-sm font-semibold mb-2">{label}</label>
@@ -198,11 +221,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-3 sm:px-6 py-6 animate-fadeIn">
-      <div
-        className="bg-white/90 rounded-2xl border border-hemp-sage shadow-2xl 
-        w-full max-w-2xl flex flex-col max-h-[calc(100vh-3rem)] sm:max-h-[calc(100vh-4rem)]
-        overflow-hidden backdrop-blur-xl"
-      >
+      <div className="bg-white/90 rounded-2xl border border-hemp-sage shadow-2xl w-full max-w-2xl flex flex-col max-h-[calc(100vh-3rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden backdrop-blur-xl">
         {/* Header */}
         <header className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-hemp-sage/40 bg-gradient-to-r from-hemp-green/10 to-hemp-sage/20 sticky top-0">
           <div className="flex items-center gap-2">
@@ -218,7 +237,6 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-hemp-sage/30 text-gray-600 hover:text-hemp-green transition"
-            aria-label="Close"
           >
             <X size={20} />
           </button>
@@ -226,10 +244,11 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
 
         {/* Form */}
         <form
+          id="employeeForm"
           onSubmit={handleSubmit}
           className="flex-1 overflow-y-auto px-5 sm:px-6 py-6 space-y-6 text-gray-700"
         >
-          {/* 🌿 Employee Type Selection (Top Section) */}
+          {/* 🌿 Employee Type */}
           <section className="border border-hemp-sage/40 bg-hemp-green/5 rounded-xl p-4 mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -238,7 +257,6 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                   Employee Type
                 </h3>
               </div>
-
               <span
                 className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   isStoreEmployee
@@ -246,9 +264,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                     : "bg-hemp-sage/30 text-hemp-forest border border-hemp-sage/50"
                 }`}
               >
-                {formData.employee_type === "Store"
-                  ? "🛍️ Store Staff"
-                  : "💻 Virtual Assistant"}
+                {isStoreEmployee ? "🛍️ Store Staff" : "💻 Virtual Assistant"}
               </span>
             </div>
 
@@ -273,67 +289,19 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
             </h3>
 
             <div className="space-y-5">
-              <InputField
-                label="Full Name"
-                name="full_name"
-                value={formData.full_name}
-                onChange={handleChange}
-                required
-              />
-
-              <InputField
-                label="Email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-
+              <InputField label="Full Name" name="full_name" value={formData.full_name} onChange={handleChange} required />
+              <InputField label="Email" name="email" type="email" value={formData.email} onChange={handleChange} required />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InputField
-                  label="Contact Number"
-                  name="contact_number"
-                  value={formData.contact_number || ""}
-                  onChange={handleChange}
-                />
-                <InputField
-                  label="Emergency Contact"
-                  name="emergency_contact"
-                  value={formData.emergency_contact || ""}
-                  onChange={handleChange}
-                />
-                <InputField
-                  label="Emergency Contact Phone"
-                  name="emergency_contact_phone"
-                  value={formData.emergency_contact_phone || ""}
-                  onChange={handleChange}
-                />
+                <InputField label="Contact Number" name="contact_number" value={formData.contact_number || ""} onChange={handleChange} />
+                <InputField label="Emergency Contact" name="emergency_contact" value={formData.emergency_contact || ""} onChange={handleChange} />
+                <InputField label="Emergency Contact Phone" name="emergency_contact_phone" value={formData.emergency_contact_phone || ""} onChange={handleChange} />
               </div>
+              <InputField label="Address" name="address" value={formData.address || ""} onChange={handleChange} />
 
-              <InputField
-                label="Address"
-                name="address"
-                value={formData.address || ""}
-                onChange={handleChange}
-              />
-
-              {/* Store-only fields */}
               {isStoreEmployee && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <InputField
-                    label="SSN (Last 4 Digits)"
-                    name="ssn_last4"
-                    value={formData.ssn_last4 || ""}
-                    onChange={handleChange}
-                    maxLength={4}
-                  />
-                  <InputField
-                    label="Driver’s License No."
-                    name="driver_license_no"
-                    value={formData.driver_license_no || ""}
-                    onChange={handleChange}
-                  />
+                  <InputField label="SSN (Last 4 Digits)" name="ssn_last4" value={formData.ssn_last4 || ""} onChange={handleChange} maxLength={4} />
+                  <InputField label="Driver’s License No." name="driver_license_no" value={formData.driver_license_no || ""} onChange={handleChange} />
                 </div>
               )}
             </div>
@@ -341,66 +309,24 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
 
           {/* 🧾 Employment Details */}
           <section>
-            <h3 className="text-sm font-semibold text-hemp-forest/70 mb-3">
-              Employment Details
-            </h3>
+            <h3 className="text-sm font-semibold text-hemp-forest/70 mb-3">Employment Details</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <InputField
-                label="Position / Title"
-                name="position"
-                value={formData.position || ""}
-                onChange={handleChange}
-              />
-              <InputField
-                label="Acronym"
-                name="acronym"
-                value={formData.acronym || ""}
-                onChange={handleChange}
-              />
-              <InputField
-                label="Nickname"
-                name="nickname"
-                value={formData.nickname || ""}
-                onChange={handleChange}
-              />
+              <InputField label="Position / Title" name="position" value={formData.position || ""} onChange={handleChange} />
+              <InputField label="Acronym" name="acronym" value={formData.acronym || ""} onChange={handleChange} />
+              <InputField label="Nickname" name="nickname" value={formData.nickname || ""} onChange={handleChange} />
             </div>
 
             {isStoreEmployee && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                <InputField
-                  label="Start Date"
-                  name="start_date"
-                  type="date"
-                  value={formData.start_date || ""}
-                  onChange={handleChange}
-                />
-                <InputField
-                  label="Starting Pay Rate ($/hr)"
-                  name="pay_rate"
-                  type="number"
-                  value={formData.pay_rate?.toString() || ""}
-                  onChange={handleChange}
-                />
-
-                {/* Dropdowns for Shirt & Hoodie Sizes */}
-                <DropdownField
-                  label="Shirt Size"
-                  name="shirt_size"
-                  value={formData.shirt_size || ""}
-                  onChange={handleChange}
-                />
-                <DropdownField
-                  label="Hoodie Size"
-                  name="hoodie_size"
-                  value={formData.hoodie_size || ""}
-                  onChange={handleChange}
-                />
+                <InputField label="Start Date" name="start_date" type="date" value={formData.start_date || ""} onChange={handleChange} />
+                <InputField label="Starting Pay Rate ($/hr)" name="pay_rate" type="number" value={formData.pay_rate?.toString() || ""} onChange={handleChange} />
+                <DropdownField label="Shirt Size" name="shirt_size" value={formData.shirt_size || ""} onChange={handleChange} />
+                <DropdownField label="Hoodie Size" name="hoodie_size" value={formData.hoodie_size || ""} onChange={handleChange} />
               </div>
             )}
           </section>
 
-          {/* 💸 Payout Info remains unchanged... */}
-          {/* 🎓 WeCard Certification (Store Only) */}
+          {/* 🎓 WeCard Certification */}
           {isStoreEmployee && (
             <section>
               <h3 className="text-sm font-semibold text-hemp-forest/70 mb-3 flex items-center gap-1">
@@ -431,41 +357,16 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                 onChange={handleChange}
                 type="url"
               />
-
-              {!formData.wecard_certified && (
-                <p className="text-xs text-gray-500 mt-2">
-                  ⚠️ Required for all in-store employees. Visit{" "}
-                  <a
-                    href="https://www.wecard.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-hemp-green hover:underline"
-                  >
-                    WeCard.org
-                  </a>{" "}
-                  to complete certification.
-                </p>
-              )}
             </section>
           )}
-
         </form>
 
         {/* Footer */}
         <footer className="flex flex-col-reverse sm:flex-row justify-end sm:items-center gap-3 px-5 sm:px-6 py-4 border-t border-hemp-sage/40 bg-white/90 sticky bottom-0">
-          <Button
-            type="button"
-            onClick={onClose}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg px-5 py-2 w-full sm:w-auto"
-          >
+          <Button type="button" onClick={onClose} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg px-5 py-2 w-full sm:w-auto">
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={saving}
-            onClick={handleSubmit}
-            className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-5 sm:px-6 py-2 flex items-center justify-center gap-2 w-full sm:w-auto shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
-          >
+          <Button type="submit" form="employeeForm" disabled={saving} className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-5 sm:px-6 py-2 flex items-center justify-center gap-2 w-full sm:w-auto shadow-md hover:shadow-lg active:scale-[0.98] transition-all">
             {saving ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
