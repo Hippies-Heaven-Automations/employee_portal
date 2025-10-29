@@ -12,7 +12,7 @@ export default function GuestLayout() {
           links={[
             { to: "/", label: "Home" },
             { to: "/about", label: "About" },
-            { to: "/jobs", label: "Careers" }, // 🌿 Updated
+            { to: "/jobs", label: "Careers" }, 
             { to: "/contact", label: "Contact" },
             { to: "/login", label: "Login" },
           ]}

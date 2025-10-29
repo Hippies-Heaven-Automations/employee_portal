@@ -17,7 +17,9 @@ import Profile from "./pages/Profile";
 // 🌿 Job pages (NEW)
 import JobList from "./pages/jobs/JobList";
 import JobDetail from "./pages/jobs/JobDetail";
-import JobApplication from "./pages/jobs/JobApplication";
+// import JobApplication from "./pages/jobs/JobApplication";
+import JobApplicationWizard from "./pages/jobs/JobApplicationWizard";
+
 
 // 🌿 Admin pages
 import AdminHome from "./pages/admin/AdminHome";
@@ -71,7 +73,9 @@ export default function App() {
           {/* 🌿 Job Openings (Public) */}
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
-          <Route path="/jobs/apply/:id" element={<JobApplication />} />
+          {/* <Route path="/jobs/apply/:id" element={<JobApplication />} /> */}
+          <Route path="/jobs/apply/:id" element={<JobApplicationWizard />} />
+          
         </Route>
 
         {/* 🌿 Admin Dashboard */}
