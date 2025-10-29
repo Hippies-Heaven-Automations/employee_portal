@@ -13,16 +13,19 @@ export default function StepAvailability({
   onPrev: () => void;
   onNext: () => void;
 }) {
+  // 🧠 Compute tomorrow’s date and current time
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
 
-  // Memoize slots to avoid ESLint warning
+  const minDate = tomorrow.toISOString().split("T")[0];
+  const minTime = now.toTimeString().slice(0, 5); // HH:MM
+
+  // Memoize slots to avoid re-renders
   const slots = useMemo(
     () => (value.slots.length === 3 ? value.slots : ["", "", ""]),
     [value.slots]
   );
-
-  useEffect(() => {
-    console.log("Availability changed:", slots);
-  }, [slots]);
 
   const updateSlot = (idx: number, date: string, time: string) => {
     const next = [...slots];
@@ -56,6 +59,7 @@ export default function StepAvailability({
             </label>
             <input
               type="date"
+              min={minDate}
               value={getDate(slots[i])}
               onChange={(e) => updateSlot(i, e.target.value, getTime(slots[i]))}
               className="w-full px-3 py-2 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
@@ -67,6 +71,7 @@ export default function StepAvailability({
             </label>
             <input
               type="time"
+              min={minTime}
               value={getTime(slots[i])}
               onChange={(e) => updateSlot(i, getDate(slots[i]), e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
