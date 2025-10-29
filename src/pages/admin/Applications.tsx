@@ -83,12 +83,12 @@ export default function Applications() {
       case "Declined":
       case "declined":
         return "bg-red-100 text-red-700 border-red-200";
-      case "Interview Set":
+      case "interview_set":
         return "bg-blue-100 text-blue-700 border-blue-200";
-      case "Cancelled":
+      case "cancelled":
         return "bg-gray-200 text-gray-700 border-gray-300";
       default:
-        return "bg-yellow-100 text-yellow-700 border-yellow-200"; // Pending / default
+        return "bg-yellow-100 text-yellow-700 border-yellow-200"; 
     }
   };
 
@@ -191,32 +191,56 @@ export default function Applications() {
 
   // Admin picks one interview time to confirm
   const handleSetInterviewFromModal = async (slotISO: string) => {
-    if (!selectedApp) return;
-    confirmAction(
-      `Confirm interview for:\n${formatCT(slotISO)} (CT) ?`,
-      async () => {
-        const { error } = await supabase
-          .from("applications")
-          .update({
-            selected_schedule: slotISO,
-            status: "Interview Set",
-          })
-          .eq("id", selectedApp.id);
+  if (!selectedApp) return;
+  confirmAction(
+    `Confirm interview for:\n${formatCT(slotISO)} (CT)?`,
+    async () => {
+      const { error } = await supabase
+        .from("applications")
+        .update({
+          selected_schedule: slotISO,
+          status: "interview_set",
+        })
+        .eq("id", selectedApp.id);
 
-        if (error) {
-          notifyError(`Error setting interview: ${error.message}`);
-        } else {
-          notifySuccess("Interview scheduled!");
-          setSelectedApp({
-            ...selectedApp,
-            selected_schedule: slotISO,
-            status: "Interview Set",
-          });
-          fetchApplications();
+      if (error) {
+        notifyError(`Error setting interview: ${error.message}`);
+      } else {
+        notifySuccess("Interview scheduled!");
+
+        // ✅ Send interview confirmation email
+        try {
+          const res = await fetch(
+            "https://vnxftftsglekhpczgbcf.functions.supabase.co/send-interview-confirmation",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: selectedApp.full_name,
+                email: selectedApp.email,
+                jobTitle: selectedApp.job_openings?.title,
+                interviewTime: slotISO,
+              }),
+            }
+          );
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to send email");
+          console.log("✅ Interview email sent:", data);
+        } catch (emailErr) {
+          console.error(emailErr);
+          notifyError("Interview set, but email failed to send.");
         }
+
+        setSelectedApp({
+          ...selectedApp,
+          selected_schedule: slotISO,
+          status: "interview_set",
+        });
+        fetchApplications();
       }
-    );
-  };
+    }
+  );
+};
 
   // Manual status edit dropdown in modal
   const handleStatusChange = async (
@@ -383,7 +407,7 @@ export default function Applications() {
                             a.status
                           )}`}
                         >
-                          {a.status || "Pending"}
+                          {a.status || "pending"}
                         </span>
                       </td>
                       <td className="px-4 py-3 flex flex-wrap gap-2">
@@ -442,7 +466,7 @@ export default function Applications() {
                         a.status
                       )}`}
                     >
-                      {a.status || "Pending"}
+                      {a.status || "pending"}
                     </span>
                   </div>
 
@@ -610,15 +634,15 @@ export default function Applications() {
                   Application Status
                 </label>
                 <select
-                  value={selectedApp.status || "Pending"}
+                  value={selectedApp.status || "pending"}
                   onChange={handleStatusChange}
                   className="w-full border rounded-lg px-4 py-2 capitalize font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 bg-white"
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Interview Set">Interview Set</option>
-                  <option value="Accepted">Accepted</option>
-                  <option value="Declined">Declined</option>
-                  <option value="Cancelled">Cancelled</option>
+                  <option value="pending">Pending</option>
+                  <option value="interview_set">Interview Set</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="declined">Declined</option>
+                  <option value="cancelled">Cancelled</option>
                 </select>
               </div>
             </div>

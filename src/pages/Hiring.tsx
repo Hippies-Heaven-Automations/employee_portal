@@ -27,9 +27,19 @@ export default function Hiring() {
 
     try {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-      const bannedPatterns = ["test@", "example@", "mailinator", "tempmail", "yopmail", "guerrillamail"];
+      const bannedPatterns = [
+        "test@",
+        "example@",
+        "mailinator",
+        "tempmail",
+        "yopmail",
+        "guerrillamail",
+      ];
 
-      if (!emailRegex.test(formData.email) || bannedPatterns.some(p => formData.email.toLowerCase().includes(p))) {
+      if (
+        !emailRegex.test(formData.email) ||
+        bannedPatterns.some((p) => formData.email.toLowerCase().includes(p))
+      ) {
         notifyError("Please enter a valid personal or business email address.");
         setSubmitting(false);
         return;
@@ -72,29 +82,25 @@ export default function Hiring() {
   };
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center bg-hemp-mist overflow-hidden py-16 px-4">
-      {/* 🌿 Background gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,#C8EBC8_0%,transparent_60%),radial-gradient(circle_at_80%_70%,#A7E3A7_0%,transparent_60%)] opacity-60"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-hemp-cream/80 via-hemp-mist to-hemp-green/10"></div>
-
-      {/* 🪴 Form Container */}
-      <div className="relative z-10 w-full max-w-2xl bg-hemp-cream/70 backdrop-blur-md border border-hemp-sage rounded-2xl shadow-card p-8 sm:p-10 animate-fadeInUp">
+    <section className="min-h-[90vh] flex items-center justify-center bg-gray-50 py-16 px-4">
+      <div className="w-full max-w-2xl bg-white border border-gray-200 rounded-2xl shadow-md p-8 sm:p-10 animate-fadeInUp">
+        {/* Header */}
         <div className="text-center mb-6">
           <div className="flex justify-center mb-3">
-            <div className="w-12 h-12 rounded-full bg-hemp-green flex items-center justify-center shadow-md">
-              <span className="text-white text-xl">🌿</span>
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center shadow-sm">
+              <span className="text-xl">💼</span>
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-hemp-forest mb-2">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
             Join Our Team
           </h1>
-          <p className="text-hemp-ink/80">
+          <p className="text-gray-600">
             Fill out the form below to apply for a position with us.
           </p>
         </div>
 
-        {/* 🧾 Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid sm:grid-cols-2 gap-4">
             <input
               type="text"
@@ -102,7 +108,7 @@ export default function Hiring() {
               placeholder="Full Name"
               value={formData.full_name}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
               required
             />
             <input
@@ -111,7 +117,7 @@ export default function Hiring() {
               placeholder="Email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
               required
             />
           </div>
@@ -122,7 +128,7 @@ export default function Hiring() {
             placeholder="Contact Number"
             value={formData.contact_number}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
           />
 
           <textarea
@@ -130,27 +136,27 @@ export default function Hiring() {
             placeholder="Message or Cover Letter"
             value={formData.message}
             onChange={handleChange}
-            className="w-full h-28 px-4 py-3 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink resize-none"
+            className="w-full h-28 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 resize-none"
           />
 
           <input
             type="url"
             name="resume_url"
-            placeholder="Resume Link (Google Drive)"
+            placeholder="Resume Link (Google Drive, Dropbox, etc.)"
             value={formData.resume_url}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
             required
           />
 
-          {/* 🌿 Interview Date and Time */}
+          {/* Interview Date and Time */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="preferred_interview_date"
-                className="block text-hemp-forest font-medium mb-2"
+                className="block text-gray-700 font-medium mb-2"
               >
-                Pref Interview Date
+                Preferred Interview Date
               </label>
               <input
                 type="date"
@@ -158,15 +164,15 @@ export default function Hiring() {
                 id="preferred_interview_date"
                 value={formData.preferred_interview_date}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
               />
             </div>
             <div>
               <label
                 htmlFor="preferred_interview_time"
-                className="block text-hemp-forest font-medium mb-2"
+                className="block text-gray-700 font-medium mb-2"
               >
-                Time
+                Preferred Time
               </label>
               <input
                 type="time"
@@ -174,16 +180,18 @@ export default function Hiring() {
                 id="preferred_interview_time"
                 value={formData.preferred_interview_time}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
               />
             </div>
           </div>
 
-          <div className="flex justify-center pt-2">
+         {/* ✅ Submit Button */}
+          <div className="flex justify-center pt-3">
             <Button
               type="submit"
+              variant="primary"
               disabled={submitting}
-              className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 shadow-card disabled:opacity-60"
+              className="px-8 py-3 text-base font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
             >
               {submitting ? "Submitting..." : "Submit Application"}
             </Button>

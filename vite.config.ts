@@ -9,4 +9,15 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
   },
+  server: {
+    proxy: {
+      "/api/send-confirmation": {
+        target:
+          "https://vnxftftsglekhpczgbcf.functions.supabase.co/send-application-confirmation",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api\/send-confirmation/, ""),
+      },
+    },
+  },
 })

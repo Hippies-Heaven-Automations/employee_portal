@@ -72,46 +72,6 @@ export default function About() {
           Peace, love, and groovy gifts await! 🌼
         </p>
       </div>
-
-      {/* 📞 Contact / Footer card (optional keep) */}
-      <div className="relative z-10 w-full max-w-xl bg-hemp-cream/70 backdrop-blur-md border border-hemp-sage rounded-2xl shadow-card p-8 text-hemp-forest">
-        <h2 className="text-2xl font-semibold mb-4 text-center sm:text-left">
-          Contact & Location
-        </h2>
-        <p className="mb-2 text-center sm:text-left">
-          📍{" "}
-          <span className="font-medium">Hippies Heaven Gift Shop LLC</span>
-        </p>
-        <p className="mb-2 text-center sm:text-left">
-          433 S Locust Street, Centralia, IL 62801
-        </p>
-        <p className="mb-4 text-center sm:text-left">
-          Serving hemp lovers nationwide 🌎
-        </p>
-        <p className="mb-1 text-center sm:text-left">
-          📞 +1 (618) 819-1327
-        </p>
-        <p className="mb-1 text-center sm:text-left">
-          📧{" "}
-          <a
-            href="mailto:hippiesheaven@gmail.com"
-            className="text-hemp-green hover:underline"
-          >
-            hippiesheaven@gmail.com
-          </a>
-        </p>
-        <p className="text-center sm:text-left">
-          🌐{" "}
-          <a
-            href="https://www.hippiesheavencbd.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-hemp-green hover:underline"
-          >
-            www.hippiesheavencbd.com
-          </a>
-        </p>
-      </div>
     </section>
   );
 }

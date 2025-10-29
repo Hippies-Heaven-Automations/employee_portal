@@ -1,138 +1,183 @@
-# 🌿 Employee Portal
+# Supabase CLI
 
-A modern, full-stack employee management system built with **React + TypeScript + Vite + Supabase**, featuring secure authentication, scheduling, announcements, and automated testing.  
-Deployed seamlessly via **Vercel** and managed with **pnpm** for optimized builds.
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
----
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-## 🚀 Features
+This repository contains all the functionality for Supabase CLI.
 
-- 🧩 **Role-Based Dashboards** — Separate interfaces for Admins and Employees  
-- 📅 **Scheduling System** — Manage shifts, time logs, and leave requests  
-- 📰 **Announcements Module** — Create, edit, and broadcast updates  
-- ✅ **Supabase Authentication** — Secure login with RLS policies  
-- 🧠 **Jest + React Testing Library** — Smoke-tested components for stability  
-- ⚡ **Vite + pnpm** — Lightning-fast local builds and CI/CD pipelines  
-- ☁️ **Vercel Deployment** — Zero-config hosting with environment variables  
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
----
+## Getting started
 
-## 🏗️ Tech Stack
+### Install the CLI
 
-| Layer | Technology | Purpose |
-|:------|:------------|:--------|
-| Frontend | **React + TypeScript + Vite** | SPA + modular component system |
-| Styling | **Tailwind CSS** | Fast, responsive UI |
-| Backend | **Supabase (PostgreSQL + Auth)** | Database, storage, and APIs |
-| State & Routing | **React Router v7**, **Hooks** | Navigation and data flow |
-| Testing | **Jest + Testing Library** | Automated sanity checks |
-| Build Tool | **pnpm + Vite** | Efficient dependency management |
-| Deployment | **Vercel** | CI/CD and environment handling |
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
----
-
-## ⚙️ Setup & Installation
-
-### 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/<your-org>/<your-repo>.git
-cd employee_portal
+npm i supabase --save-dev
+```
 
-### 2️⃣ Install Dependencies
-pnpm install
+To install the beta release channel:
 
-### 3️⃣ Create Environment Variables
-Create a .env file at the project root (never commit this):
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-For reference, there’s a safe .env.example file in the repo.
+```bash
+npm i supabase@beta --save-dev
+```
 
----
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-## 🧪 Run Tests
-All smoke tests and component checks are powered by Jest:
-pnpm run test
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
 
-To lint your code before committing:
-pnpm run lint
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-## 🧰 Build for Production
-Generate your optimized production build:
-pnpm run build
-The build output will be in the /dist directory.
+<details>
+  <summary><b>macOS</b></summary>
 
-## ☁️ Deploy to Vercel
-This project is fully configured for Vercel.
-Your vercel.json should look like this:
-{
-  "buildCommand": "pnpm run build",
-  "outputDirectory": "dist",
-  "framework": "vite"
-}
+  Available via [Homebrew](https://brew.sh). To install:
 
-Set these environment variables in Vercel:
-| Key                      | Value                              |
-| :----------------------- | :--------------------------------- |
-| `VITE_SUPABASE_URL`      | `https://your-project.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | `your-anon-key`                    |
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-Then deploy directly via Vercel Dashboard or CLI:
-vercel --prod
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-## 🔍 Development Scripts
-| Command                | Description                              |
-| ---------------------- | ---------------------------------------- |
-| `pnpm run dev`         | Start local development server           |
-| `pnpm run lint`        | Run ESLint checks                        |
-| `pnpm run test`        | Execute Jest test suites                 |
-| `pnpm run build`       | Build production-ready assets            |
-| `pnpm run clean:build` | Remove generated `.js` files and `dist/` |
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-## 🧠 Folder Structure
-employee_portal/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── hooks/
-│   ├── lib/
-│   │   └── supabaseClient.ts
-│   ├── pages/
-│   ├── styles/
-│   └── utils.ts
-├── __mocks__/
-│   ├── fileMock.js
-│   └── supabaseClient.ts
-├── __tests__/
-│   └── smoke.test.tsx
-├── public/
-├── .gitignore
-├── jest.config.ts
-├── jest.setup.ts
-├── tsconfig.json
-├── vite.config.ts
-└── package.json
+<details>
+  <summary><b>Windows</b></summary>
 
-## 🧹 CI/CD Pipeline
-GitHub Actions automatically:
-  Installs dependencies with pnpm
-  Runs lint + Jest test suites
-  Builds for production
-Workflow file:
-  .github/workflows/ci.yml
+  Available via [Scoop](https://scoop.sh). To install:
 
-## 🔒 Environment Safety
-This repo ignores all sensitive files:
-  .env
-  .env.local
-  .env.*
-Always set keys manually in Vercel or your CI environment.
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
 
-## 🧑‍💻 Contributors
-Project Lead: Chris Albea
-Collaborators: Brenton, Shawn Downing
-Organization: Hippies Heaven Gift Shop LLC
+  To upgrade:
 
-## 📜 License
-MIT License © 2025 Hippies Heaven Gift Shop LLC
-You are free to use, modify, and distribute this software with proper attribution.
+  ```powershell
+  scoop update supabase
+  ```
+</details>
 
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
+```bash
+supabase bootstrap
+```
+
+Or using npx:
+
+```bash
+npx supabase bootstrap
+```
+
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
+```

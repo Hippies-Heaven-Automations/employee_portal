@@ -241,7 +241,7 @@ export default function JobManager() {
                       className={`${
                         a.status === "Cancelled"
                           ? "text-red-600"
-                          : a.status === "Interview Set"
+                          : a.status === "interview_set"
                           ? "text-green-600"
                           : "text-gray-600"
                       } font-medium`}

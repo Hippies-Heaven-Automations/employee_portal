@@ -5,6 +5,9 @@ import { Button } from "../../components/Button";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import { Loader2, ArrowLeft } from "lucide-react";
 
+// 👇 ADD THIS IMPORT
+import { sendConfirmationEmail } from "../../api/sendConfirmation";
+
 interface JobOpening {
   id: string;
   title: string;
@@ -89,21 +92,41 @@ export default function JobApplication() {
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-      const bannedPatterns = ["test@", "example@", "mailinator", "tempmail", "yopmail", "guerrillamail"];
+      const bannedPatterns = [
+        "test@",
+        "example@",
+        "mailinator",
+        "tempmail",
+        "yopmail",
+        "guerrillamail",
+      ];
 
-      if (!emailRegex.test(formData.email) || bannedPatterns.some(p => formData.email.toLowerCase().includes(p))) {
-        notifyError("Please enter a valid personal or business email address.");
+      if (
+        !emailRegex.test(formData.email) ||
+        bannedPatterns.some((p) =>
+          formData.email.toLowerCase().includes(p)
+        )
+      ) {
+        notifyError(
+          "Please enter a valid personal or business email address."
+        );
         setSubmitting(false);
         return;
       }
 
-      // Build interview_schedules array (Central Time)
       const interviewSlots = [
-        formData.slot1_date && formData.slot1_time ? `${formData.slot1_date}T${formData.slot1_time}:00` : null,
-        formData.slot2_date && formData.slot2_time ? `${formData.slot2_date}T${formData.slot2_time}:00` : null,
-        formData.slot3_date && formData.slot3_time ? `${formData.slot3_date}T${formData.slot3_time}:00` : null,
+        formData.slot1_date && formData.slot1_time
+          ? `${formData.slot1_date}T${formData.slot1_time}:00`
+          : null,
+        formData.slot2_date && formData.slot2_time
+          ? `${formData.slot2_date}T${formData.slot2_time}:00`
+          : null,
+        formData.slot3_date && formData.slot3_time
+          ? `${formData.slot3_date}T${formData.slot3_time}:00`
+          : null,
       ].filter(Boolean);
 
+      // ✅ Step 1: Save application to Supabase
       const { error } = await supabase.from("applications").insert([
         {
           full_name: formData.full_name,
@@ -119,6 +142,23 @@ export default function JobApplication() {
 
       if (error) throw error;
 
+      // ✅ Step 2: Send confirmation email
+      try {
+        const data = await sendConfirmationEmail({
+          name: formData.full_name,
+          email: formData.email,
+          jobTitle: job.title,
+        });
+
+        console.log("📩 Email Function Response:", data);
+      } catch (emailErr) {
+        console.error("Email send failed:", emailErr);
+        notifyError(
+          "Application saved, but email confirmation failed to send."
+        );
+      }
+
+      // ✅ Step 3: Clear form + success UI
       notifySuccess("✅ Application submitted successfully!");
       setFormData({
         full_name: "",
@@ -181,7 +221,9 @@ export default function JobApplication() {
           <p className="text-hemp-ink/80 mb-2">
             Position Type:{" "}
             <strong>
-              {job.employment_type === "VA" ? "Virtual Assistant" : "In-Store"}
+              {job.employment_type === "VA"
+                ? "Virtual Assistant"
+                : "In-Store"}
             </strong>
           </p>
           <p className="text-sm text-gray-500 italic">
@@ -260,7 +302,9 @@ export default function JobApplication() {
                     type="date"
                     id={`slot${i}_date`}
                     name={`slot${i}_date`}
-                    value={formData[`slot${i}_date` as keyof JobApplicationForm]}
+                    value={
+                      formData[`slot${i}_date` as keyof JobApplicationForm]
+                    }
                     onChange={handleChange}
                     required
                     className="w-full px-3 py-2 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
@@ -277,7 +321,9 @@ export default function JobApplication() {
                     type="time"
                     id={`slot${i}_time`}
                     name={`slot${i}_time`}
-                    value={formData[`slot${i}_time` as keyof JobApplicationForm]}
+                    value={
+                      formData[`slot${i}_time` as keyof JobApplicationForm]
+                    }
                     onChange={handleChange}
                     required
                     className="w-full px-3 py-2 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"

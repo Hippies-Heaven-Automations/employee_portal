@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { Loader2, ArrowLeft, Briefcase, Building2, Calendar } from "lucide-react";
+import { Button } from "../../components/Button";
 
 interface JobOpening {
   id: string;
@@ -116,11 +117,13 @@ export default function JobDetail() {
       {/* Apply Now */}
       {job.status === "Open" ? (
         <div className="text-center">
-          <Link
-            to={`/jobs/apply/${job.id}`}
-            className="inline-block bg-hemp text-white font-medium px-6 py-2 rounded-md shadow hover:bg-hemp-dark transition"
-          >
-            Apply Now
+          <Link to={`/jobs/apply/${job.id}`}>
+            <Button
+              variant="primary"
+              className="px-8 py-2 rounded-md shadow-md hover:shadow-lg font-medium text-base transition-all"
+            >
+              Apply Now
+            </Button>
           </Link>
         </div>
       ) : (
@@ -128,6 +131,7 @@ export default function JobDetail() {
           This job is no longer accepting applications.
         </div>
       )}
+
     </div>
   );
 }

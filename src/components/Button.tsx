@@ -1,34 +1,36 @@
 import { cn } from "../utils";
-import { type ButtonHTMLAttributes } from "react";
+import React from "react";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "outline" | "ghost";
+interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "outline" | "ghost" | "danger";
 }
 
 export function Button({
   variant = "primary",
   className,
-  children,
+  disabled,
   ...props
 }: ButtonProps) {
-  const baseStyles =
-    "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const base =
+    "inline-flex items-center justify-center font-medium rounded-md transition focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed";
 
   const variants = {
     primary:
-      "bg-purple-700 text-white hover:bg-purple-800 focus:ring-purple-500",
+      "bg-hemp-green text-white hover:bg-hemp-forest focus:ring-2 focus:ring-hemp-sage focus:ring-offset-2",
     outline:
-      "border border-purple-700 text-purple-700 hover:bg-purple-50 focus:ring-purple-500",
+      "border border-hemp-green text-hemp-forest hover:bg-hemp-mist focus:ring-2 focus:ring-hemp-green focus:ring-offset-2",
     ghost:
-      "text-purple-700 hover:bg-purple-50 focus:ring-purple-400",
+      "text-hemp-forest hover:bg-hemp-mist focus:ring-2 focus:ring-hemp-sage focus:ring-offset-2",
+    danger:
+      "bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-400 focus:ring-offset-2",
   };
 
   return (
     <button
-      className={cn(baseStyles, variants[variant], "px-6 py-2", className)}
       {...props}
-    >
-      {children}
-    </button>
+      disabled={disabled}
+      className={cn(base, variants[variant], className)}
+    />
   );
 }

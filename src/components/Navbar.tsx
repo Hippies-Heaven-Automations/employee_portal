@@ -7,7 +7,6 @@ import hhLogo from "../assets/hh_careers_logo.png";
 import { createPortal } from "react-dom";
 import { useUnreadMessages } from "../hooks/useUnreadMessages";
 
-
 export interface NavItem {
   to: string;
   label: string;
@@ -34,13 +33,11 @@ export default function Navbar({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { count } = useUnreadMessages();
 
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
   };
 
-  // 🌿 Lock body scroll while drawer open
   useEffect(() => {
     const el = document.documentElement;
     el.style.overflow = mobileOpen ? "hidden" : "";
