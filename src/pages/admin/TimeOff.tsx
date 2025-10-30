@@ -89,7 +89,7 @@ export default function TimeOff() {
     const regex = new RegExp(`(${searchTerm})`, "gi");
     return text.replace(
       regex,
-      `<mark class='bg-hemp-sage/40 text-hemp-forest font-semibold'>$1</mark>`
+      "<mark class='bg-hemp-sage/40 text-hemp-forest font-semibold'>$1</mark>"
     );
   };
 

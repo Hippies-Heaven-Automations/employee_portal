@@ -1,14 +1,40 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import { Button } from "../../components/Button";
-import EmployeeForm from "./EmployeeForm";
+import { EmployeeForm } from "./EmployeeForm/index";
+
 import {
   Pencil,
   Trash2,
   UserPlus,
   Search,
   ArrowUpDown,
+  Phone,
 } from "lucide-react";
+import {
+  Box,
+  Card,
+  Typography,
+  Button,
+  IconButton,
+  TextField,
+  InputAdornment,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TableContainer,
+  Paper,
+  Pagination,
+  Stack,
+  CircularProgress,
+  useMediaQuery,
+} from "@mui/material";
+import { styled, useTheme } from "@mui/material/styles";
 import { confirmAction } from "../../utils/confirm";
 import { notifySuccess, notifyError } from "../../utils/notify";
 
@@ -29,10 +55,24 @@ interface Employee {
   employee_type: "Store" | "VA";
 }
 
+const EdgyCard = styled(Card)({
+  borderRadius: 0,
+  border: "1px solid #d1d5db",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+});
+
+const EdgyButton = styled(Button)({
+  borderRadius: 0,
+  textTransform: "none",
+  fontWeight: 600,
+});
+
 export default function Employees() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+    null
+  );
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,6 +80,8 @@ export default function Employees() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const itemsPerPage = 8;
 
   const fetchEmployees = async () => {
@@ -63,7 +105,7 @@ export default function Employees() {
       const { error } = await supabase.from("profiles").delete().eq("id", id);
       if (error) notifyError(`Error deleting employee: ${error.message}`);
       else {
-        notifySuccess("✅ Employee deleted successfully!");
+        notifySuccess("Employee deleted successfully!");
         fetchEmployees();
       }
     });
@@ -88,19 +130,17 @@ export default function Employees() {
     const regex = new RegExp(`(${searchTerm})`, "gi");
     return text.replace(
       regex,
-      `<mark class='bg-hemp-sage/40 text-hemp-forest font-semibold'>$1</mark>`
+      "<mark style=\"background:#e5ede6;color:#14532d;font-weight:600;\">$1</mark>"
     );
   };
 
   const filteredEmployees = useMemo(() => {
     let filtered = employees;
-
     if (employeeType !== "all") {
       filtered = filtered.filter(
         (emp) => emp.employee_type?.toLowerCase() === employeeType
       );
     }
-
     if (searchTerm.trim() !== "") {
       const lower = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -109,252 +149,275 @@ export default function Employees() {
           emp.email.toLowerCase().includes(lower)
       );
     }
-
-    filtered = [...filtered].sort((a, b) => {
-      if (sortOrder === "asc") return a.full_name.localeCompare(b.full_name);
-      return b.full_name.localeCompare(a.full_name);
-    });
-
+    filtered = [...filtered].sort((a, b) =>
+      sortOrder === "asc"
+        ? a.full_name.localeCompare(b.full_name)
+        : b.full_name.localeCompare(a.full_name)
+    );
     return filtered;
   }, [employees, searchTerm, employeeType, sortOrder]);
 
   const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedEmployees = filteredEmployees.slice(
-    startIndex,
-    startIndex + itemsPerPage
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
-  };
-
   return (
-    <section className="animate-fadeInUp text-gray-700">
-      {/* 🌿 Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3 sm:gap-0">
-        <h1 className="text-3xl font-bold text-hemp-forest">Employees</h1>
-        <Button
+    <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+      {/* Header */}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        mb={3}
+        gap={2}
+      >
+        <Typography
+          variant={isMobile ? "h5" : "h4"}
+          sx={{ color: "#1e293b", fontWeight: 700 }}
+        >
+          Employees
+        </Typography>
+        <EdgyButton
+          fullWidth={isMobile}
+          variant="contained"
           onClick={handleAdd}
-          className="w-full sm:w-auto bg-hemp-green hover:bg-hemp-forest text-white font-semibold rounded-lg px-6 py-2 transition-all duration-300 shadow-card inline-flex justify-center items-center gap-2"
+          sx={{
+            backgroundColor: "#15803d",
+            color: "white",
+            "&:hover": { backgroundColor: "#14532d", color: "white" },
+          }}
+          startIcon={<UserPlus size={18} />}
         >
-          <UserPlus size={18} />
-          <span className="hidden sm:inline">Add Employee</span>
-        </Button>
-      </div>
+          Add Employee
+        </EdgyButton>
+      </Stack>
 
-      {/* 🌿 Smart Controls */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5 bg-white/70 backdrop-blur-md border border-hemp-sage/40 rounded-xl p-4 shadow-sm">
-        {/* Search + Filter */}
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          {/* Search Bar */}
-          <div className="relative flex-1">
-            <Search
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-            />
-            <input
-              type="text"
-              placeholder="Search employees..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-hemp-sage/50 bg-white/60 text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-hemp-green focus:border-hemp-green transition-all"
-            />
-          </div>
-
-          {/* Filter Dropdown */}
-          <div className="relative">
-            <select
+      {/* Filters */}
+      <EdgyCard sx={{ p: 2, mb: 3 }}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          alignItems={{ xs: "stretch", sm: "center" }}
+          justifyContent="space-between"
+        >
+          <TextField
+            placeholder="Search employees..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={18} color="#6b7280" />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              flex: 1,
+              "& fieldset": { borderRadius: 0 },
+            }}
+          />
+          <FormControl fullWidth={isMobile} sx={{ minWidth: { sm: 160 } }}>
+            <InputLabel>Type</InputLabel>
+            <Select
               value={employeeType}
-              onChange={(e) => {
-                setEmployeeType(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="appearance-none border border-hemp-sage/50 bg-white/60 rounded-lg px-4 py-2.5 text-gray-700 focus:ring-2 focus:ring-hemp-green focus:border-hemp-green cursor-pointer transition-all w-full sm:w-auto"
+              label="Type"
+              onChange={(e) => setEmployeeType(e.target.value)}
+              sx={{ borderRadius: 0 }}
             >
-              <option value="all">All Employees</option>
-              <option value="va">Virtual Assistants</option>
-              <option value="store">Store Staff</option>
-            </select>
-            <svg
-              className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Sort Button */}
-        <Button
-          onClick={toggleSortOrder}
-          variant="outline"
-          className="w-full sm:w-auto border-hemp-green/60 text-hemp-forest hover:bg-hemp-green hover:text-white transition-all rounded-lg px-5 py-2.5 flex items-center justify-center gap-2 shadow-sm"
-        >
-          <ArrowUpDown size={18} />
-          <span className="hidden sm:inline font-medium">
+              <MenuItem value="all">All Employees</MenuItem>
+              <MenuItem value="va">Virtual Assistants</MenuItem>
+              <MenuItem value="store">Store Staff</MenuItem>
+            </Select>
+          </FormControl>
+          <EdgyButton
+            variant="outlined"
+            fullWidth={isMobile}
+            onClick={toggleSortOrder}
+            sx={{
+              color: "#1e293b",
+              borderColor: "#15803d",
+              "&:hover": { background: "#15803d", color: "white" },
+            }}
+            startIcon={<ArrowUpDown size={18} />}
+          >
             {sortOrder === "asc" ? "Sort A–Z" : "Sort Z–A"}
-          </span>
-        </Button>
-      </div>
+          </EdgyButton>
+        </Stack>
+      </EdgyCard>
 
-      {/* 🌿 Table */}
-      <div className="bg-white border border-hemp-sage rounded-lg shadow-sm overflow-hidden">
+      {/* Table / Mobile List */}
+      <EdgyCard>
         {loading ? (
-          <div className="p-6 text-center text-gray-500">
-            Loading employees...
-          </div>
-        ) : (
-          <>
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="min-w-full text-sm text-gray-700">
-                <thead className="bg-hemp-sage/40 text-gray-800 font-semibold uppercase tracking-wide text-xs">
-                  <tr>
-                    <th className="px-4 py-3 text-left">Name</th>
-                    <th className="px-4 py-3 text-left">Email</th>
-                    <th className="px-4 py-3 text-left">Type</th>
-                    <th className="px-4 py-3 text-left">Contact</th>
-                    <th className="px-4 py-3 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedEmployees.map((emp) => (
-                    <tr
-                      key={emp.id}
-                      className="border-t border-hemp-sage/30 hover:bg-hemp-mist/50 transition-all"
+          <Box sx={{ textAlign: "center", p: 4 }}>
+            <CircularProgress sx={{ color: "#15803d" }} />
+          </Box>
+        ) : isMobile ? (
+          // Mobile card layout
+          <Stack divider={<Box sx={{ borderBottom: "1px solid #e5e7eb" }} />}>
+            {paginatedEmployees.map((emp) => (
+              <Box key={emp.id} sx={{ p: 2 }}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="flex-start"
+                >
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ fontWeight: 600, color: "#14532d" }}
+                      dangerouslySetInnerHTML={{
+                        __html: highlightMatch(emp.full_name),
+                      }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "#374151" }}
+                      dangerouslySetInnerHTML={{
+                        __html: highlightMatch(emp.email),
+                      }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "#6b7280", mt: 0.5 }}
                     >
-                      <td
-                        className="px-4 py-3 font-medium text-gray-800"
-                        dangerouslySetInnerHTML={{
-                          __html: highlightMatch(emp.full_name),
-                        }}
-                      />
-                      <td
-                        className="px-4 py-3 text-gray-700"
-                        dangerouslySetInnerHTML={{
-                          __html: highlightMatch(emp.email),
-                        }}
-                      />
-                      <td className="px-4 py-3 text-gray-700 capitalize">
-                        {emp.employee_type}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">
-                        {emp.contact_number || "-"}
-                      </td>
-                      <td className="px-4 py-3 flex flex-wrap gap-2">
-                        <Button
-                          onClick={() => handleEdit(emp)}
-                          variant="outline"
-                          className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white transition inline-flex items-center gap-1.5"
-                        >
-                          <Pencil size={15} /> Edit
-                        </Button>
-                        <Button
-                          onClick={() => handleDelete(emp.id)}
-                          variant="ghost"
-                          className="text-red-600 hover:bg-red-50 inline-flex items-center gap-1.5"
-                        >
-                          <Trash2 size={16} /> Delete
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile Card View */}
-            <div className="block md:hidden divide-y divide-hemp-sage/40">
-              {paginatedEmployees.map((emp) => (
-                <div key={emp.id} className="p-4 bg-white">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h2
-                        className="text-lg font-semibold text-hemp-forest"
-                        dangerouslySetInnerHTML={{
-                          __html: highlightMatch(emp.full_name),
-                        }}
-                      />
-                      <p
-                        className="text-sm text-gray-500"
-                        dangerouslySetInnerHTML={{
-                          __html: highlightMatch(emp.email),
-                        }}
-                      />
-                    </div>
-                    <span className="px-2 py-1 text-xs rounded bg-hemp-sage/30 text-hemp-forest capitalize">
+                      <Phone size={14} style={{ marginRight: 4 }} />
+                      {emp.contact_number || "No contact"}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        mt: 0.5,
+                        display: "inline-block",
+                        textTransform: "capitalize",
+                        backgroundColor: "#e5ede6",
+                        color: "#14532d",
+                        px: 1,
+                        py: 0.25,
+                      }}
+                    >
                       {emp.employee_type}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">
-                    📞 {emp.contact_number || "No contact"}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" spacing={1}>
+                    <IconButton
                       onClick={() => handleEdit(emp)}
-                      variant="outline"
-                      className="border-hemp-green text-hemp-forest hover:bg-hemp-green hover:text-white px-3 py-1 text-sm flex items-center gap-1"
+                      sx={{
+                        color: "#15803d",
+                        "&:hover": { backgroundColor: "#dcfce7" },
+                      }}
+                      size="small"
                     >
-                      <Pencil size={14} />
-                      <span className="hidden sm:inline">Edit</span>
-                    </Button>
-                    <Button
+                      <Pencil size={16} />
+                    </IconButton>
+                    <IconButton
                       onClick={() => handleDelete(emp.id)}
-                      variant="ghost"
-                      className="text-red-600 hover:bg-red-50 px-3 py-1 text-sm flex items-center gap-1"
+                      sx={{
+                        color: "#dc2626",
+                        "&:hover": { backgroundColor: "#fee2e2" },
+                      }}
+                      size="small"
                     >
-                      <Trash2 size={14} />
-                      <span className="hidden sm:inline">Delete</span>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
+                      <Trash2 size={16} />
+                    </IconButton>
+                  </Stack>
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
+        ) : (
+          // Desktop table layout
+          <TableContainer
+            component={Paper}
+            sx={{ borderRadius: 0, overflowX: "auto" }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#15803d" }}>
+                  {["Name", "Email", "Type", "Contact", "Actions"].map((h) => (
+                    <TableCell key={h} sx={{ color: "white", fontWeight: 700 }}>
+                      {h}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginatedEmployees.map((emp) => (
+                  <TableRow
+                    key={emp.id}
+                    hover
+                    sx={{
+                      "&:hover": { backgroundColor: "#f1f5f9" },
+                    }}
+                  >
+                    <TableCell
+                      dangerouslySetInnerHTML={{
+                        __html: highlightMatch(emp.full_name),
+                      }}
+                    />
+                    <TableCell
+                      dangerouslySetInnerHTML={{
+                        __html: highlightMatch(emp.email),
+                      }}
+                    />
+                    <TableCell sx={{ textTransform: "capitalize" }}>
+                      {emp.employee_type}
+                    </TableCell>
+                    <TableCell>{emp.contact_number || "-"}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        onClick={() => handleEdit(emp)}
+                        sx={{
+                          color: "#15803d",
+                          "&:hover": { backgroundColor: "#dcfce7" },
+                        }}
+                        size="small"
+                      >
+                        <Pencil size={16} />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDelete(emp.id)}
+                        sx={{
+                          color: "#dc2626",
+                          "&:hover": { backgroundColor: "#fee2e2" },
+                        }}
+                        size="small"
+                      >
+                        <Trash2 size={16} />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
-      </div>
+      </EdgyCard>
 
-      {/* 🌿 Pagination */}
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
-          <Button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-3 py-2 text-sm bg-hemp-sage/60 hover:bg-hemp-green hover:text-white disabled:opacity-50 rounded-lg"
-          >
-            Prev
-          </Button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={`px-3 py-1 rounded-md text-sm font-medium ${
-                currentPage === page
-                  ? "bg-hemp-green text-white"
-                  : "bg-white text-hemp-forest border border-hemp-sage hover:bg-hemp-mist"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-          <Button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-3 py-2 text-sm bg-hemp-sage/60 hover:bg-hemp-green hover:text-white disabled:opacity-50 rounded-lg"
-          >
-            Next
-          </Button>
-        </div>
+        <Stack alignItems="center" mt={3}>
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={(_, page) => setCurrentPage(page)}
+            shape="square"
+            size={isMobile ? "small" : "medium"}
+            sx={{
+              "& .MuiPaginationItem-root": {
+                borderRadius: 0,
+                "&.Mui-selected": {
+                  backgroundColor: "#15803d",
+                  color: "white",
+                },
+              },
+            }}
+          />
+        </Stack>
       )}
 
-      {/* 🌿 Add/Edit Modal */}
+      {/* Add/Edit Form Modal */}
       {isFormOpen && (
         <EmployeeForm
           employee={selectedEmployee}
@@ -362,6 +425,6 @@ export default function Employees() {
           onSave={fetchEmployees}
         />
       )}
-    </section>
+    </Box>
   );
 }

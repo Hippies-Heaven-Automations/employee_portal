@@ -43,7 +43,7 @@ export default function Schedule() {
     setLoading(true);
     const { data, error } = await supabase
       .from("schedules")
-      .select(`*, profiles:employee_id(full_name)`)
+      .select("*, profiles:employee_id(full_name)")
       .order("date", { ascending: true });
 
     if (error) notifyError(`Failed to load schedules: ${error.message}`);

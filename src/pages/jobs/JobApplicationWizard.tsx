@@ -226,7 +226,7 @@ export default function JobApplicationWizard() {
           radial-gradient(circle at 80% 70%, #A7E3A7 0%, transparent 60%)
         `,
         "&::after": {
-          content: '""',
+          content: "\"\"",
           position: "absolute",
           inset: 0,
           background:
