@@ -14,12 +14,10 @@ import Hiring from "./pages/Hiring";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 
-// 🌿 Job pages (NEW)
+// 🌿 Job pages
 import JobList from "./pages/jobs/JobList";
 import JobDetail from "./pages/jobs/JobDetail";
-// import JobApplication from "./pages/jobs/JobApplication";
 import JobApplicationWizard from "./pages/jobs/JobApplicationWizard";
-
 
 // 🌿 Admin pages
 import AdminHome from "./pages/admin/AdminHome";
@@ -40,7 +38,7 @@ import AgreementPreview from "./pages/admin/AgreementPreview";
 import SecurityLogsManager from "./pages/security/SecurityLogsManager";
 import TaskManager from "./pages/tasks/TaskManager";
 import TaskDetail from "./pages/tasks/TaskDetail";
-import JobManager from "./pages/jobs/JobManager"; // ✅ New Admin Page
+import JobManager from "./pages/jobs/JobManager";
 
 // 🌿 Employee pages
 import EmpHome from "./pages/employee/EmpHome";
@@ -56,13 +54,15 @@ import TrainingQuiz from "./pages/training/TrainingQuiz";
 import AgreementDetail from "./pages/agreement/AgreementDetail";
 import AgreementList from "./pages/agreement/AgreementList";
 import Inbox from "./pages/messaging/Inbox";
-import Chat from "./pages/messaging/Chat";
+
+// ✅ New Wrapper for Chat Page
+import ChatRoute from "./pages/messaging/ChatRoute";
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        {/* 🌿 Public / Guest routes wrapped in GuestLayout */}
+        {/* 🌿 Public / Guest routes */}
         <Route element={<GuestLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -70,12 +70,10 @@ export default function App() {
           <Route path="/hiring" element={<Hiring />} />
           <Route path="/login" element={<Login />} />
 
-          {/* 🌿 Job Openings (Public) */}
+          {/* 🌿 Job Openings */}
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
-          {/* <Route path="/jobs/apply/:id" element={<JobApplication />} /> */}
           <Route path="/jobs/apply/:id" element={<JobApplicationWizard />} />
-          
         </Route>
 
         {/* 🌿 Admin Dashboard */}
@@ -104,13 +102,10 @@ export default function App() {
           <Route path="security" element={<SecurityLogsManager />} />
           <Route path="payroll" element={<PayrollManager />} />
           <Route path="messaging" element={<Inbox />} />
-          <Route path="messaging/chat/:userId" element={<Chat />} />
+          <Route path="messaging/chat/:userId" element={<ChatRoute />} />
           <Route path="tasks" element={<TaskManager />} />
           <Route path="tasks/:id" element={<TaskDetail />} />
-
-          {/* 🌿 Job Openings (Admin) */}
           <Route path="jobopenings" element={<JobManager />} />
-
           <Route path="profile" element={<Profile />} />
         </Route>
 
@@ -136,7 +131,7 @@ export default function App() {
           <Route path="security" element={<SecurityLogsManager />} />
           <Route path="payroll" element={<EmpPayroll />} />
           <Route path="messaging" element={<Inbox />} />
-          <Route path="messaging/chat/:userId" element={<Chat />} />
+          <Route path="messaging/chat/:userId" element={<ChatRoute />} />
           <Route path="profile" element={<Profile />} />
           <Route path="tasks" element={<EmpTasks />} />
         </Route>

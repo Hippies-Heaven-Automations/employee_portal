@@ -15,64 +15,56 @@ export function useMessages(currentUserId: string, activeChatUserId: string | nu
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
 
- // 📨 Fetch conversation
-    const fetchMessages = useCallback(async () => {
-    if (!activeChatUserId || !currentUserId) return; // ✅ both required
+  // 📨 Fetch conversation
+  const fetchMessages = useCallback(async () => {
+    if (!activeChatUserId || !currentUserId) return;
 
     setLoading(true);
     const query = `
-        and(sender_id.eq.${currentUserId},receiver_id.eq.${activeChatUserId}),
-        and(sender_id.eq.${activeChatUserId},receiver_id.eq.${currentUserId})
-    `.replace(/\s+/g, ""); // removes newlines/spaces for Supabase parser
+      and(sender_id.eq.${currentUserId},receiver_id.eq.${activeChatUserId}),
+      and(sender_id.eq.${activeChatUserId},receiver_id.eq.${currentUserId})
+    `.replace(/\s+/g, "");
 
     const { data, error } = await supabase
-        .from("messages")
-        .select("*")
-        .or(query)
-        .order("created_at", { ascending: true });
+      .from("messages")
+      .select("*")
+      .or(query)
+      .order("created_at", { ascending: true });
 
     if (error) notifyError(error.message);
     else setMessages(data || []);
     setLoading(false);
-    }, [currentUserId, activeChatUserId]);
+  }, [currentUserId, activeChatUserId]);
 
-    // ⏳ Run once both IDs exist
-    useEffect(() => {
+  useEffect(() => {
     if (currentUserId && activeChatUserId) {
-        fetchMessages();
+      fetchMessages();
     }
-    }, [currentUserId, activeChatUserId, fetchMessages]);
+  }, [currentUserId, activeChatUserId, fetchMessages]);
 
-
-
-  // 💬 Send message
+  // 💬 Send message (with matching ID)
   const sendMessage = useCallback(
-  async (text: string) => {
-    if (!text.trim() || !activeChatUserId) return;
+    async (text: string) => {
+      if (!text.trim() || !activeChatUserId) return;
 
-    const messageObj = {
-      sender_id: currentUserId,
-      receiver_id: activeChatUserId,
-      message: text.trim(),
-      is_read: false,
-      created_at: new Date().toISOString(),
-      id: crypto.randomUUID(), // temporary local id
-    };
+      const messageObj: Message = {
+        id: crypto.randomUUID(),
+        sender_id: currentUserId,
+        receiver_id: activeChatUserId,
+        message: text.trim(),
+        is_read: false,
+        created_at: new Date().toISOString(),
+      };
 
-    // 👇 Add immediately for instant UI feedback
-    setMessages((prev) => [...prev, messageObj]);
+      // Instant UI feedback
+      setMessages((prev) => [...prev, messageObj]);
 
-    const { error } = await supabase.from("messages").insert({
-      sender_id: currentUserId,
-      receiver_id: activeChatUserId,
-      message: text.trim(),
-    });
+      const { error } = await supabase.from("messages").insert(messageObj);
 
-    if (error) notifyError(error.message);
-  },
-  [currentUserId, activeChatUserId]
-);
-
+      if (error) notifyError(error.message);
+    },
+    [currentUserId, activeChatUserId]
+  );
 
   // ✅ Mark messages as read
   const markAsRead = useCallback(async () => {
@@ -85,37 +77,36 @@ export function useMessages(currentUserId: string, activeChatUserId: string | nu
       .eq("is_read", false);
   }, [currentUserId, activeChatUserId]);
 
-  // 🔔 Realtime subscription
+  // 🔔 Realtime subscription (filter duplicates)
   useEffect(() => {
     if (!currentUserId || !activeChatUserId) return;
 
     const channel = supabase
-  .channel(`chat-${currentUserId}-${activeChatUserId}`, {
-    config: {
-      broadcast: { self: true },  // 👈 ensures you receive your own updates
-      presence: { key: currentUserId } // optional but good for uniqueness
-    }
-  })
+      .channel(`chat-${currentUserId}-${activeChatUserId}`, {
+        config: {
+          broadcast: { self: true },
+          presence: { key: currentUserId },
+        },
+      })
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-        },
+        { event: "INSERT", schema: "public", table: "messages" },
         (payload) => {
           const msg = payload.new as Message;
 
-          // Current chat: append directly
+          // Only process relevant chat messages
           if (
             (msg.sender_id === currentUserId && msg.receiver_id === activeChatUserId) ||
             (msg.sender_id === activeChatUserId && msg.receiver_id === currentUserId)
           ) {
-            setMessages((prev) => [...prev, msg]);
-            // Auto mark read if received message
+            // Avoid duplicate insertions
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === msg.id)) return prev;
+              return [...prev, msg];
+            });
+
             if (msg.receiver_id === currentUserId) markAsRead();
           } else if (msg.receiver_id === currentUserId) {
-            // Not in this chat → show toast
             notifySuccess("📨 New message received!");
           }
         }

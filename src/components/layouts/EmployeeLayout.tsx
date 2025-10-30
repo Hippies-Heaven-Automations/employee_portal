@@ -8,7 +8,6 @@ import {
   Clock,
   BookOpen,
   DollarSign,
-  MessageSquare,
   ShieldAlert,
   ClipboardList,
   ScrollText ,
@@ -18,27 +17,14 @@ import {
   Menu,
 } from "lucide-react";
 import hhLogo from "../../assets/hh_careers_logo.png";
-import { useUnreadMessages } from "../../hooks/useUnreadMessages";
+import FloatingMessenger from "../FloatingMessenger";
 
 export default function EmployeeLayout() {
   const [collapsed, setCollapsed] = useState(false);   // desktop shrink
   const [mobileOpen, setMobileOpen] = useState(false); // mobile drawer
-  const { count } = useUnreadMessages();
 
   const links = [
     { to: "/employee-dashboard", label: "Home", icon: Home }, 
-    {
-      to: "/employee-dashboard/messaging",
-      label: "Messages",
-      icon: () => (
-        <div className="relative inline-block">
-          <MessageSquare className="w-5 h-5" />
-          {count > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-red-500 rounded-full border border-white"></span>
-          )}
-        </div>
-      ),
-    },
     { to: "/employee-dashboard/tasks", label: "Tasks", icon: ClipboardList },
     { to: "/employee-dashboard/schedule", label: "Schedule", icon: Calendar },
     { to: "/employee-dashboard/timeoff", label: "Time Off Request", icon: Plane },
@@ -153,7 +139,10 @@ export default function EmployeeLayout() {
                   px-4 lg:px-6 pt-20 lg:pt-10 pb-8"
       >
         <Outlet />
+        
+        <FloatingMessenger />
       </main>
+      
     </div>
   );
 }
