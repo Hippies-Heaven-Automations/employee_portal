@@ -1,5 +1,13 @@
+// src/pages/jobs/StepAvailability.tsx
 import React, { useMemo } from "react";
-import { Button } from "../../components/Button";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Grid,
+} from "@mui/material";
 import type { AvailabilityData } from "./JobApplicationWizard";
 
 export default function StepAvailability({
@@ -13,15 +21,13 @@ export default function StepAvailability({
   onPrev: () => void;
   onNext: () => void;
 }) {
-  // 🧠 Compute tomorrow’s date and current time
   const now = new Date();
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
 
   const minDate = tomorrow.toISOString().split("T")[0];
-  const minTime = now.toTimeString().slice(0, 5); // HH:MM
+  const minTime = now.toTimeString().slice(0, 5);
 
-  // Memoize slots to avoid re-renders
   const slots = useMemo(
     () => (value.slots.length === 3 ? value.slots : ["", "", ""]),
     [value.slots]
@@ -29,7 +35,8 @@ export default function StepAvailability({
 
   const updateSlot = (idx: number, date: string, time: string) => {
     const next = [...slots];
-    next[idx] = date && time ? `${date}T${time}:00` : date ? date : time ? time : "";
+    next[idx] =
+      date && time ? `${date}T${time}:00` : date ? date : time ? time : "";
     onChange({ slots: next });
   };
 
@@ -40,69 +47,143 @@ export default function StepAvailability({
   const allFilled = slots.every((s) => s);
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-hemp-forest font-semibold text-xl">
+    <Box>
+      <Typography variant="h6" fontWeight={600} color="#14532d" mb={1.5}>
         Preferred Interview Schedule
-      </h2>
-      <p className="text-sm text-gray-600 italic">
+      </Typography>
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        mb={3}
+        fontStyle="italic"
+      >
         All interview times are in Central Time (CT – Illinois).
-      </p>
+      </Typography>
 
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          className="grid sm:grid-cols-2 gap-4 border border-hemp-sage rounded-lg p-3 bg-white/60"
-        >
-          <div>
-            <label className="block text-hemp-forest font-medium mb-1">
-              Date #{i + 1}
-            </label>
-            <input
-              type="date"
-              min={minDate}
-              value={getDate(slots[i])}
-              onChange={(e) => updateSlot(i, e.target.value, getTime(slots[i]))}
-              className="w-full px-3 py-2 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
-            />
-          </div>
-          <div>
-            <label className="block text-hemp-forest font-medium mb-1">
-              Time #{i + 1}
-            </label>
-            <input
-              type="time"
-              min={minTime}
-              value={getTime(slots[i])}
-              onChange={(e) => updateSlot(i, getDate(slots[i]), e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
-            />
-          </div>
-        </div>
-      ))}
+      <Box sx={{ display: "grid", gap: 2.5 }}>
+        {[0, 1, 2].map((i) => (
+          <Paper
+            key={i}
+            variant="outlined"
+            sx={{
+              p: 2.5,
+              borderRadius: 0,
+              border: "1px solid #C7E3C7",
+              backgroundColor: "#ffffffcc",
+              boxShadow: "0 3px 6px rgba(0,0,0,0.05)",
+            }}
+          >
+            {/* ✅ MUI v7 Grid syntax */}
+            <Grid container columns={12} spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight={600}
+                  color="#14532d"
+                  mb={0.5}
+                >
+                  Date #{i + 1}
+                </Typography>
+                <TextField
+                  type="date"
+                  fullWidth
+                  value={getDate(slots[i])}
+                  inputProps={{ min: minDate }}
+                  onChange={(e) =>
+                    updateSlot(i, e.target.value, getTime(slots[i]))
+                  }
+                  variant="outlined"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 0,
+                      backgroundColor: "#ffffffcc",
+                      "& fieldset": { borderColor: "#A7D3A7" },
+                      "&:hover fieldset": { borderColor: "#15803d" },
+                      "&.Mui-focused fieldset": { borderColor: "#14532d" },
+                    },
+                  }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight={600}
+                  color="#14532d"
+                  mb={0.5}
+                >
+                  Time #{i + 1}
+                </Typography>
+                <TextField
+                  type="time"
+                  fullWidth
+                  value={getTime(slots[i])}
+                  inputProps={{ min: minTime }}
+                  onChange={(e) =>
+                    updateSlot(i, getDate(slots[i]), e.target.value)
+                  }
+                  variant="outlined"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 0,
+                      backgroundColor: "#ffffffcc",
+                      "& fieldset": { borderColor: "#A7D3A7" },
+                      "&:hover fieldset": { borderColor: "#15803d" },
+                      "&.Mui-focused fieldset": { borderColor: "#14532d" },
+                    },
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+        ))}
+      </Box>
 
       {!allFilled && (
-        <p className="text-sm text-red-600">
+        <Typography variant="body2" color="#dc2626" mt={2}>
           Please provide three possible interview windows.
-        </p>
+        </Typography>
       )}
 
-      <div className="flex justify-between pt-4">
+      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 5 }}>
         <Button
-          type="button"
+          variant="contained"
           onClick={onPrev}
-          className="bg-gray-200 text-hemp-ink font-semibold px-6 py-3 rounded-lg shadow-card hover:bg-gray-300"
+          sx={{
+            bgcolor: "#E5E7EB",
+            color: "#1e293b",
+            px: 4,
+            py: 1.5,
+            fontWeight: 600,
+            borderRadius: 0,
+            textTransform: "none",
+            boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+            "&:hover": { bgcolor: "#D1D5DB" },
+          }}
         >
           Back
         </Button>
+
         <Button
-          type="button"
-          disabled={!allFilled}
+          variant="contained"
           onClick={onNext}
-          className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold px-8 py-3 rounded-lg shadow-card transition-all duration-300 disabled:opacity-60"
+          disabled={!allFilled}
+          sx={{
+            bgcolor: "#15803d",
+            color: "#ffffff",
+            px: 6,
+            py: 1.5,
+            fontWeight: 600,
+            borderRadius: 0,
+            textTransform: "none",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+            "&:hover": { bgcolor: "#14532d" },
+            "&:disabled": { opacity: 0.6 },
+          }}
         >
           Next
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

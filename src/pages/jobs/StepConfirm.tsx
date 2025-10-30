@@ -1,17 +1,19 @@
 // src/pages/jobs/StepConfirm.tsx
 import React from "react";
-import { Button } from "../../components/Button";
-import type {
-  ApplicantFormData,
-  AvailabilityData,
-} from "./JobApplicationWizard";
-import { Loader2 } from "lucide-react";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
+  Typography,
+  Link as MuiLink,
+} from "@mui/material";
+import type { ApplicantFormData, AvailabilityData } from "./JobApplicationWizard";
 
 function prettySlot(slot: string) {
-  if (!slot) return "";
-  // slot looks like "YYYY-MM-DDTHH:MM:00"
+  if (!slot) return "—";
   const [d, t] = slot.split("T");
-  return `${d} at ${t?.slice(0,5)} CT`;
+  return `${d} at ${t?.slice(0, 5)} CT`;
 }
 
 export default function StepConfirm({
@@ -28,75 +30,159 @@ export default function StepConfirm({
   onSubmit: () => void;
 }) {
   return (
-    <div className="space-y-6">
-      <h2 className="text-hemp-forest font-semibold text-xl">
+    <Box>
+      <Typography variant="h6" fontWeight={600} color="#14532d" mb={1.5}>
         Review & Submit
-      </h2>
+      </Typography>
 
-      <p className="text-sm text-hemp-ink/80">
-        Please confirm your details. After you submit, we’ll send a
-        confirmation email. Thank you for applying to Hippies Heaven
-        Gift Shop.
-      </p>
+      <Typography variant="body2" color="text.secondary" mb={3}>
+        Please confirm your details. After you submit, we’ll send a confirmation email.
+        Thank you for applying to Hippies Heaven Gift Shop.
+      </Typography>
 
-      <div className="bg-white/70 border border-hemp-sage rounded-lg p-4 space-y-3 text-sm text-hemp-ink">
-        <div>
-          <div className="font-semibold text-hemp-forest">
+      <Paper
+        variant="outlined"
+        sx={{
+          borderRadius: 0,
+          border: "1px solid #C7E3C7",
+          backgroundColor: "#ffffffcc",
+          p: 3,
+          boxShadow: "0 3px 8px rgba(0,0,0,0.06)",
+        }}
+      >
+        {/* Applicant Info */}
+        <Box mb={2}>
+          <Typography variant="subtitle2" fontWeight={700} color="#14532d">
             Applicant Info
-          </div>
-          <div>Name: {applicant.full_name || "—"}</div>
-          <div>Email: {applicant.email || "—"}</div>
-          <div>Contact: {applicant.contact_number || "—"}</div>
-          <div>Resume: {applicant.resume_url || "—"}</div>
+          </Typography>
+          <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+            Name: {applicant.full_name || "—"}
+          </Typography>
+          <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+            Email: {applicant.email || "—"}
+          </Typography>
+          <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+            Contact: {applicant.contact_number || "—"}
+          </Typography>
+
+          <Typography
+            variant="body2"
+            sx={{
+              wordBreak: "break-all", // ✅ breaks long links properly
+              overflowWrap: "anywhere", // ✅ ensures wrapping even without spaces
+            }}
+          >
+            Resume:{" "}
+            {applicant.resume_url ? (
+              <MuiLink
+                href={applicant.resume_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                underline="hover"
+                sx={{
+                  color: "#15803d",
+                  wordBreak: "break-all",
+                  overflowWrap: "anywhere",
+                }}
+              >
+                {applicant.resume_url}
+              </MuiLink>
+            ) : (
+              "—"
+            )}
+          </Typography>
+
           {applicant.message && (
-            <div className="text-hemp-ink/80 mt-2">
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              mt={1}
+              sx={{ whiteSpace: "pre-line" }}
+            >
               Message: {applicant.message}
-            </div>
+            </Typography>
           )}
-        </div>
+        </Box>
 
-        <div>
-          <div className="font-semibold text-hemp-forest">
+        {/* Availability */}
+        <Box mb={2}>
+          <Typography variant="subtitle2" fontWeight={700} color="#14532d">
             Interview Availability (CT – Illinois)
-          </div>
-          <ul className="list-disc list-inside">
-            {availability.slots.map((s, i) => (
-              <li key={i}>{prettySlot(s) || "—"}</li>
-            ))}
-          </ul>
-        </div>
+          </Typography>
+          {availability.slots.length > 0 ? (
+            <Box component="ul" sx={{ pl: 3, mt: 0.5, color: "text.secondary" }}>
+              {availability.slots.map((s, i) => (
+                <li key={i}>
+                  <Typography variant="body2">{prettySlot(s)}</Typography>
+                </li>
+              ))}
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No availability provided.
+            </Typography>
+          )}
+        </Box>
 
-        <div>
-          <div className="font-semibold text-hemp-forest">
+        {/* Questionnaire */}
+        <Box>
+          <Typography variant="subtitle2" fontWeight={700} color="#14532d">
             Questionnaire
-          </div>
-          <div className="text-hemp-ink/80">
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
             Your answers were recorded and will be reviewed internally.
             Your score will not be shown here.
-          </div>
-        </div>
-      </div>
+          </Typography>
+        </Box>
+      </Paper>
 
-      <div className="flex justify-between pt-4">
+      {/* Buttons */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
         <Button
-          type="button"
-          className="bg-gray-200 text-hemp-ink font-semibold px-6 py-3 rounded-lg shadow-card hover:bg-gray-300 disabled:opacity-60"
+          variant="contained"
           disabled={submitting}
           onClick={onPrev}
+          sx={{
+            bgcolor: "#E5E7EB",
+            color: "#1e293b",
+            px: 4,
+            py: 1.5,
+            fontWeight: 600,
+            borderRadius: 0,
+            textTransform: "none",
+            boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+            "&:hover": { bgcolor: "#D1D5DB" },
+          }}
         >
           Back
         </Button>
 
         <Button
-          type="button"
+          variant="contained"
           disabled={submitting}
-          className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold px-8 py-3 rounded-lg shadow-card transition-all duration-300 disabled:opacity-60 flex items-center gap-2"
           onClick={onSubmit}
+          sx={{
+            bgcolor: "#15803d",
+            color: "#ffffff",
+            px: 5,
+            py: 1.5,
+            fontWeight: 600,
+            borderRadius: 0,
+            textTransform: "none",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+            "&:hover": { bgcolor: "#14532d" },
+            "&:disabled": { opacity: 0.6 },
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
         >
-          {submitting && <Loader2 className="animate-spin w-4 h-4" />}
-          {submitting ? "Submitting..." : "Submit Application"}
+          {submitting && (
+            <CircularProgress size={20} color="inherit" thickness={4} />
+          )}
+          {submitting ? "Submitting…" : "Submit Application"}
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

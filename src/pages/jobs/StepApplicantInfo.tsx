@@ -1,7 +1,11 @@
 // src/pages/jobs/StepApplicantInfo.tsx
 import React, { useState } from "react";
-import { Button } from "../../components/Button";
-
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+} from "@mui/material";
 import type { ApplicantFormData } from "./JobApplicationWizard";
 
 export default function StepApplicantInfo({
@@ -23,23 +27,17 @@ export default function StepApplicantInfo({
     "yopmail",
     "guerrillamail",
   ];
+
   const invalidEmail =
     !/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(value.email || "") ||
-    bannedPatterns.some((p) =>
-      value.email.toLowerCase().includes(p)
-    );
+    bannedPatterns.some((p) => value.email.toLowerCase().includes(p));
 
   const requiredMissing =
-    !value.full_name ||
-    !value.email ||
-    !value.resume_url;
+    !value.full_name || !value.email || !value.resume_url;
 
   const canContinue = !invalidEmail && !requiredMissing;
 
-  function handleField(
-    field: keyof ApplicantFormData,
-    val: string
-  ) {
+  function handleField(field: keyof ApplicantFormData, val: string) {
     onChange({
       ...value,
       [field]: val,
@@ -48,83 +46,181 @@ export default function StepApplicantInfo({
 
   function handleNext() {
     setTouched(true);
-    if (canContinue) {
-      onNext();
-    }
+    if (canContinue) onNext();
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-hemp-forest font-semibold text-xl">
+    <Box>
+      <Typography
+        variant="h6"
+        fontWeight={600}
+        color="#14532d"
+        mb={3}
+      >
         Applicant Information
-      </h2>
+      </Typography>
 
-      <div className="grid sm:grid-cols-2 gap-4">
-        <input
-          type="text"
-          placeholder="Full Name *"
-          className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
+      <Box
+        sx={{
+          display: "grid",
+          gap: 2.5,
+          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+        }}
+      >
+        <TextField
+          label="Full Name *"
+          fullWidth
+          required
           value={value.full_name}
           onChange={(e) => handleField("full_name", e.target.value)}
+          variant="outlined"
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 0,
+              backgroundColor: "#ffffffcc",
+              "& fieldset": { borderColor: "#A7D3A7" },
+              "&:hover fieldset": { borderColor: "#15803d" },
+              "&.Mui-focused fieldset": { borderColor: "#14532d" },
+            },
+          }}
         />
 
-        <input
+        <TextField
+          label="Email *"
           type="email"
-          placeholder="Email *"
-          className={`w-full px-4 py-3 rounded-lg border ${
-            touched && invalidEmail
-              ? "border-red-500 focus:ring-red-500"
-              : "border-hemp-sage focus:ring-hemp-green"
-          } focus:ring-2 bg-white/80 text-hemp-ink`}
+          fullWidth
+          required
           value={value.email}
           onChange={(e) => handleField("email", e.target.value)}
+          variant="outlined"
+          error={touched && invalidEmail}
+          helperText={
+            touched && invalidEmail
+              ? "Please enter a valid personal or business email."
+              : ""
+          }
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 0,
+              backgroundColor: "#ffffffcc",
+              "& fieldset": {
+                borderColor: touched && invalidEmail ? "#dc2626" : "#A7D3A7",
+              },
+              "&:hover fieldset": {
+                borderColor: touched && invalidEmail ? "#dc2626" : "#15803d",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: touched && invalidEmail ? "#dc2626" : "#14532d",
+              },
+            },
+          }}
         />
-      </div>
+      </Box>
 
-      <input
-        type="text"
-        placeholder="Contact Number"
-        className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink"
-        value={value.contact_number}
-        onChange={(e) =>
-          handleField("contact_number", e.target.value)
-        }
-      />
+      <Box sx={{ mt: 3 }}>
+        <TextField
+          label="Contact Number"
+          fullWidth
+          value={value.contact_number}
+          onChange={(e) => handleField("contact_number", e.target.value)}
+          variant="outlined"
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 0,
+              backgroundColor: "#ffffffcc",
+              "& fieldset": { borderColor: "#A7D3A7" },
+              "&:hover fieldset": { borderColor: "#15803d" },
+              "&.Mui-focused fieldset": { borderColor: "#14532d" },
+            },
+          }}
+        />
+      </Box>
 
-      <textarea
-        placeholder="Message or Cover Letter"
-        className="w-full h-28 px-4 py-3 rounded-lg border border-hemp-sage focus:ring-2 focus:ring-hemp-green bg-white/80 text-hemp-ink resize-none"
-        value={value.message}
-        onChange={(e) => handleField("message", e.target.value)}
-      />
+      <Box sx={{ mt: 3 }}>
+        <TextField
+          label="Message or Cover Letter"
+          fullWidth
+          multiline
+          minRows={5}
+          value={value.message}
+          onChange={(e) => handleField("message", e.target.value)}
+          variant="outlined"
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 0,
+              backgroundColor: "#ffffffcc",
+              "& fieldset": { borderColor: "#A7D3A7" },
+              "&:hover fieldset": { borderColor: "#15803d" },
+              "&.Mui-focused fieldset": { borderColor: "#14532d" },
+            },
+          }}
+        />
+      </Box>
 
-      <input
-        type="url"
-        placeholder="Resume Link (Google Drive, Dropbox, etc.) *"
-        className={`w-full px-4 py-3 rounded-lg border ${
-          touched && !value.resume_url
-            ? "border-red-500 focus:ring-red-500"
-            : "border-hemp-sage focus:ring-hemp-green"
-        } focus:ring-2 bg-white/80 text-hemp-ink`}
-        value={value.resume_url}
-        onChange={(e) => handleField("resume_url", e.target.value)}
-      />
+      <Box sx={{ mt: 3 }}>
+        <TextField
+          label="Resume Link (Google Drive, Dropbox, etc.) *"
+          type="url"
+          fullWidth
+          required
+          value={value.resume_url}
+          onChange={(e) => handleField("resume_url", e.target.value)}
+          variant="outlined"
+          error={touched && !value.resume_url}
+          helperText={
+            touched && !value.resume_url
+              ? "Resume link is required."
+              : ""
+          }
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 0,
+              backgroundColor: "#ffffffcc",
+              "& fieldset": {
+                borderColor: touched && !value.resume_url ? "#dc2626" : "#A7D3A7",
+              },
+              "&:hover fieldset": {
+                borderColor: touched && !value.resume_url ? "#dc2626" : "#15803d",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: touched && !value.resume_url ? "#dc2626" : "#14532d",
+              },
+            },
+          }}
+        />
+      </Box>
 
       {touched && !canContinue && (
-        <p className="text-sm text-red-600">
+        <Typography
+          variant="body2"
+          color="#dc2626"
+          mt={1.5}
+        >
           Please fill required fields and use a valid email.
-        </p>
+        </Typography>
       )}
 
-      <div className="flex justify-end pt-4">
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 4 }}>
         <Button
-          type="button"
-          className="bg-hemp-green hover:bg-hemp-forest text-white font-semibold px-8 py-3 rounded-lg shadow-card transition-all duration-300 disabled:opacity-60"
+          variant="contained"
           onClick={handleNext}
+          disabled={!canContinue}
+          sx={{
+            bgcolor: "#15803d",
+            color: "#ffffff",
+            px: 5,
+            py: 1.5,
+            borderRadius: 0,
+            fontWeight: 600,
+            textTransform: "none",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+            "&:hover": { bgcolor: "#14532d" },
+            "&:disabled": { opacity: 0.6 },
+          }}
         >
           Next
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

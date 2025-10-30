@@ -89,9 +89,9 @@ export default function LoginPage() {
           maxWidth: 420,
           px: 5,
           py: 6,
-          borderRadius: 1.5, // ✅ Edgy, less rounded
+          borderRadius: 0, // 🔳 No rounded corners
           backdropFilter: "blur(8px)",
-          backgroundColor: "rgba(255,255,255,0.85)",
+          backgroundColor: "rgba(255,255,255,0.9)",
           border: "1px solid #C7E3C7",
           boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
         }}
@@ -102,24 +102,25 @@ export default function LoginPage() {
           <Box
             sx={{
               width: 85,
-              height: 85,
-              borderRadius: "50%",
+              height: 85, 
               mx: "auto",
               mb: 2,
               bgcolor: "#fff",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: 2,
+              border: "1px solid #E5E5E5",
+              borderRadius: "50%",
+              boxShadow: 1,
             }}
           >
             <img
               src={hhLogo}
               alt="Hippies Heaven Logo"
-              style={{ width: 75, height: 75, objectFit: "contain" }}
+              style={{ width: 70, height: 70, objectFit: "contain" }}
             />
           </Box>
-          <Typography variant="h5" fontWeight={600} color="#14532d">
+          <Typography variant="h5" fontWeight={700} color="#14532d">
             Employee Portal Login
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
@@ -134,7 +135,7 @@ export default function LoginPage() {
             sx={{
               backgroundColor: "#FFE5E5",
               border: "1px solid #FCA5A5",
-              borderRadius: 1,
+              borderRadius: 0, // 🔳 No rounding
               p: 1,
               mb: 2,
               textAlign: "center",
@@ -156,6 +157,7 @@ export default function LoginPage() {
           variant="outlined"
           sx={{
             "& .MuiOutlinedInput-root": {
+              borderRadius: 0, // 🔳 Sharp edges
               bgcolor: "#ffffffcc",
               "& fieldset": { borderColor: "#A7D3A7" },
               "&:hover fieldset": { borderColor: "#15803d" },
@@ -176,6 +178,7 @@ export default function LoginPage() {
           variant="outlined"
           sx={{
             "& .MuiOutlinedInput-root": {
+              borderRadius: 0, // 🔳 Sharp edges
               bgcolor: "#ffffffcc",
               "& fieldset": { borderColor: "#A7D3A7" },
               "&:hover fieldset": { borderColor: "#15803d" },
@@ -192,12 +195,12 @@ export default function LoginPage() {
           sx={{
             mt: 3,
             bgcolor: "#15803d",
-            color: "#ffffff", // ✅ White button text
+            color: "#ffffff",
             "&:hover": { bgcolor: "#14532d" },
             py: 1.5,
             fontWeight: 600,
             textTransform: "none",
-            borderRadius: 1, // ✅ Matches edgy card
+            borderRadius: 0, // 🔳 Square button
             boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
           }}
         >

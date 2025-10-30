@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link as RouterLink, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
-import { Loader2, ArrowLeft, Briefcase, Building2, Calendar } from "lucide-react";
-import { Button } from "../../components/Button";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Paper,
+  Typography,
+} from "@mui/material";
+import { ArrowLeft, Briefcase, Building2, Calendar } from "lucide-react";
 
 interface JobOpening {
   id: string;
@@ -37,101 +44,174 @@ export default function JobDetail() {
         setLoading(false);
       }
     };
-
     fetchJob();
   }, [id]);
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-64 text-gray-500">
-        <Loader2 className="animate-spin mr-2" /> Loading job details...
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+          color: "text.secondary",
+          gap: 1,
+        }}
+      >
+        <CircularProgress size={22} />
+        <Typography>Loading job details...</Typography>
+      </Box>
     );
 
   if (!job)
     return (
-      <div className="text-center mt-20 text-gray-600">
+      <Typography
+        align="center"
+        sx={{ mt: 10, color: "text.secondary", fontStyle: "italic" }}
+      >
         Job not found or has been removed.
-      </div>
+      </Typography>
     );
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <Box sx={{ maxWidth: 800, mx: "auto", p: 4 }}>
       {/* Back Button */}
-      <div className="flex items-center mb-6">
-        <button
+      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+        <Button
+          startIcon={<ArrowLeft size={18} />}
           onClick={() => navigate(-1)}
-          className="flex items-center text-hemp hover:underline"
+          sx={{
+            color: "#15803d",
+            fontWeight: 600,
+            textTransform: "none",
+            borderRadius: 0, // 🔳 sharp
+            "&:hover": { textDecoration: "underline", bgcolor: "transparent" },
+          }}
         >
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Job Openings
-        </button>
-      </div>
+          Back to Job Openings
+        </Button>
+      </Box>
 
       {/* Job Header */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <h1 className="text-2xl font-bold text-hemp-dark">{job.title}</h1>
-          <span
-            className={`text-sm font-medium px-2 py-1 rounded-md ${
-              job.status === "Open"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
+      <Paper
+        elevation={3}
+        sx={{
+          border: "1px solid #DDE7DD",
+          p: 4,
+          borderRadius: 0, // 🔳 no soft corners
+          backgroundColor: "#ffffff",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+        }}
+      >
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+          <Typography variant="h5" fontWeight={700} color="#14532d">
+            {job.title}
+          </Typography>
+
+          {/* <Box
+            sx={{
+              borderRadius: 0, // 🔳 sharp badge
+              px: 1.5,
+              py: 0.5,
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              bgcolor:
+                job.status === "Open" ? "rgba(22,163,74,0.15)" : "rgba(220,38,38,0.15)",
+              color: job.status === "Open" ? "#166534" : "#b91c1c",
+              border: `1px solid ${
+                job.status === "Open" ? "#86efac" : "#fecaca"
+              }`,
+            }}
           >
             {job.status}
-          </span>
-        </div>
+          </Box> */}
+        </Box>
 
-        <div className="flex items-center space-x-3 text-gray-500 text-sm">
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 2,
+            color: "text.secondary",
+            fontSize: "0.9rem",
+            mb: 2,
+          }}
+        >
           {job.employment_type === "Store" ? (
-            <>
-              <Building2 className="w-4 h-4 text-hemp" />
-              <span>In-Store Position</span>
-            </>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Building2 size={16} color="#15803d" />
+              <Typography>In-Store Position</Typography>
+            </Box>
           ) : (
-            <>
-              <Briefcase className="w-4 h-4 text-hemp" />
-              <span>Virtual Assistant Position</span>
-            </>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Briefcase size={16} color="#15803d" />
+              <Typography>Virtual Assistant Position</Typography>
+            </Box>
           )}
-          <div className="flex items-center space-x-1">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            <span>
-              Posted on {new Date(job.created_at).toLocaleDateString("en-US", {
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Calendar size={16} color="#6b7280" />
+            <Typography>
+              Posted on{" "}
+              {new Date(job.created_at).toLocaleDateString("en-US", {
                 month: "long",
                 day: "numeric",
                 year: "numeric",
               })}
-            </span>
-          </div>
-        </div>
+            </Typography>
+          </Box>
+        </Box>
 
-        <hr className="my-4" />
+        <Divider sx={{ my: 2, borderColor: "#E5E5E5" }} />
 
-        {/* Description */}
-        <div className="prose max-w-none text-gray-700 whitespace-pre-line leading-relaxed">
+        <Typography
+          variant="body1"
+          sx={{
+            color: "#1e293b",
+            whiteSpace: "pre-line",
+            lineHeight: 1.7,
+          }}
+        >
           {job.description || "No description provided for this position."}
-        </div>
-      </div>
+        </Typography>
+      </Paper>
 
       {/* Apply Now */}
       {job.status === "Open" ? (
-        <div className="text-center">
-          <Link to={`/jobs/apply/${job.id}`}>
-            <Button
-              variant="primary"
-              className="px-8 py-2 rounded-md shadow-md hover:shadow-lg font-medium text-base transition-all"
-            >
-              Apply Now
-            </Button>
-          </Link>
-        </div>
+        <Box sx={{ textAlign: "center", mt: 5 }}>
+          <Button
+            component={RouterLink}
+            to={`/jobs/apply/${job.id}`}
+            variant="contained"
+            sx={{
+              bgcolor: "#15803d",
+              color: "#ffffff",
+              fontWeight: 600,
+              textTransform: "none",
+              px: 5,
+              py: 1.25,
+              borderRadius: 0, // 🔳 no rounding
+              boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+              "&:hover": { bgcolor: "#14532d" },
+            }}
+          >
+            Apply Now
+          </Button>
+        </Box>
       ) : (
-        <div className="text-center text-gray-500 italic">
+        <Typography
+          align="center"
+          sx={{
+            mt: 4,
+            color: "text.secondary",
+            fontStyle: "italic",
+          }}
+        >
           This job is no longer accepting applications.
-        </div>
+        </Typography>
       )}
-
-    </div>
+    </Box>
   );
 }

@@ -1,6 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import { Loader2, Search, Briefcase, Building2 } from "lucide-react";
+import {
+  Box,
+  CircularProgress,
+  Container,
+  InputAdornment,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+  Typography,
+  Button,
+} from "@mui/material";
+import { Search, Briefcase, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface JobOpening {
@@ -42,12 +54,13 @@ export default function JobList() {
     fetchJobs();
   }, []);
 
-  // Handle search/filter
   useEffect(() => {
     let filteredData = [...jobs];
 
     if (filterType !== "All") {
-      filteredData = filteredData.filter((j) => j.employment_type === filterType);
+      filteredData = filteredData.filter(
+        (j) => j.employment_type === filterType
+      );
     }
 
     if (search.trim()) {
@@ -64,115 +77,224 @@ export default function JobList() {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-64 text-gray-500">
-        <Loader2 className="animate-spin mr-2" /> Loading job openings...
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+          color: "text.secondary",
+          gap: 1,
+        }}
+      >
+        <CircularProgress size={22} />
+        <Typography>Loading job openings...</Typography>
+      </Box>
     );
 
   const vaJobs = filtered.filter((j) => j.employment_type === "VA");
   const storeJobs = filtered.filter((j) => j.employment_type === "Store");
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-center mb-6 text-hemp-dark">
+    <Container maxWidth="md" sx={{ py: 6 }}>
+      <Typography
+        variant="h4"
+        fontWeight={700}
+        align="center"
+        gutterBottom
+        sx={{ color: "#14532d" }}
+      >
         Join Our Team 🌿
-      </h1>
+      </Typography>
 
       {/* Search + Filter Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
-        <div className="relative w-full sm:w-2/3">
-          <Search className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search job title or description..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full border rounded-md pl-9 pr-3 py-2 focus:ring-2 focus:ring-hemp focus:outline-none"
-          />
-        </div>
-        <select
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 2,
+          mb: 4,
+        }}
+      >
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search job title or description..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search size={18} color="#6b7280" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            flexGrow: 1,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 0, // 🔳 sharp edges
+              "& fieldset": { borderColor: "#A7D3A7" },
+              "&:hover fieldset": { borderColor: "#15803d" },
+              "&.Mui-focused fieldset": { borderColor: "#14532d" },
+            },
+          }}
+        />
+
+        <Select
           value={filterType}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+          onChange={(e) =>
             setFilterType(e.target.value as "All" | "VA" | "Store")
           }
-          className="border rounded-md py-2 px-3 focus:ring-2 focus:ring-hemp focus:outline-none"
+          sx={{
+            minWidth: 160,
+            borderRadius: 0, // 🔳 no rounding
+            "& .MuiOutlinedInput-notchedOutline": { borderColor: "#A7D3A7" },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#15803d",
+            },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#14532d",
+            },
+          }}
         >
-          <option value="All">All Positions</option>
-          <option value="VA">Virtual Assistant</option>
-          <option value="Store">In-Store</option>
-        </select>
-      </div>
+          <MenuItem value="All">All Positions</MenuItem>
+          <MenuItem value="VA">Virtual Assistant</MenuItem>
+          <MenuItem value="Store">In-Store</MenuItem>
+        </Select>
+      </Box>
 
       {/* Store Jobs */}
       {storeJobs.length > 0 && (
-        <div className="mb-10">
-          <div className="flex items-center mb-3">
-            <Building2 className="w-5 h-5 mr-2 text-hemp" />
-            <h2 className="text-xl font-semibold text-hemp-dark">In-Store Positions</h2>
-          </div>
-          <div className="grid gap-4">
-            {storeJobs.map((job) => (
-              <div
-                key={job.id}
-                className="p-4 border border-gray-200 rounded-md bg-white hover:shadow transition"
+        <Box sx={{ mb: 6 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Building2 size={20} style={{ marginRight: 8, color: "#15803d" }} />
+            <Typography variant="h6" fontWeight={600} color="#14532d">
+              In-Store Positions
+            </Typography>
+          </Box>
+
+          {storeJobs.map((job) => (
+            <Paper
+              key={job.id}
+              elevation={3}
+              sx={{
+                p: 3,
+                mb: 2,
+                borderRadius: 0, // 🔳 sharp corners
+                border: "1px solid #DDE7DD",
+                backgroundColor: "#ffffff",
+                transition: "0.25s",
+                "&:hover": {
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.12)",
+                  borderColor: "#A7D3A7",
+                },
+              }}
+            >
+              <Typography
+                variant="h6"
+                fontWeight={600}
+                sx={{ color: "#1e293b" }}
               >
-                <h3 className="text-lg font-semibold">{job.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-3">
-                  {job.description || "No description provided."}
-                </p>
-                <div className="flex justify-end mt-3">
-                  <Link
-                    to={`/jobs/${job.id}`}
-                    className="text-hemp font-medium hover:underline"
-                  >
-                    View Details →
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                {job.title}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5, mb: 2 }}
+              >
+                {job.description || "No description provided."}
+              </Typography>
+
+              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Button
+                  component={Link}
+                  to={`/jobs/${job.id}`}
+                  sx={{
+                    color: "#15803d",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    borderRadius: 0,
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                >
+                  View Details →
+                </Button>
+              </Box>
+            </Paper>
+          ))}
+        </Box>
       )}
 
       {/* VA Jobs */}
       {vaJobs.length > 0 && (
-        <div>
-          <div className="flex items-center mb-3">
-            <Briefcase className="w-5 h-5 mr-2 text-hemp" />
-            <h2 className="text-xl font-semibold text-hemp-dark">
+        <Box>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Briefcase size={20} style={{ marginRight: 8, color: "#15803d" }} />
+            <Typography variant="h6" fontWeight={600} color="#14532d">
               Virtual Assistant Positions
-            </h2>
-          </div>
-          <div className="grid gap-4">
-            {vaJobs.map((job) => (
-              <div
-                key={job.id}
-                className="p-4 border border-gray-200 rounded-md bg-white hover:shadow transition"
+            </Typography>
+          </Box>
+
+          {vaJobs.map((job) => (
+            <Paper
+              key={job.id}
+              elevation={3}
+              sx={{
+                p: 3,
+                mb: 2,
+                borderRadius: 0, // 🔳 no soft edges
+                border: "1px solid #DDE7DD",
+                backgroundColor: "#ffffff",
+                transition: "0.25s",
+                "&:hover": {
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.12)",
+                  borderColor: "#A7D3A7",
+                },
+              }}
+            >
+              <Typography
+                variant="h6"
+                fontWeight={600}
+                sx={{ color: "#1e293b" }}
               >
-                <h3 className="text-lg font-semibold">{job.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-3">
-                  {job.description || "No description provided."}
-                </p>
-                <div className="flex justify-end mt-3">
-                  <Link
-                    to={`/jobs/${job.id}`}
-                    className="text-hemp font-medium hover:underline"
-                  >
-                    View Details →
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                {job.title}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5, mb: 2 }}
+              >
+                {job.description || "No description provided."}
+              </Typography>
+
+              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Button
+                  component={Link}
+                  to={`/jobs/${job.id}`}
+                  sx={{
+                    color: "#15803d",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    borderRadius: 0,
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                >
+                  View Details →
+                </Button>
+              </Box>
+            </Paper>
+          ))}
+        </Box>
       )}
 
       {/* No results */}
       {filtered.length === 0 && (
-        <div className="text-center text-gray-500 mt-10">
+        <Typography align="center" color="text.secondary" mt={8}>
           No job openings found.
-        </div>
+        </Typography>
       )}
-    </div>
+    </Container>
   );
 }
