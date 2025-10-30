@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Button } from "../../components/Button";
 import type { AvailabilityData } from "./JobApplicationWizard";
 

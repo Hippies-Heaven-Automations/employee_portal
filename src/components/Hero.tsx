@@ -4,11 +4,14 @@ import { Button } from "./Button";
 
 export default function Hero() {
   return (
-    <section className="relative isolate overflow-hidden bg-hemp-mist py-28 text-center">
-      {/* 🌿 Subtle tie-dye style overlay */}
+    <section
+      className="relative isolate flex flex-col justify-center items-center min-h-[calc(100vh-4rem)] overflow-hidden bg-hemp-mist text-center"
+    >
+      {/* 🌿 Subtle tie-dye background overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#A7E3A7_0%,transparent_50%),radial-gradient(circle_at_80%_80%,#C8EBC8_0%,transparent_50%)] opacity-70"></div>
       <div className="absolute inset-0 bg-gradient-to-br from-hemp-cream/60 via-transparent to-hemp-green/10 backdrop-blur-sm"></div>
 
+      {/* 🌿 Main content */}
       <div className="relative z-10 mx-auto max-w-4xl px-4 animate-fadeInUp">
         <h1 className="text-5xl sm:text-6xl font-bold text-hemp-forest mb-6 leading-tight drop-shadow-sm">
           Join Our Team at <br className="sm:hidden" /> Hippies Heaven 🌿

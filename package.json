@@ -12,7 +12,11 @@
     "clean:build": "rimraf --glob src/**/*.js src/**/*.js.map dist"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@fontsource/poppins": "^5.2.7",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/material": "^7.3.4",
     "@supabase/supabase-js": "^2.75.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",

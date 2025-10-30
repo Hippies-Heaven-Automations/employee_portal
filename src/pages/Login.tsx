@@ -3,6 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useSessionRedirect } from "../hooks/useSessionRedirect";
 import { notifyError } from "../utils/notify";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 import hhLogo from "../assets/hh_careers_logo.png";
 
 export default function LoginPage() {
@@ -20,7 +28,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // 🌿 Step 1: Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -30,7 +37,6 @@ export default function LoginPage() {
       const user = data?.user;
       if (!user) throw new Error("Login failed. Please try again.");
 
-      // 🌿 Step 2: Fetch role from profiles table
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
@@ -40,7 +46,6 @@ export default function LoginPage() {
       if (profileError) throw profileError;
       const role = profile?.role || "employee";
 
-      // 🌿 Step 3: Redirect based on role
       if (role === "admin") navigate("/admin-dashboard");
       else navigate("/employee-dashboard");
     } catch (err: unknown) {
@@ -54,74 +59,172 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-hemp-mist relative overflow-hidden">
-      {/* 🌿 Background gradient / tie-dye swirl */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,#C8EBC8_0%,transparent_60%),radial-gradient(circle_at_80%_70%,#A7E3A7_0%,transparent_60%)] opacity-60"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-hemp-cream/80 via-hemp-mist to-hemp-green/10"></div>
-
-      {/* 🌈 Login Card */}
-      <form
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        overflow: "hidden",
+        background: `
+          radial-gradient(circle at 20% 30%, #C8EBC8 0%, transparent 60%),
+          radial-gradient(circle at 80% 70%, #A7E3A7 0%, transparent 60%)
+        `,
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(to bottom right, #F7F8F2CC, #E6F4E6AA, #CFE9CF33)",
+        },
+      }}
+    >
+      <Paper
+        elevation={8}
+        sx={{
+          position: "relative",
+          zIndex: 2,
+          width: "100%",
+          maxWidth: 420,
+          px: 5,
+          py: 6,
+          borderRadius: 1.5, // ✅ Edgy, less rounded
+          backdropFilter: "blur(8px)",
+          backgroundColor: "rgba(255,255,255,0.85)",
+          border: "1px solid #C7E3C7",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
+        }}
+        component="form"
         onSubmit={handleLogin}
-        className="relative z-10 w-full max-w-md bg-hemp-cream/70 backdrop-blur-md border border-hemp-sage rounded-2xl shadow-card p-8 animate-fadeInUp"
       >
-        <div className="flex flex-col items-center mb-6">
-          <div className="w-15 h-15 rounded-full bg-white flex items-center justify-center shadow-md mb-3">
-            <img src={hhLogo} alt="Hippies Heaven Logo" className="w-20 h-20 object-contain" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-hemp-forest">
+        <Box sx={{ textAlign: "center", mb: 4 }}>
+          <Box
+            sx={{
+              width: 85,
+              height: 85,
+              borderRadius: "50%",
+              mx: "auto",
+              mb: 2,
+              bgcolor: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: 2,
+            }}
+          >
+            <img
+              src={hhLogo}
+              alt="Hippies Heaven Logo"
+              style={{ width: 75, height: 75, objectFit: "contain" }}
+            />
+          </Box>
+          <Typography variant="h5" fontWeight={600} color="#14532d">
             Employee Portal Login
-          </h1>
-          <p className="text-hemp-ink/70 text-sm mt-1">
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mt={0.5}>
             Welcome back to Hippies Heaven
-          </p>
-        </div>
+          </Typography>
+        </Box>
 
         {error && (
-          <p className="text-red-600 bg-red-50 border border-red-200 p-2 rounded-md mb-4 text-center text-sm">
+          <Typography
+            variant="body2"
+            color="error"
+            sx={{
+              backgroundColor: "#FFE5E5",
+              border: "1px solid #FCA5A5",
+              borderRadius: 1,
+              p: 1,
+              mb: 2,
+              textAlign: "center",
+            }}
+          >
             {error}
-          </p>
+          </Typography>
         )}
 
-        <div className="space-y-4">
-          <input
-            type="email"
-            value={email}
-            autoComplete="username"
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email address"
-            className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:outline-none focus:ring-2 focus:ring-hemp-green bg-white/70 text-hemp-ink placeholder-hemp-ink/50"
-            required
-          />
+        <TextField
+          label="Email Address"
+          type="email"
+          fullWidth
+          required
+          margin="normal"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="username"
+          variant="outlined"
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              bgcolor: "#ffffffcc",
+              "& fieldset": { borderColor: "#A7D3A7" },
+              "&:hover fieldset": { borderColor: "#15803d" },
+              "&.Mui-focused fieldset": { borderColor: "#14532d" },
+            },
+          }}
+        />
 
-          <input
-            type="password"
-            value={password}
-            autoComplete="current-password"
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            className="w-full px-4 py-3 rounded-lg border border-hemp-sage focus:outline-none focus:ring-2 focus:ring-hemp-green bg-white/70 text-hemp-ink placeholder-hemp-ink/50"
-            required
-          />
-        </div>
+        <TextField
+          label="Password"
+          type="password"
+          fullWidth
+          required
+          margin="normal"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+          variant="outlined"
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              bgcolor: "#ffffffcc",
+              "& fieldset": { borderColor: "#A7D3A7" },
+              "&:hover fieldset": { borderColor: "#15803d" },
+              "&.Mui-focused fieldset": { borderColor: "#14532d" },
+            },
+          }}
+        />
 
-        <button
+        <Button
           type="submit"
+          fullWidth
           disabled={loading}
-          className="mt-6 w-full bg-hemp-green hover:bg-hemp-forest text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-card disabled:opacity-60"
+          variant="contained"
+          sx={{
+            mt: 3,
+            bgcolor: "#15803d",
+            color: "#ffffff", // ✅ White button text
+            "&:hover": { bgcolor: "#14532d" },
+            py: 1.5,
+            fontWeight: 600,
+            textTransform: "none",
+            borderRadius: 1, // ✅ Matches edgy card
+            boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+          }}
         >
-          {loading ? "Signing In..." : "Sign In"}
-        </button>
+          {loading ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
+        </Button>
 
-        <p className="mt-6 text-center text-hemp-ink/70 text-sm">
+        <Typography
+          variant="body2"
+          align="center"
+          color="text.secondary"
+          mt={3}
+        >
           Trouble signing in?{" "}
-          <a
+          <Typography
+            component="a"
             href="mailto:hippiesheaven@gmail.com"
-            className="text-hemp-green font-medium hover:underline"
+            sx={{
+              color: "#15803d",
+              fontWeight: 500,
+              textDecoration: "none",
+              "&:hover": { textDecoration: "underline" },
+            }}
           >
             Contact support
-          </a>
-        </p>
-      </form>
-    </section>
+          </Typography>
+        </Typography>
+      </Paper>
+    </Box>
   );
 }

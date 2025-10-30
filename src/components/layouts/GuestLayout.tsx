@@ -13,7 +13,6 @@ export default function GuestLayout() {
             { to: "/", label: "Home" },
             { to: "/about", label: "About" },
             { to: "/jobs", label: "Careers" }, 
-            { to: "/contact", label: "Contact" },
             { to: "/login", label: "Login" },
           ]}
         />
