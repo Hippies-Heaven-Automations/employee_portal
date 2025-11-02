@@ -32,7 +32,7 @@ export default function PersonalInfoSection({
       </Typography>
 
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             fullWidth
             label="Full Name"
@@ -43,7 +43,7 @@ export default function PersonalInfoSection({
             size="small"
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             fullWidth
             label="Email"
@@ -55,7 +55,7 @@ export default function PersonalInfoSection({
             size="small"
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             label="Contact Number"
@@ -65,7 +65,7 @@ export default function PersonalInfoSection({
             size="small"
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             label="Emergency Contact"
@@ -75,7 +75,7 @@ export default function PersonalInfoSection({
             size="small"
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             fullWidth
             label="Emergency Contact Phone"
@@ -85,7 +85,7 @@ export default function PersonalInfoSection({
             size="small"
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             fullWidth
             label="Address"
@@ -98,7 +98,7 @@ export default function PersonalInfoSection({
 
         {isStoreEmployee && (
           <>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="SSN (Last 4 Digits)"
@@ -109,7 +109,7 @@ export default function PersonalInfoSection({
                 size="small"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Driver’s License No."

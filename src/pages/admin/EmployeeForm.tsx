@@ -253,7 +253,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
           </Typography>
 
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Full Name"
@@ -265,7 +265,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                 size="small"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Email"
@@ -277,7 +277,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                 size="small"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Contact Number"
@@ -287,7 +287,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                 size="small"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Emergency Contact"
@@ -297,7 +297,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                 size="small"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Emergency Contact Phone"
@@ -307,7 +307,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                 size="small"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Address"
@@ -320,7 +320,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
 
             {isStoreEmployee && (
               <>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label="SSN (Last 4 Digits)"
@@ -331,7 +331,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                     size="small"
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label="Driver’s License No."
@@ -353,7 +353,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
             Employment Details
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Position / Title"
@@ -363,7 +363,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                 size="small"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Acronym"
@@ -373,7 +373,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                 size="small"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Nickname"
@@ -387,7 +387,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
             {/* inside your Employment Details grid */}
             {isStoreEmployee && (
               <>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label="Start Date"
@@ -399,7 +399,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                     InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label="Starting Pay Rate ($/hr)"
@@ -412,7 +412,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                 </Grid>
 
                 {/* ✅ Increased label visibility for these two */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     select
                     fullWidth
@@ -452,7 +452,7 @@ export default function EmployeeForm({ employee, onClose, onSave }: Props) {
                   </TextField>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     select
                     fullWidth

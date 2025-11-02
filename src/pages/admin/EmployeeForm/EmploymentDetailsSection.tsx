@@ -37,7 +37,7 @@ export default function EmploymentDetailsSection({
       </Typography>
 
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             label="Position / Title"
@@ -48,7 +48,7 @@ export default function EmploymentDetailsSection({
           />
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             label="Acronym"
@@ -59,7 +59,7 @@ export default function EmploymentDetailsSection({
           />
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             label="Nickname"
@@ -72,7 +72,7 @@ export default function EmploymentDetailsSection({
 
         {isStoreEmployee && (
           <>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Start Date"
@@ -85,7 +85,7 @@ export default function EmploymentDetailsSection({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Starting Pay Rate ($/hr)"
@@ -97,7 +97,7 @@ export default function EmploymentDetailsSection({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 select
                 fullWidth
@@ -127,7 +127,7 @@ export default function EmploymentDetailsSection({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 select
                 fullWidth

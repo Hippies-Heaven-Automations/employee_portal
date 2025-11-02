@@ -402,7 +402,7 @@ export default function Employees() {
             count={totalPages}
             page={currentPage}
             onChange={(_, page) => setCurrentPage(page)}
-            shape="square"
+            shape="rounded"
             size={isMobile ? "small" : "medium"}
             sx={{
               "& .MuiPaginationItem-root": {
