@@ -23,7 +23,7 @@ import JobApplicationWizard from "./pages/jobs/JobApplicationWizard";
 import AdminHome from "./pages/admin/AdminHome";
 import Announcements from "./pages/admin/Announcements";
 import Employees from "./pages/admin/Employees";
-import Schedule from "./pages/admin/Schedule";
+import SchedulePage from "./pages/admin/schedule";
 import Applications from "./pages/admin/Applications";
 import TimeOff from "./pages/admin/TimeOff";
 import ShiftLogs from "./pages/admin/ShiftLogs";
@@ -88,7 +88,7 @@ export default function App() {
           <Route index element={<AdminHome />} />
           <Route path="announcements" element={<Announcements />} />
           <Route path="employees" element={<Employees />} />
-          <Route path="schedule" element={<Schedule />} />
+          <Route path="schedule" element={<SchedulePage />} />
           <Route path="applications" element={<Applications />} />
           <Route path="timeoff" element={<TimeOff />} />
           <Route path="shiftlogs" element={<ShiftLogs />} />

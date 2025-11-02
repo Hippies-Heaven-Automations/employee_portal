@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
-import { Button } from "../../components/Button";
-import { Loader2, X, CalendarPlus, CalendarCog, Clock, Timer } from "lucide-react";
-import { notifySuccess, notifyError } from "../../utils/notify";
-import { confirmAction } from "../../utils/confirm";
+import { supabase } from "../../../lib/supabaseClient";
+import { Button } from "../../../components/Button";
+import {
+  Loader2,
+  X,
+  CalendarPlus,
+  CalendarCog,
+  Clock,
+  Timer,
+} from "lucide-react";
+import { notifySuccess, notifyError } from "../../../utils/notify";
+import { confirmAction } from "../../../utils/confirm";
 
 interface Schedule {
   id: string;
