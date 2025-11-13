@@ -3,7 +3,7 @@
  * Ensures the React app, imports, and components build without errors.
  */
 import { render } from "@testing-library/react";
-import App from "../src/App";
+import App from "../src/app/App";
 
 // Basic Jest sanity checks
 describe("Environment Smoke Test", () => {

@@ -1,62 +1,62 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 // 🌿 Layouts
-import GuestLayout from "./components/layouts/GuestLayout";
-import AdminLayout from "./components/layouts/AdminLayout";
-import EmployeeLayout from "./components/layouts/EmployeeLayout";
+import GuestLayout from "../components/layouts/GuestLayout";
+import AdminLayout from "../components/layouts/AdminLayout";
+import EmployeeLayout from "../components/layouts/EmployeeLayout";
 
 // 🌿 Public pages
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Hiring from "./pages/Hiring";
-import Login from "./pages/Login";
-import Profile from "./pages/Profile";
+import Home from "../pages/Home";
+import About from "../pages/About";
+import Contact from "../pages/Contact";
+import Hiring from "../pages/Hiring";
+import Login from "../pages/Login";
+import Profile from "../pages/Profile";
 
 // 🌿 Job pages
-import JobList from "./pages/jobs/JobList";
-import JobDetail from "./pages/jobs/JobDetail";
-import JobApplicationWizard from "./pages/jobs/JobApplicationWizard";
+import JobList from "../pages/jobs/JobList";
+import JobDetail from "../pages/jobs/JobDetail";
+import JobApplicationWizard from "../pages/jobs/JobApplicationWizard";
 
 // 🌿 Admin pages
-import AdminHome from "./pages/admin/AdminHome";
-import Announcements from "./pages/admin/Announcements";
-import Employees from "./pages/admin/Employees";
-import SchedulePage from "./pages/admin/schedule";
-import Applications from "./pages/admin/Applications";
-import TimeOff from "./pages/admin/TimeOff";
-import ShiftLogs from "./pages/admin/ShiftLogs";
-import QuizEditor from "./pages/admin/QuizEditor";
-import TrainingTracker from "./pages/admin/TrainingTracker";
-import TrainingManager from "./pages/admin/TrainingManager";
-import TrainingPreview from "./pages/admin/TrainingPreview";
-import PayrollManager from "./pages/admin/PayrollManager";
-import AgreementTracker from "./pages/admin/AgreementTracker";
-import AgreementManager from "./pages/admin/AgreementManager";
-import AgreementPreview from "./pages/admin/AgreementPreview";
-import SecurityLogsManager from "./pages/security/SecurityLogsManager";
-import TaskManager from "./pages/tasks/TaskManager";
-import TaskDetail from "./pages/tasks/TaskDetail";
-import JobManager from "./pages/jobs/JobManager";
+import AdminHome from "../pages/admin/AdminHome";
+import Announcements from "../pages/admin/Announcements";
+import Employees from "../pages/admin/Employees";
+import SchedulePage from "../pages/admin/schedule";
+import Applications from "../pages/admin/Applications";
+import TimeOff from "../pages/admin/TimeOff";
+import ShiftLogs from "../pages/admin/ShiftLogs";
+import QuizEditor from "../pages/admin/QuizEditor";
+import TrainingTracker from "../pages/admin/TrainingTracker";
+import TrainingManager from "../pages/admin/TrainingManager";
+import TrainingPreview from "../pages/admin/TrainingPreview";
+import PayrollManager from "../pages/admin/PayrollManager";
+import AgreementTracker from "../pages/admin/AgreementTracker";
+import AgreementManager from "../pages/admin/AgreementManager";
+import AgreementPreview from "../pages/admin/AgreementPreview";
+import SecurityLogsManager from "../pages/security/SecurityLogsManager";
+import TaskManager from "../pages/tasks/TaskManager";
+import TaskDetail from "../pages/tasks/TaskDetail";
+import JobManager from "../pages/jobs/JobManager";
 
 // 🌿 Employee pages
-import EmpHome from "./pages/employee/EmpHome";
-import EmpSchedule from "./pages/employee/EmpSchedule";
-import EmpTimeIn from "./pages/employee/EmpTimeIn";
-import EmpTimeOff from "./pages/employee/EmpTimeOff";
-import EmpAnnouncements from "./pages/employee/EmpAnnouncements";
-import EmpPayroll from "./pages/employee/EmpPayroll";
-import EmpTasks from "./pages/employee/EmpTasks";
-import TrainingDetail from "./pages/training/TrainingDetail";
-import TrainingList from "./pages/training/TrainingList";
-import TrainingQuiz from "./pages/training/TrainingQuiz";
-import AgreementDetail from "./pages/agreement/AgreementDetail";
-import AgreementList from "./pages/agreement/AgreementList";
-import Inbox from "./pages/messaging/Inbox";
+import EmpHome from "../pages/employee/EmpHome";
+import EmpSchedule from "../pages/employee/EmpSchedule";
+import EmpTimeIn from "../pages/employee/EmpTimeIn";
+import EmpTimeOff from "../pages/employee/EmpTimeOff";
+import EmpAnnouncements from "../pages/employee/EmpAnnouncements";
+import EmpPayroll from "../pages/employee/EmpPayroll";
+import EmpTasks from "../pages/employee/EmpTasks";
+import TrainingDetail from "../pages/training/TrainingDetail";
+import TrainingList from "../pages/training/TrainingList";
+import TrainingQuiz from "../pages/training/TrainingQuiz";
+import AgreementDetail from "../pages/agreement/AgreementDetail";
+import AgreementList from "../pages/agreement/AgreementList";
+import Inbox from "../pages/messaging/Inbox";
 
 // ✅ New Wrapper for Chat Page
-import ChatRoute from "./pages/messaging/ChatRoute";
+import ChatRoute from "../pages/messaging/ChatRoute";
 
 export default function App() {
   return (
