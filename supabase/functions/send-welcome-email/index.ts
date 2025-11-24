@@ -46,7 +46,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         <div style="font-family:Arial,sans-serif;background:#f7fdf7;padding:20px;border-radius:8px;">
           <h2 style="color:#15803d;">🌿 Welcome, ${name}!</h2>
           <p>Your employee account has been created for the <b>Hippies Heaven Employee Portal</b>.</p>
-          <p>Login here: <a href="https://employee-portal-self.vercel.app/login" style="color:#15803d;font-weight:bold;">Employee Portal</a></p>
+          <p>You can now log in to: https://employee-portal-self.vercel.app/login</p>
           <p><b>Temporary Password:</b> ${tempPassword}</p>
           <p>Please change your password immediately after your first login.</p>
           <hr style="margin:20px 0;border:none;border-top:1px solid #ccc;" />

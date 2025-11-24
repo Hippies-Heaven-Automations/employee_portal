@@ -1,8 +1,9 @@
 -- ================================================================
--- SUPABASE FULL DATABASE SNAPSHOT (PostgreSQL 17+)
+-- SUPABASE STRUCTURE SNAPSHOT (SAFE VERSION)
 -- Includes: schemas, tables, columns, relationships, constraints,
 -- rls, triggers, functions, views, materialized views, indexes,
--- sequences, extensions, enums, privileges, storage, auth users.
+-- sequences, extensions, enums.
+-- EXCLUDES: auth users, storage buckets/objects, privileges.
 -- ================================================================
 
 WITH
@@ -40,9 +41,9 @@ relationships AS (
          ccu.column_name  AS foreign_column_name
   FROM information_schema.table_constraints tc
   JOIN information_schema.key_column_usage kcu
-       ON tc.constraint_name = kcu.constraint_name
+         ON tc.constraint_name = kcu.constraint_name
   JOIN information_schema.constraint_column_usage ccu
-       ON ccu.constraint_name = tc.constraint_name
+         ON ccu.constraint_name = tc.constraint_name
   WHERE tc.constraint_type = 'FOREIGN KEY'
 ),
 
@@ -128,7 +129,8 @@ indexes AS (
 ),
 
 sequences AS (
-  SELECT sequence_schema, sequence_name, data_type, start_value, minimum_value, maximum_value
+  SELECT sequence_schema, sequence_name, data_type, start_value,
+         minimum_value, maximum_value
   FROM information_schema.sequences
 ),
 
@@ -146,32 +148,6 @@ enums AS (
   JOIN pg_enum e ON t.oid = e.enumtypid
   JOIN pg_namespace n ON n.oid = t.typnamespace
   GROUP BY n.nspname, t.typname
-),
-
-privileges AS (
-  SELECT table_schema, table_name, grantee, privilege_type
-  FROM information_schema.table_privileges
-),
-
-column_privileges AS (
-  SELECT table_schema, table_name, column_name, grantee, privilege_type
-  FROM information_schema.column_privileges
-),
-
-storage_buckets AS (
-  SELECT * FROM storage.buckets
-),
-
-storage_objects AS (
-  SELECT * FROM storage.objects
-  LIMIT 500
-),
-
-auth_roles AS (
-  SELECT id, email, role,
-         raw_app_meta_data, raw_user_meta_data,
-         created_at, last_sign_in_at
-  FROM auth.users
 )
 
 SELECT json_build_object(
@@ -188,10 +164,5 @@ SELECT json_build_object(
   'indexes',             (SELECT json_agg(indexes)             FROM indexes),
   'sequences',           (SELECT json_agg(sequences)           FROM sequences),
   'extensions',          (SELECT json_agg(extensions)          FROM extensions),
-  'enums',               (SELECT json_agg(enums)               FROM enums),
-  'table_privileges',    (SELECT json_agg(privileges)          FROM privileges),
-  'column_privileges',   (SELECT json_agg(column_privileges)   FROM column_privileges),
-  'storage_buckets',     (SELECT json_agg(storage_buckets)     FROM storage_buckets),
-  'storage_objects',     (SELECT json_agg(storage_objects)     FROM storage_objects),
-  'auth_users',          (SELECT json_agg(auth_roles)          FROM auth_roles)
-) AS full_supabase_snapshot;
+  'enums',               (SELECT json_agg(enums)               FROM enums)
+) AS supabase_schema_snapshot;
