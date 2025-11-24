@@ -376,7 +376,7 @@ export default function Employees() {
                       >
                         <Pencil size={16} />
                       </IconButton>
-                      <IconButton
+                      {/* <IconButton
                         onClick={() => handleDelete(emp.id)}
                         sx={{
                           color: "#dc2626",
@@ -385,7 +385,7 @@ export default function Employees() {
                         size="small"
                       >
                         <Trash2 size={16} />
-                      </IconButton>
+                      </IconButton> */}
                     </TableCell>
                   </TableRow>
                 ))}
